@@ -69,3 +69,13 @@ Format:
 - **Why:** Custom loop ensures full understanding and allows custom extensions (speculative decoding, reasoning chain generation). vLLM is the standard production serving engine but requires GPU infrastructure. Custom loop serves educational and small-scale needs; vLLM integration adds production scale without architecture rewrites.
 - **Reversible:** Later — custom engine interface (`InferenceEngine`) can support vLLM backend without changing user-facing API.
 - **Classification:** Custom = CORE. vLLM = OPTIONAL. TensorRT-LLM = RESEARCH-ONLY.
+
+---
+
+## 2026-07-24 — v0.3.0 — Dataset Pipeline Design (Phase 3)
+- **Problem:** How to load text datasets (Tiny Shakespeare, WikiText, OpenWebText) into a format compatible with XRFM training pipeline while maintaining reproducibility and scalability.
+- **Options:** (1) Raw Python file reading only, (2) Hugging Face `datasets` library (optional integration), (3) WebDataset / streaming format (future scale), (4) Original dataset loader with stable interface (`XRFMTextDataset`).
+- **Chosen:** Original dataset loader (`xrfm/data/loader.py`) with `TokenizerInterface` integration, dataset manifest generation, and config-driven settings. Hugging Face `datasets` evaluated but deferred as optional enhancement (post-v0.5.0). Streaming mode (`streaming: true`) reserved for Phase 8+.
+- **Why:** Full ownership of dataset pipeline ensures reproducibility (manifests), clean architecture (layered: verify -> normalize -> tokenize -> chunk), and future scalability (multilingual/code/instruction datasets can use same loader interface without rewrites). External library (`datasets`) would add dependency overhead for Phase 3 without significant benefit for small-to-medium datasets.
+- **Reversible:** Later — Hugging Face `datasets` can be adopted as optional enhancement; loader interface remains stable. Streaming mode activation requires no loader rewrites.
+- **Classification:** Original loader = CORE. HF `datasets` integration = OPTIONAL (post-v0.5.0). Streaming activation = OPTIONAL (Phase 8+). WebDataset format = RESEARCH-ONLY.
