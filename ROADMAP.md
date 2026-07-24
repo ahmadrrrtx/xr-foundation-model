@@ -5,7 +5,7 @@
 - v0.1.0: Phase 1 — Project Foundation (complete)
 - v0.2.0: Phase 2 — Tokenizer
 - v0.3.0: Phase 3 — Dataset Pipeline
-- v0.4.0: Phase 4 — Transformer Architecture
+- v0.4.0: Phase 4 — Transformer Architecture (COMPLETE — `model/gpt.py` + component modules; all `tests/test_*.py` passing; `docs/model/ARCHITECTURE.md` complete; `benchmark/model_forward.py` reserved)
 - v0.5.0: Phase 5 — Training Engine
 - v0.6.0: Phase 6 — Inference Engine
 - v0.7.0: Phase 7 — Evaluation Pipeline
