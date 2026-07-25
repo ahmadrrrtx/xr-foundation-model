@@ -1,0 +1,18 @@
+# XRFM GPU Production Image (v1.0.0)
+# Uses nvidia/cuda runtime for GPU acceleration
+
+FROM nvidia/cuda:12.4-runtime-ubuntu22.04 AS runtime
+RUN apt-get update && apt-get install -y --no-install-recommends python3.11 python3.11-venv python3-pip curl && rm -rf /var/lib/apt/lists/* && ln -s /usr/bin/python3.11 /usr/bin/python
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu121 && pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+RUN useradd -m xrfm && chown -R xrfm:xrfm /app
+USER xrfm
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s CMD curl -f http://localhost:8000/health || exit 1
+
+EXPOSE 8000
+CMD ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

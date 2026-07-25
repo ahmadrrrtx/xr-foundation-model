@@ -58,14 +58,14 @@ def benchmark_forward_pass(
     # Warm-up (ensure any lazy initialization is complete).
     with torch.no_grad():
         for _ in range(3):
-            _ = model(input_ids)
+            _, _ = model(input_ids)
 
     # Benchmark timing.
     times = []
     with torch.no_grad():
         for _ in range(repetitions):
             start = time.perf_counter()
-            out = model(input_ids)
+            out, _ = model(input_ids)
             # Ensure the forward pass is complete (synchronize if GPU available).
             if torch.cuda.is_available():
                 torch.cuda.synchronize()

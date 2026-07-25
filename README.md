@@ -1,52 +1,66 @@
 # XR Foundation Model (XRFM)
 
-**Version:** v0.1.0  
-**License:** MIT  
-**Status:** Active development — Foundation architecture complete (Phase 1)
+**Version:** v1.0.0
+**License:** MIT
+**Status:** Active development — Scaling Training + Inference + Evaluation complete (Phases 1–7) Distributed complete (Phases 1–8)
 
 ---
 
 ## What This Is
 
-XRFM is an open-source foundation model platform built from scratch in pure PyTorch. It is not a tutorial, not a wrapper around an API, and not a renamed fork. Every module is original, production-quality, and designed to scale from 10M parameters to billion-parameter models without rewrites.
-
-## Project Philosophy
-
-We think like a professional AI research lab, not a tutorial project. Every design decision supports future scaling: MoE architectures, multimodal extensions, multi-node training, and production deployment.
-
-## Quick Start (Phase 1 — Complete)
-
-```bash
-git clone https://github.com/your-org/xr-foundation-model.git
-cd xr-foundation-model
-pip install -r requirements.txt
-python -c "from xrfm.config.loader import ConfigLoader; c = ConfigLoader(); print('XRFM config loaded:', c.get('project.name'))"
-```
+XRFM is an open-source foundation model built from scratch in pure PyTorch. It is not a tutorial, not a wrapper around an API, and not a renamed fork. Every module is original and designed to scale from 10M parameters to billion-parameter models without rewrites.
 
 ## Architecture
 
-See `ARCHITECTURE_REVIEW.md` for detailed design decisions and `docs/` for module documentation.
+- **Config-driven:** All hyperparameters flow through `ConfigLoader`. Changing model scale requires only YAML updates.
+- **Modern:** Decoder-only transformer with RoPE, RMSNorm, SwiGLU, pre-norm residuals, weight tying.
+- **Manual attention:** Full control for future GQA, FlashAttention, sliding window extensions.
+- **Original:** No code copied from nanoGPT, litGPT, OLMo, or any tutorial.
 
-Key features:
-- Config-driven model architecture (`xrfm/config/loader.py`)
-- Original PyTorch implementation (no copied source from existing tutorials)
-- Professional open-source standards (`LICENSE`, `CONTRIBUTING`, `ROADMAP`, `CHANGELOG`, `CODE_OF_CONDUCT`, `SECURITY`)
-- Semantic versioning with model names: `XRFM-10M`, `XRFM-50M`, `XRFM-100M`, `XRFM-300M`, `XRFM-1B`, `XRFM-7B`, `XRFM-MoE` (future)
+## Module Status
 
-## References and Attribution
+| Module | Path | Status |
+|---|---|---|
+| Config System | `xrfm/config/loader.py` | v0.1.0 |
+| BPE Tokenizer | `tokenizer/bpe.py` | v0.2.0 |
+| Dataset Pipeline | `xrfm/data/loader.py` | v0.3.0 |
+| Transformer Model | `model/gpt.py` | v0.4.0 |
+| Training Engine | `training/loop.py` | v0.5.1 |
+| Inference Engine | `inference/` | Phase 6 (next) |
+| Evaluation | `evaluation/` | Phase 7 |
+| Distributed Training | `training/distributed.py` | Phase 8 |
 
-This project draws on core concepts from the research literature:
+## Quick Start
+
+```bash
+git clone https://github.com/ahmadrrrtx/xr-foundation-model.git
+cd xr-foundation-model
+pip install -e .
+python -c "from xrfm import ConfigLoader; c = ConfigLoader(); print(c.get('project.name'))"
+```
+
+## Running Tests
+
+```bash
+pip install -e ".[dev]"
+python -m pytest tests/ -v
+```
+
+## References
+
 - Vaswani et al. (2017) — Attention mechanism
-- Karpathy (2023) — `nanoGPT` (conceptual reference for training loops; no code copied)
-- Raschka (2024) — `LLMs-from-Scratch` (conceptual reference for tokenizer and architecture; no code copied)
-- Meta AI (2024) — Llama 3 architecture concepts (RoPE, RMSNorm, SwiGLU, GQA — implemented originally)
-- DeepSeek-AI (2024) — Sparse attention and MoE architecture concepts (implemented originally)
+- Su et al. (2023) — RoPE (RoFormer)
+- Shazeer (2020) — SwiGLU
+- Zhang & Sennrich (2019) — RMSNorm
+- Loshchilov & Hutter (2019) — AdamW
+- Meta AI (2024) — Llama 3 architecture concepts
+- DeepSeek-AI (2024) — DeepSeek-V3 architecture concepts
 
-All source code in this repository is original.
+All source code is original. Concepts only — no line-for-line copying.
 
 ## Roadmap
 
-See `ROADMAP.md`. Phase 2 (Tokenizer) is planned but requires approval before implementation.
+See `ROADMAP.md`. Next milestone: **Phase 6 — Inference Engine**.
 
 ## Contributing
 

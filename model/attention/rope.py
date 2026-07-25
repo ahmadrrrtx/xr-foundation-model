@@ -1,17 +1,15 @@
 """
-Rotary Positional Embedding (RoPE) for XR Foundation Model (XRFM).
+Rotary Positional Embedding (RoPE) for XRFM (v0.6.0).
 
-Purpose: Encode relative token positions into query and key vectors using
-rotation matrices. RoPE ensures that attention scores depend only on the
-relative distance between tokens (m - n), not absolute positions.
+Encodes relative token positions into query/key vectors via rotation.
+Supports position offset for KV cache during autoregressive inference.
 
-Conceptual references (NOT copied):
-- Su, J., Ahmed, M., Lu, Y., et al. (2023). RoFormer: Enhanced Transformer
-  with Rotary Position Embedding. arXiv:2104.09864.
-- Llama 3 Technical Report (Meta AI, 2024) — RoPE design, frequency base.
-- DeepSeek-AI (2024). DeepSeek-V3 Technical Report — RoPE usage.
+Conceptual references (not copied):
+- Su et al. (2023) — RoFormer (arXiv:2104.09864)
+- Meta AI (2024) — Llama 3 RoPE design
+- DeepSeek-AI (2024) — DeepSeek-V3 RoPE usage
 
-Implementation is original. No source code copied from reference repositories.
+Implementation is original.
 """
 
 import math
@@ -22,17 +20,13 @@ import torch.nn as nn
 
 
 class RoPE(nn.Module):
-    """Original Rotary Positional Embedding.
+    """Rotary Positional Embedding with KV cache position offset.
 
-    Applies rotation matrices to query/key tensors. For feature dimension d,
-    pairs (i, i + d/2) are rotated by angle theta_i = base^(-2*i/d) for
-    relative position encoding.
+    For feature dimension d, pairs (i, i + d/2) are rotated by
+    theta_i = base^(-2*i/d) for relative position encoding.
 
-    Design notes:
-    - Configurable (base, max_seq_len, scale_factor).
-    - Numerical stability: frequency computation uses float32; rotation
-      uses sin/cos which are bounded in [-1, 1].
-    - Stable interface: forward(q, k, seq_len) returns rotated Q, K.
+    When offset > 0 (KV cache mode), positions are shifted by offset
+    so that new tokens receive correct absolute position embeddings.
     """
 
     def __init__(
@@ -42,15 +36,17 @@ class RoPE(nn.Module):
         base: float = 10000.0,
         scale_factor: float = 1.0,
     ) -> None:
-        super(RoPE, self).__init__()
+        super().__init__()
         if d_model <= 0:
-            raise ValueError(f"d_model must be positive, got {d_model}.")
+            raise ValueError(f"d_model must be positive, got {d_model}")
         if max_seq_len <= 0:
-            raise ValueError(f"max_seq_len must be positive, got {max_seq_len}.")
+            raise ValueError(f"max_seq_len must be positive, got {max_seq_len}")
+
         self.d_model = d_model
         self.max_seq_len = max_seq_len
         self.base = base
         self.scale_factor = scale_factor
+
         half_dim = d_model // 2
         freq_indices = torch.arange(0, half_dim, dtype=torch.float32)
         freq_indices = freq_indices * scale_factor
@@ -58,44 +54,78 @@ class RoPE(nn.Module):
         self.register_buffer("inv_freq", inv_freq, persistent=False)
 
     def rotate_half(self, x: torch.Tensor) -> torch.Tensor:
-        """Split in half and rotate: (-x2, x1)."""
+        """Split last dim in half and rotate: (-x2, x1)."""
         half_dim = x.shape[-1] // 2
         x1 = x[..., :half_dim]
         x2 = x[..., half_dim:]
         return torch.cat((-x2, x1), dim=-1)
 
-    def apply_rotary_emb(self, x: torch.Tensor, seq_len: int) -> torch.Tensor:
-        """Apply rotation to x of shape (..., d_model)."""
+    def apply_rotary_emb(
+        self, x: torch.Tensor, seq_len: int, offset: int = 0
+    ) -> torch.Tensor:
+        """Apply rotary embedding with optional position offset.
+
+        Args:
+            x: Input (..., seq_len, d_head).
+            seq_len: Number of new token positions.
+            offset: Position offset for KV cache (cache length).
+
+        Returns:
+            Rotated tensor of same shape as x.
+        """
         d = x.shape[-1]
         half_dim = d // 2
-        # Compute frequency based on the actual feature dimension of x.
-        # This ensures RoPE works correctly regardless of whether x has
-        # full d_model or d_head dimension.
-        freq_indices = torch.arange(0, half_dim, dtype=torch.float32, device=x.device)
+
+        # Compute inverse frequencies for this device/dtype
+        freq_indices = torch.arange(
+            0, half_dim, dtype=torch.float32, device=x.device
+        )
         freq_indices = freq_indices * self.scale_factor
-        inv_freq = 1.0 / (self.base ** (freq_indices / half_dim)) if half_dim > 0 else torch.ones(0, device=x.device, dtype=torch.float32)
-        t = torch.arange(seq_len, device=x.device, dtype=torch.float32)
-        freqs = torch.einsum("i,j->ij", t, inv_freq)
-        cos_pair = torch.cos(freqs)
-        sin_pair = torch.sin(freqs)
 
-        # Pair first half and second half with same frequency.
-        # cos_full and sin_full each have shape (seq_len, d)
-        cos_full = torch.cat([cos_pair, cos_pair], dim=-1)
-        sin_full = torch.cat([sin_pair, sin_pair], dim=-1)
+        if half_dim > 0:
+            inv_freq = 1.0 / (
+                self.base ** (freq_indices / half_dim)
+            )
+        else:
+            inv_freq = torch.ones(0, device=x.device, dtype=torch.float32)
 
-        cos = cos_full.unsqueeze(0).unsqueeze(0)  # (1, 1, seq_len, d)
-        sin = sin_full.unsqueeze(0).unsqueeze(0)  # (1, 1, seq_len, d)
+        # Position indices: offset, offset+1, ..., offset+seq_len-1
+        t = torch.arange(
+            offset, offset + seq_len, device=x.device, dtype=torch.float32
+        )
 
-        # x shape: (batch, heads, seq_len, d) or similar
-        # We need to handle arbitrary batch/head dimensions.
-        # Add dimensions to match: unsqueeze at appropriate positions.
-        # The last dimension is d. We need cos/sin to broadcast over batch/head.
-        # cos shape: (1, 1, seq_len, d) broadcasts to (batch, heads, seq_len, d)
-        rotated = x * cos + self.rotate_half(x) * sin
-        return rotated
+        # freqs: (seq_len, half_dim)
+        freqs = torch.outer(t, inv_freq)
+
+        # Duplicate for paired dimensions: (seq_len, d_head)
+        cos_full = torch.cat([torch.cos(freqs), torch.cos(freqs)], dim=-1)
+        sin_full = torch.cat([torch.sin(freqs), torch.sin(freqs)], dim=-1)
+
+        # Reshape for broadcasting: (1, 1, seq_len, d_head)
+        cos = cos_full.unsqueeze(0).unsqueeze(0)
+        sin = sin_full.unsqueeze(0).unsqueeze(0)
+
+        return x * cos + self.rotate_half(x) * sin
 
     def forward(
-        self, q: torch.Tensor, k: torch.Tensor, seq_len: int
+        self,
+        q: torch.Tensor,
+        k: torch.Tensor,
+        seq_len: int,
+        offset: int = 0,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        return self.apply_rotary_emb(q, seq_len), self.apply_rotary_emb(k, seq_len)
+        """Apply rotary embedding to Q and K with optional cache offset.
+
+        Args:
+            q: Query tensor (batch, n_heads, seq_len, d_head).
+            k: Key tensor (batch, n_heads, seq_len, d_head).
+            seq_len: Number of new token positions.
+            offset: Position offset from KV cache (0 for full-sequence).
+
+        Returns:
+            (Q_rotated, K_rotated) — same shapes as inputs.
+        """
+        return (
+            self.apply_rotary_emb(q, seq_len, offset=offset),
+            self.apply_rotary_emb(k, seq_len, offset=offset),
+        )

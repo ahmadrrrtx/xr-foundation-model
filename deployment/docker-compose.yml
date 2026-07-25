@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  xrfm-api:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    image: xrfm:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=info
+      - XRFM_CONFIG_PATH=config/config.yaml
+    volumes:
+      - ../checkpoints:/app/checkpoints
+      - ../tokenizer:/app/tokenizer
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  xrfm-api-gpu:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.gpu
+    image: xrfm:gpu-latest
+    profiles: ["gpu"]
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=info
+    volumes:
+      - ../checkpoints:/app/checkpoints
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped

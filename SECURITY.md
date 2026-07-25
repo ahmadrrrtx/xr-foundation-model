@@ -4,8 +4,9 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| v0.1.x  | Yes (active dev)   |
-| < v0.1  | No                 |
+| v1.0.x  | Yes (active dev)   |
+| v0.4.x  | Security fixes only|
+| < v0.4  | No                 |
 
 ## Reporting Vulnerabilities
 

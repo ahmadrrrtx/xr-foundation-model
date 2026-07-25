@@ -1,11 +1,11 @@
-# XR Foundation Model (XRFM) — Configuration v0.2.0
+# XR Foundation Model (XRFM) — Configuration v0.7.0
 # Source of truth for model architecture, dataset selection, and training hyperparameters.
 # Changing model scale (10M -> 100M -> 1B) requires only config updates — no code rewrites.
 
 project:
   name: "XR Foundation Model"
   package: "xrfm"
-  version: "0.2.0"
+  version: "1.0.0"
 
 paths:
   data_dir: "data/"
@@ -46,3 +46,6 @@ training:
   mixed_precision: true
   checkpoint_every: 1000
   resume_from: null
+  grad_accum_steps: 1
+  use_ddp: false
+  use_fsdp: false
