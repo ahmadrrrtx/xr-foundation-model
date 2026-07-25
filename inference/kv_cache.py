@@ -102,8 +102,4 @@ class KVCache:
         self._seq_len = 0
 
     def __repr__(self) -> str:
-        return (
-            f"KVCache(n_layers={len(self.layers)}, "
-            f"seq_len={self.seq_len}, "
-            f"max_cache_len={self.max_cache_len})"
-        )
+        return f"KVCache(n_layers={len(self.layers)}, seq_len={self.seq_len}, max_cache_len={self.max_cache_len})"

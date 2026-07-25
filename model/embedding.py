@@ -73,12 +73,11 @@ class XRFMEmbedding(nn.Module):
         super().__init__()
         if vocab_size <= 0:
             raise ValueError(
-                f"vocab_size must be positive, got {vocab_size}. "
-                f"Check tokenizer vocabulary or ConfigLoader settings."
+                f"vocab_size must be positive, got {vocab_size}. Check tokenizer vocabulary or ConfigLoader settings."
             )
         if d_model <= 0:
             raise ValueError(
-                f"d_model must be positive, got {d_model}. " f"Check ConfigLoader model settings."
+                f"d_model must be positive, got {d_model}. Check ConfigLoader model settings."
             )
 
         self.vocab_size = vocab_size

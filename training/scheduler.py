@@ -61,13 +61,11 @@ class SchedulerLoader:
         """
         if warmup_steps <= 0:
             raise ValueError(
-                f"warmup_steps must be positive, got {warmup_steps}. "
-                f"Check ConfigLoader training settings."
+                f"warmup_steps must be positive, got {warmup_steps}. Check ConfigLoader training settings."
             )
         if max_steps <= 0:
             raise ValueError(
-                f"max_steps must be positive, got {max_steps}. "
-                f"Check ConfigLoader training settings."
+                f"max_steps must be positive, got {max_steps}. Check ConfigLoader training settings."
             )
         if warmup_steps >= max_steps:
             raise ValueError(
@@ -76,7 +74,7 @@ class SchedulerLoader:
             )
         if base_lr <= 0:
             raise ValueError(
-                f"base_lr must be positive, got {base_lr}. " f"Check ConfigLoader settings."
+                f"base_lr must be positive, got {base_lr}. Check ConfigLoader settings."
             )
 
         self.optimizer = optimizer

@@ -25,7 +25,11 @@ class SearchIndexer:
     """In-memory & disk-persisted hybrid indexer (BM25 + Dense Vectors)."""
 
     def __init__(
-        self, chunk_size: int = 256, chunk_overlap: int = 32, k1: float = 1.5, b: float = 0.75
+        self,
+        chunk_size: int = 256,
+        chunk_overlap: int = 32,
+        k1: float = 1.5,
+        b: float = 0.75,
     ) -> None:
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
@@ -40,7 +44,11 @@ class SearchIndexer:
         return re.findall(r"\w+", text.lower())
 
     def chunk_text(
-        self, text: str, doc_id: str, title: str = "", source_url: str | None = None
+        self,
+        text: str,
+        doc_id: str,
+        title: str = "",
+        source_url: str | None = None,
     ) -> list[DocumentChunk]:
         words = text.split()
         if not words:
@@ -67,7 +75,11 @@ class SearchIndexer:
         return chunks
 
     def add_document(
-        self, doc_id: str, text: str, title: str = "", source_url: str | None = None
+        self,
+        doc_id: str,
+        text: str,
+        title: str = "",
+        source_url: str | None = None,
     ) -> int:
         chunks = self.chunk_text(text, doc_id, title=title, source_url=source_url)
         for chunk in chunks:

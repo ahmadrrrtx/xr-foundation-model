@@ -31,9 +31,7 @@ PyTorch auto-selects the fastest backend (FlashAttention-2 on CUDA, MemoryEffici
 Compress model weights from FP32 to INT8/INT4:
 
 ```python
-from optimization.quantization import (
-    quantize_model_weights, dequantize_weight, compute_compression_ratio
-)
+from optimization.quantization import quantize_model_weights, dequantize_weight, compute_compression_ratio
 
 # INT8 (4x compression)
 model, q_map = quantize_model_weights(model, bits=8)
@@ -63,12 +61,14 @@ Use a small draft model to accelerate the large target model:
 from optimization.speculative_decoding import SpeculativeDecoder
 
 target = GPTModel("config/config.yaml")  # large model
-draft = GPTModel("config/config.yaml")   # small model (same vocab)
+draft = GPTModel("config/config.yaml")  # small model (same vocab)
 
 decoder = SpeculativeDecoder(target, draft, gamma=5)
 output = decoder.generate(
-    input_ids, max_new_tokens=100,
-    temperature=0.8, top_p=0.9,
+    input_ids,
+    max_new_tokens=100,
+    temperature=0.8,
+    top_p=0.9,
 )
 ```
 
@@ -99,6 +99,7 @@ from optimization.flash_attention import flash_attention_forward
 
 ```python
 from optimization.quantization import quantize_model_weights, compute_compression_ratio
+
 model, q_map = quantize_model_weights(model, bits=8)
 print(f"Compression: {compute_compression_ratio(q_map):.1f}x")
 ```

@@ -61,9 +61,7 @@ For texts longer than `max_seq_len`, use strided evaluation:
 
 ```python
 token_ids = tokenizer.encode(long_text)
-ppl = compute_perplexity_strided(
-    model, token_ids, stride=512, max_seq_len=1024
-)
+ppl = compute_perplexity_strided(model, token_ids, stride=512, max_seq_len=1024)
 ```
 
 The sliding window with overlap avoids double-counting while providing full context.
@@ -100,6 +98,7 @@ Extend the `Benchmark` base class:
 
 ```python
 from evaluation.benchmarks import Benchmark
+
 
 class MyBenchmark(Benchmark):
     def __init__(self):

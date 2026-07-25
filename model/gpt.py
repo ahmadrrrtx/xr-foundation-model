@@ -61,7 +61,7 @@ class GPTModel(nn.Module):
             raise ValueError(f"n_heads must be positive: {model_cfg.n_heads}")
         if model_cfg.d_model % model_cfg.n_heads != 0:
             raise ValueError(
-                f"d_model ({model_cfg.d_model}) not divisible by " f"n_heads ({model_cfg.n_heads})"
+                f"d_model ({model_cfg.d_model}) not divisible by n_heads ({model_cfg.n_heads})"
             )
         if model_cfg.d_ff <= 0:
             raise ValueError(f"d_ff must be positive: {model_cfg.d_ff}")
@@ -140,9 +140,7 @@ class GPTModel(nn.Module):
         # Check vocabulary bounds
         if (input_ids >= self.embedding.vocab_size).any():
             max_id = int(input_ids.max().item())
-            raise IndexError(
-                f"Token ID {max_id} exceeds vocab size " f"({self.embedding.vocab_size})"
-            )
+            raise IndexError(f"Token ID {max_id} exceeds vocab size ({self.embedding.vocab_size})")
 
         batch_size, seq_len = input_ids.shape
 

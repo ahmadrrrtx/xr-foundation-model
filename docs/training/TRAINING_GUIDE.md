@@ -53,10 +53,15 @@ from training.loop import TrainingLoop
 # Initialize model (`GPTModel` — `v0.4.0`).
 model = GPTModel(config_path="config/config.yaml")
 
+
 # Initialize dataset (`RESEARCH-ONLY`: `XRFMTextDataset` for production; `DummyDataset` for `Phase 5` demo).
 class DummyDataset:
-    def __len__(self): return 10
-    def __getitem__(self, idx): return torch.randint(0, 50304, (32,))
+    def __len__(self):
+        return 10
+
+    def __getitem__(self, idx):
+        return torch.randint(0, 50304, (32,))
+
 
 dataset = DummyDataset()
 

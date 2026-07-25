@@ -25,7 +25,11 @@ class LocalSearchAgent:
         self.retriever = SearchRetriever(self.indexer)
 
     def add_document(
-        self, doc_id: str, text: str, title: str = "", source_url: str | None = None
+        self,
+        doc_id: str,
+        text: str,
+        title: str = "",
+        source_url: str | None = None,
     ) -> int:
         return self.indexer.add_document(doc_id, text, title=title, source_url=source_url)
 

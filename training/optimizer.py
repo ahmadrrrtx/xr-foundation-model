@@ -62,13 +62,11 @@ class OptimizerLoader:
         """
         if learning_rate <= 0:
             raise ValueError(
-                f"learning_rate must be positive, got {learning_rate}. "
-                f"Check ConfigLoader training settings."
+                f"learning_rate must be positive, got {learning_rate}. Check ConfigLoader training settings."
             )
         if weight_decay < 0:
             raise ValueError(
-                f"weight_decay must be non-negative, got {weight_decay}. "
-                f"Check ConfigLoader training settings."
+                f"weight_decay must be non-negative, got {weight_decay}. Check ConfigLoader training settings."
             )
         if len(betas) != 2 or not (0.0 <= betas[0] < 1.0) or not (0.0 <= betas[1] < 1.0):
             raise ValueError(f"betas must be a tuple of two values in [0, 1), got {betas}.")

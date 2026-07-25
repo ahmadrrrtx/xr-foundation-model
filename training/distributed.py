@@ -211,7 +211,7 @@ def wrap_model_fsdp(
         return FSDP(model, **fsdp_kwargs)
 
     except ImportError:
-        logger.warning("FSDP not available in this PyTorch version. " "Falling back to DDP.")
+        logger.warning("FSDP not available in this PyTorch version. Falling back to DDP.")
         return wrap_model_ddp(model)
 
 

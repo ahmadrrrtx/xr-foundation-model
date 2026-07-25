@@ -56,8 +56,7 @@ class BytePairEncoder(TokenizerInterface):
         super().__init__()
         if vocab_size_target < 256:
             raise ValueError(
-                f"vocab_size_target must be at least 256 to cover byte range, "
-                f"got {vocab_size_target}"
+                f"vocab_size_target must be at least 256 to cover byte range, got {vocab_size_target}"
             )
         self.vocab_size_target = vocab_size_target
         self.vocab: dict[str, int] = {}
@@ -340,8 +339,7 @@ class BytePairEncoder(TokenizerInterface):
             else:
                 if strict:
                     raise ValueError(
-                        f"Token ID {token_id} not found in vocabulary. "
-                        f"Vocabulary size: {self.vocab_size()}."
+                        f"Token ID {token_id} not found in vocabulary. Vocabulary size: {self.vocab_size()}."
                     )
                 reconstructed_parts.append(f"<{token_id}>")
 

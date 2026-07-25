@@ -72,13 +72,11 @@ def compute_perplexity(
             # Validate batch
             if batch_input_ids.dim() != 2:
                 raise ValueError(
-                    f"Expected 2D input batch, got {batch_input_ids.dim()}D. "
-                    f"Check DataLoader configuration."
+                    f"Expected 2D input batch, got {batch_input_ids.dim()}D. Check DataLoader configuration."
                 )
             if batch_target_ids.dim() != 2 or batch_target_ids.shape != batch_input_ids.shape:
                 raise ValueError(
-                    f"Target shape {batch_target_ids.shape} must match "
-                    f"input shape {batch_input_ids.shape}"
+                    f"Target shape {batch_target_ids.shape} must match input shape {batch_input_ids.shape}"
                 )
 
             batch_size, seq_len = batch_input_ids.shape
@@ -90,8 +88,7 @@ def compute_perplexity(
             # Validate logits
             if torch.isnan(logits).any() or torch.isinf(logits).any():
                 raise RuntimeError(
-                    f"NaN or Inf in model logits at batch {batch_count}. "
-                    f"Check model weights and numerical stability."
+                    f"NaN or Inf in model logits at batch {batch_count}. Check model weights and numerical stability."
                 )
 
             # Cross-entropy loss: logits predict target_ids at each position
@@ -112,8 +109,7 @@ def compute_perplexity(
 
     if total_tokens == 0:
         raise ValueError(
-            "No tokens evaluated. Dataloader may be empty. "
-            "Check dataset and batch configuration."
+            "No tokens evaluated. Dataloader may be empty. Check dataset and batch configuration."
         )
 
     # Average negative log-likelihood per token
@@ -169,7 +165,7 @@ def compute_perplexity_strided(
         raise ValueError(f"max_seq_len must be positive, got {max_seq_len}")
     if max_seq_len > model.max_seq_len:
         raise ValueError(
-            f"max_seq_len ({max_seq_len}) exceeds model.max_seq_len " f"({model.max_seq_len})"
+            f"max_seq_len ({max_seq_len}) exceeds model.max_seq_len ({model.max_seq_len})"
         )
 
     model.eval()
