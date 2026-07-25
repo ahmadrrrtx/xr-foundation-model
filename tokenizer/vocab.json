@@ -1,0 +1,1025 @@
+{
+  "vocab_size_target": 1024,
+  "vocab": {
+    "\u0000": 0,
+    "\u0001": 1,
+    "\u0002": 2,
+    "\u0003": 3,
+    "\u0004": 4,
+    "\u0005": 5,
+    "\u0006": 6,
+    "\u0007": 7,
+    "\b": 8,
+    "\t": 9,
+    "\n": 10,
+    "\u000b": 11,
+    "\f": 12,
+    "\r": 13,
+    "\u000e": 14,
+    "\u000f": 15,
+    "\u0010": 16,
+    "\u0011": 17,
+    "\u0012": 18,
+    "\u0013": 19,
+    "\u0014": 20,
+    "\u0015": 21,
+    "\u0016": 22,
+    "\u0017": 23,
+    "\u0018": 24,
+    "\u0019": 25,
+    "\u001a": 26,
+    "\u001b": 27,
+    "\u001c": 28,
+    "\u001d": 29,
+    "\u001e": 30,
+    "\u001f": 31,
+    " ": 32,
+    "!": 33,
+    "\"": 34,
+    "#": 35,
+    "$": 36,
+    "%": 37,
+    "&": 38,
+    "'": 39,
+    "(": 40,
+    ")": 41,
+    "*": 42,
+    "+": 43,
+    ",": 44,
+    "-": 45,
+    ".": 46,
+    "/": 47,
+    "0": 48,
+    "1": 49,
+    "2": 50,
+    "3": 51,
+    "4": 52,
+    "5": 53,
+    "6": 54,
+    "7": 55,
+    "8": 56,
+    "9": 57,
+    ":": 58,
+    ";": 59,
+    "<": 60,
+    "=": 61,
+    ">": 62,
+    "?": 63,
+    "@": 64,
+    "A": 65,
+    "B": 66,
+    "C": 67,
+    "D": 68,
+    "E": 69,
+    "F": 70,
+    "G": 71,
+    "H": 72,
+    "I": 73,
+    "J": 74,
+    "K": 75,
+    "L": 76,
+    "M": 77,
+    "N": 78,
+    "O": 79,
+    "P": 80,
+    "Q": 81,
+    "R": 82,
+    "S": 83,
+    "T": 84,
+    "U": 85,
+    "V": 86,
+    "W": 87,
+    "X": 88,
+    "Y": 89,
+    "Z": 90,
+    "[": 91,
+    "\\": 92,
+    "]": 93,
+    "^": 94,
+    "_": 95,
+    "`": 96,
+    "a": 97,
+    "b": 98,
+    "c": 99,
+    "d": 100,
+    "e": 101,
+    "f": 102,
+    "g": 103,
+    "h": 104,
+    "i": 105,
+    "j": 106,
+    "k": 107,
+    "l": 108,
+    "m": 109,
+    "n": 110,
+    "o": 111,
+    "p": 112,
+    "q": 113,
+    "r": 114,
+    "s": 115,
+    "t": 116,
+    "u": 117,
+    "v": 118,
+    "w": 119,
+    "x": 120,
+    "y": 121,
+    "z": 122,
+    "{": 123,
+    "|": 124,
+    "}": 125,
+    "~": 126,
+    "": 127,
+    "": 128,
+    "": 129,
+    "": 130,
+    "": 131,
+    "": 132,
+    "": 133,
+    "": 134,
+    "": 135,
+    "": 136,
+    "": 137,
+    "": 138,
+    "": 139,
+    "": 140,
+    "": 141,
+    "": 142,
+    "": 143,
+    "": 144,
+    "": 145,
+    "": 146,
+    "": 147,
+    "": 148,
+    "": 149,
+    "": 150,
+    "": 151,
+    "": 152,
+    "": 153,
+    "": 154,
+    "": 155,
+    "": 156,
+    "": 157,
+    "": 158,
+    "": 159,
+    " ": 160,
+    "¡": 161,
+    "¢": 162,
+    "£": 163,
+    "¤": 164,
+    "¥": 165,
+    "¦": 166,
+    "§": 167,
+    "¨": 168,
+    "©": 169,
+    "ª": 170,
+    "«": 171,
+    "¬": 172,
+    "­": 173,
+    "®": 174,
+    "¯": 175,
+    "°": 176,
+    "±": 177,
+    "²": 178,
+    "³": 179,
+    "´": 180,
+    "µ": 181,
+    "¶": 182,
+    "·": 183,
+    "¸": 184,
+    "¹": 185,
+    "º": 186,
+    "»": 187,
+    "¼": 188,
+    "½": 189,
+    "¾": 190,
+    "¿": 191,
+    "À": 192,
+    "Á": 193,
+    "Â": 194,
+    "Ã": 195,
+    "Ä": 196,
+    "Å": 197,
+    "Æ": 198,
+    "Ç": 199,
+    "È": 200,
+    "É": 201,
+    "Ê": 202,
+    "Ë": 203,
+    "Ì": 204,
+    "Í": 205,
+    "Î": 206,
+    "Ï": 207,
+    "Ð": 208,
+    "Ñ": 209,
+    "Ò": 210,
+    "Ó": 211,
+    "Ô": 212,
+    "Õ": 213,
+    "Ö": 214,
+    "×": 215,
+    "Ø": 216,
+    "Ù": 217,
+    "Ú": 218,
+    "Û": 219,
+    "Ü": 220,
+    "Ý": 221,
+    "Þ": 222,
+    "ß": 223,
+    "à": 224,
+    "á": 225,
+    "â": 226,
+    "ã": 227,
+    "ä": 228,
+    "å": 229,
+    "æ": 230,
+    "ç": 231,
+    "è": 232,
+    "é": 233,
+    "ê": 234,
+    "ë": 235,
+    "ì": 236,
+    "í": 237,
+    "î": 238,
+    "ï": 239,
+    "ð": 240,
+    "ñ": 241,
+    "ò": 242,
+    "ó": 243,
+    "ô": 244,
+    "õ": 245,
+    "ö": 246,
+    "÷": 247,
+    "ø": 248,
+    "ù": 249,
+    "ú": 250,
+    "û": 251,
+    "ü": 252,
+    "ý": 253,
+    "þ": 254,
+    "ÿ": 255,
+    "at": 256,
+    "an": 257,
+    "on": 258,
+    "in": 259,
+    "ion": 260,
+    "or": 261,
+    "ou": 262,
+    "ation": 263,
+    "od": 264,
+    "ode": 265,
+    "odel": 266,
+    "is": 267,
+    "us": 268,
+    "to": 269,
+    "ed": 270,
+    "XR": 271,
+    "ig": 272,
+    "al": 273,
+    "cus": 274,
+    "custo": 275,
+    "custom": 276,
+    "model": 277,
+    "Ro": 278,
+    "mb": 279,
+    "mbed": 280,
+    "mbedd": 281,
+    "mbeddin": 282,
+    "mbedding": 283,
+    "mbeddings": 284,
+    "ti": 285,
+    "orm": 286,
+    "re": 287,
+    "as": 288,
+    "Fou": 289,
+    "Foun": 290,
+    "Found": 291,
+    "Foundation": 292,
+    "Model": 293,
+    "(XR": 294,
+    "(XRF": 295,
+    "(XRFM": 296,
+    "(XRFM)": 297,
+    "orig": 298,
+    "origin": 299,
+    "original": 300,
+    "lan": 301,
+    "lang": 302,
+    "langu": 303,
+    "langua": 304,
+    "languag": 305,
+    "language": 306,
+    "bu": 307,
+    "bui": 308,
+    "buil": 309,
+    "built": 310,
+    "Py": 311,
+    "PyT": 312,
+    "PyTor": 313,
+    "PyTorc": 314,
+    "PyTorch": 315,
+    "PyTorch.": 316,
+    "It": 317,
+    "use": 318,
+    "uses": 319,
+    "Rot": 320,
+    "Rota": 321,
+    "Rotar": 322,
+    "Rotary": 323,
+    "Po": 324,
+    "Pos": 325,
+    "Posi": 326,
+    "Posit": 327,
+    "Position": 328,
+    "Embeddings": 329,
+    "(Ro": 330,
+    "(RoP": 331,
+    "(RoPE": 332,
+    "(RoPE)": 333,
+    "(RoPE),": 334,
+    "Sw": 335,
+    "Swi": 336,
+    "SwiG": 337,
+    "SwiGL": 338,
+    "SwiGLU": 339,
+    "ac": 340,
+    "acti": 341,
+    "activ": 342,
+    "activation": 343,
+    "activations": 344,
+    "activations,": 345,
+    "RM": 346,
+    "RMS": 347,
+    "RMSN": 348,
+    "RMSNorm": 349,
+    "pre": 350,
+    "pre-": 351,
+    "pre-n": 352,
+    "pre-norm": 353,
+    "pre-normal": 354,
+    "pre-normali": 355,
+    "pre-normaliz": 356,
+    "pre-normalization": 357,
+    "pre-normalization,": 358,
+    "and": 359,
+    "we": 360,
+    "weig": 361,
+    "weigh": 362,
+    "weight": 363,
+    "weight-": 364,
+    "weight-ti": 365,
+    "weight-tied": 366,
+    "embeddings": 367,
+    "embeddings.": 368,
+    "You": 369,
+    "can": 370,
+    "tr": 371,
+    "tra": 372,
+    "train": 373,
+    "th": 374,
+    "this": 375,
+    "any": 376,
+    "te": 377,
+    "tex": 378,
+    "text": 379,
+    "dat": 380,
+    "datas": 381,
+    "datase": 382,
+    "dataset": 383,
+    "cre": 384,
+    "creat": 385,
+    "create": 386,
+    "you": 387,
+    "your": 388,
+    "ow": 389,
+    "own": 390,
+    "Ch": 391,
+    "Chat": 392,
+    "ChatG": 393,
+    "ChatGP": 394,
+    "ChatGPT": 395,
+    "ChatGPT-": 396,
+    "ChatGPT-l": 397,
+    "ChatGPT-li": 398,
+    "ChatGPT-lik": 399,
+    "ChatGPT-like": 400,
+    "AI": 401,
+    "ass": 402,
+    "assis": 403,
+    "assist": 404,
+    "assistan": 405,
+    "assistant": 406,
+    "assistant!": 407
+  },
+  "merges": [
+    {
+      "part_a": "a",
+      "part_b": "t"
+    },
+    {
+      "part_a": "a",
+      "part_b": "n"
+    },
+    {
+      "part_a": "o",
+      "part_b": "n"
+    },
+    {
+      "part_a": "i",
+      "part_b": "n"
+    },
+    {
+      "part_a": "i",
+      "part_b": "on"
+    },
+    {
+      "part_a": "o",
+      "part_b": "r"
+    },
+    {
+      "part_a": "o",
+      "part_b": "u"
+    },
+    {
+      "part_a": "at",
+      "part_b": "ion"
+    },
+    {
+      "part_a": "o",
+      "part_b": "d"
+    },
+    {
+      "part_a": "od",
+      "part_b": "e"
+    },
+    {
+      "part_a": "ode",
+      "part_b": "l"
+    },
+    {
+      "part_a": "i",
+      "part_b": "s"
+    },
+    {
+      "part_a": "u",
+      "part_b": "s"
+    },
+    {
+      "part_a": "t",
+      "part_b": "o"
+    },
+    {
+      "part_a": "e",
+      "part_b": "d"
+    },
+    {
+      "part_a": "X",
+      "part_b": "R"
+    },
+    {
+      "part_a": "i",
+      "part_b": "g"
+    },
+    {
+      "part_a": "a",
+      "part_b": "l"
+    },
+    {
+      "part_a": "c",
+      "part_b": "us"
+    },
+    {
+      "part_a": "cus",
+      "part_b": "to"
+    },
+    {
+      "part_a": "custo",
+      "part_b": "m"
+    },
+    {
+      "part_a": "m",
+      "part_b": "odel"
+    },
+    {
+      "part_a": "R",
+      "part_b": "o"
+    },
+    {
+      "part_a": "m",
+      "part_b": "b"
+    },
+    {
+      "part_a": "mb",
+      "part_b": "ed"
+    },
+    {
+      "part_a": "mbed",
+      "part_b": "d"
+    },
+    {
+      "part_a": "mbedd",
+      "part_b": "in"
+    },
+    {
+      "part_a": "mbeddin",
+      "part_b": "g"
+    },
+    {
+      "part_a": "mbedding",
+      "part_b": "s"
+    },
+    {
+      "part_a": "t",
+      "part_b": "i"
+    },
+    {
+      "part_a": "or",
+      "part_b": "m"
+    },
+    {
+      "part_a": "r",
+      "part_b": "e"
+    },
+    {
+      "part_a": "a",
+      "part_b": "s"
+    },
+    {
+      "part_a": "F",
+      "part_b": "ou"
+    },
+    {
+      "part_a": "Fou",
+      "part_b": "n"
+    },
+    {
+      "part_a": "Foun",
+      "part_b": "d"
+    },
+    {
+      "part_a": "Found",
+      "part_b": "ation"
+    },
+    {
+      "part_a": "M",
+      "part_b": "odel"
+    },
+    {
+      "part_a": "(",
+      "part_b": "XR"
+    },
+    {
+      "part_a": "(XR",
+      "part_b": "F"
+    },
+    {
+      "part_a": "(XRF",
+      "part_b": "M"
+    },
+    {
+      "part_a": "(XRFM",
+      "part_b": ")"
+    },
+    {
+      "part_a": "or",
+      "part_b": "ig"
+    },
+    {
+      "part_a": "orig",
+      "part_b": "in"
+    },
+    {
+      "part_a": "origin",
+      "part_b": "al"
+    },
+    {
+      "part_a": "l",
+      "part_b": "an"
+    },
+    {
+      "part_a": "lan",
+      "part_b": "g"
+    },
+    {
+      "part_a": "lang",
+      "part_b": "u"
+    },
+    {
+      "part_a": "langu",
+      "part_b": "a"
+    },
+    {
+      "part_a": "langua",
+      "part_b": "g"
+    },
+    {
+      "part_a": "languag",
+      "part_b": "e"
+    },
+    {
+      "part_a": "b",
+      "part_b": "u"
+    },
+    {
+      "part_a": "bu",
+      "part_b": "i"
+    },
+    {
+      "part_a": "bui",
+      "part_b": "l"
+    },
+    {
+      "part_a": "buil",
+      "part_b": "t"
+    },
+    {
+      "part_a": "P",
+      "part_b": "y"
+    },
+    {
+      "part_a": "Py",
+      "part_b": "T"
+    },
+    {
+      "part_a": "PyT",
+      "part_b": "or"
+    },
+    {
+      "part_a": "PyTor",
+      "part_b": "c"
+    },
+    {
+      "part_a": "PyTorc",
+      "part_b": "h"
+    },
+    {
+      "part_a": "PyTorch",
+      "part_b": "."
+    },
+    {
+      "part_a": "I",
+      "part_b": "t"
+    },
+    {
+      "part_a": "us",
+      "part_b": "e"
+    },
+    {
+      "part_a": "use",
+      "part_b": "s"
+    },
+    {
+      "part_a": "Ro",
+      "part_b": "t"
+    },
+    {
+      "part_a": "Rot",
+      "part_b": "a"
+    },
+    {
+      "part_a": "Rota",
+      "part_b": "r"
+    },
+    {
+      "part_a": "Rotar",
+      "part_b": "y"
+    },
+    {
+      "part_a": "P",
+      "part_b": "o"
+    },
+    {
+      "part_a": "Po",
+      "part_b": "s"
+    },
+    {
+      "part_a": "Pos",
+      "part_b": "i"
+    },
+    {
+      "part_a": "Posi",
+      "part_b": "t"
+    },
+    {
+      "part_a": "Posit",
+      "part_b": "ion"
+    },
+    {
+      "part_a": "E",
+      "part_b": "mbeddings"
+    },
+    {
+      "part_a": "(",
+      "part_b": "Ro"
+    },
+    {
+      "part_a": "(Ro",
+      "part_b": "P"
+    },
+    {
+      "part_a": "(RoP",
+      "part_b": "E"
+    },
+    {
+      "part_a": "(RoPE",
+      "part_b": ")"
+    },
+    {
+      "part_a": "(RoPE)",
+      "part_b": ","
+    },
+    {
+      "part_a": "S",
+      "part_b": "w"
+    },
+    {
+      "part_a": "Sw",
+      "part_b": "i"
+    },
+    {
+      "part_a": "Swi",
+      "part_b": "G"
+    },
+    {
+      "part_a": "SwiG",
+      "part_b": "L"
+    },
+    {
+      "part_a": "SwiGL",
+      "part_b": "U"
+    },
+    {
+      "part_a": "a",
+      "part_b": "c"
+    },
+    {
+      "part_a": "ac",
+      "part_b": "ti"
+    },
+    {
+      "part_a": "acti",
+      "part_b": "v"
+    },
+    {
+      "part_a": "activ",
+      "part_b": "ation"
+    },
+    {
+      "part_a": "activation",
+      "part_b": "s"
+    },
+    {
+      "part_a": "activations",
+      "part_b": ","
+    },
+    {
+      "part_a": "R",
+      "part_b": "M"
+    },
+    {
+      "part_a": "RM",
+      "part_b": "S"
+    },
+    {
+      "part_a": "RMS",
+      "part_b": "N"
+    },
+    {
+      "part_a": "RMSN",
+      "part_b": "orm"
+    },
+    {
+      "part_a": "p",
+      "part_b": "re"
+    },
+    {
+      "part_a": "pre",
+      "part_b": "-"
+    },
+    {
+      "part_a": "pre-",
+      "part_b": "n"
+    },
+    {
+      "part_a": "pre-n",
+      "part_b": "orm"
+    },
+    {
+      "part_a": "pre-norm",
+      "part_b": "al"
+    },
+    {
+      "part_a": "pre-normal",
+      "part_b": "i"
+    },
+    {
+      "part_a": "pre-normali",
+      "part_b": "z"
+    },
+    {
+      "part_a": "pre-normaliz",
+      "part_b": "ation"
+    },
+    {
+      "part_a": "pre-normalization",
+      "part_b": ","
+    },
+    {
+      "part_a": "an",
+      "part_b": "d"
+    },
+    {
+      "part_a": "w",
+      "part_b": "e"
+    },
+    {
+      "part_a": "we",
+      "part_b": "ig"
+    },
+    {
+      "part_a": "weig",
+      "part_b": "h"
+    },
+    {
+      "part_a": "weigh",
+      "part_b": "t"
+    },
+    {
+      "part_a": "weight",
+      "part_b": "-"
+    },
+    {
+      "part_a": "weight-",
+      "part_b": "ti"
+    },
+    {
+      "part_a": "weight-ti",
+      "part_b": "ed"
+    },
+    {
+      "part_a": "e",
+      "part_b": "mbeddings"
+    },
+    {
+      "part_a": "embeddings",
+      "part_b": "."
+    },
+    {
+      "part_a": "Y",
+      "part_b": "ou"
+    },
+    {
+      "part_a": "c",
+      "part_b": "an"
+    },
+    {
+      "part_a": "t",
+      "part_b": "r"
+    },
+    {
+      "part_a": "tr",
+      "part_b": "a"
+    },
+    {
+      "part_a": "tra",
+      "part_b": "in"
+    },
+    {
+      "part_a": "t",
+      "part_b": "h"
+    },
+    {
+      "part_a": "th",
+      "part_b": "is"
+    },
+    {
+      "part_a": "an",
+      "part_b": "y"
+    },
+    {
+      "part_a": "t",
+      "part_b": "e"
+    },
+    {
+      "part_a": "te",
+      "part_b": "x"
+    },
+    {
+      "part_a": "tex",
+      "part_b": "t"
+    },
+    {
+      "part_a": "d",
+      "part_b": "at"
+    },
+    {
+      "part_a": "dat",
+      "part_b": "as"
+    },
+    {
+      "part_a": "datas",
+      "part_b": "e"
+    },
+    {
+      "part_a": "datase",
+      "part_b": "t"
+    },
+    {
+      "part_a": "c",
+      "part_b": "re"
+    },
+    {
+      "part_a": "cre",
+      "part_b": "at"
+    },
+    {
+      "part_a": "creat",
+      "part_b": "e"
+    },
+    {
+      "part_a": "y",
+      "part_b": "ou"
+    },
+    {
+      "part_a": "you",
+      "part_b": "r"
+    },
+    {
+      "part_a": "o",
+      "part_b": "w"
+    },
+    {
+      "part_a": "ow",
+      "part_b": "n"
+    },
+    {
+      "part_a": "C",
+      "part_b": "h"
+    },
+    {
+      "part_a": "Ch",
+      "part_b": "at"
+    },
+    {
+      "part_a": "Chat",
+      "part_b": "G"
+    },
+    {
+      "part_a": "ChatG",
+      "part_b": "P"
+    },
+    {
+      "part_a": "ChatGP",
+      "part_b": "T"
+    },
+    {
+      "part_a": "ChatGPT",
+      "part_b": "-"
+    },
+    {
+      "part_a": "ChatGPT-",
+      "part_b": "l"
+    },
+    {
+      "part_a": "ChatGPT-l",
+      "part_b": "i"
+    },
+    {
+      "part_a": "ChatGPT-li",
+      "part_b": "k"
+    },
+    {
+      "part_a": "ChatGPT-lik",
+      "part_b": "e"
+    },
+    {
+      "part_a": "A",
+      "part_b": "I"
+    },
+    {
+      "part_a": "as",
+      "part_b": "s"
+    },
+    {
+      "part_a": "ass",
+      "part_b": "is"
+    },
+    {
+      "part_a": "assis",
+      "part_b": "t"
+    },
+    {
+      "part_a": "assist",
+      "part_b": "an"
+    },
+    {
+      "part_a": "assistan",
+      "part_b": "t"
+    },
+    {
+      "part_a": "assistant",
+      "part_b": "!"
+    }
+  ],
+  "special_tokens": {},
+  "version": "xrfm-bpe-v1"
+}

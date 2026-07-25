@@ -6,9 +6,15 @@ security headers, and CORS.
 """
 
 import logging
+import os
 import sys
 import time
 from contextlib import asynccontextmanager
+
+# Ensure repository root is on sys.path for Windows & cross-platform imports
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
