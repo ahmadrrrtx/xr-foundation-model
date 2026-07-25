@@ -19,15 +19,14 @@ Implementation is original.
 """
 
 import math
-from typing import Optional, Tuple
 
 import torch
 import torch.nn.functional as F
 
-
 # ---------------------------------------------------------------------------
 # Backend detection
 # ---------------------------------------------------------------------------
+
 
 def is_flash_attention_available() -> bool:
     """Check if FlashAttention backend is available on current hardware."""
@@ -61,15 +60,16 @@ def get_available_backend() -> str:
 # Core attention functions
 # ---------------------------------------------------------------------------
 
+
 def scaled_dot_product_attention(
     query: torch.Tensor,
     key: torch.Tensor,
     value: torch.Tensor,
-    attn_mask: Optional[torch.Tensor] = None,
+    attn_mask: torch.Tensor | None = None,
     dropout_p: float = 0.0,
     is_causal: bool = True,
-    scale: Optional[float] = None,
-    force_backend: Optional[str] = None,
+    scale: float | None = None,
+    force_backend: str | None = None,
 ) -> torch.Tensor:
     """Compute attention using the fastest available backend.
 
@@ -104,7 +104,9 @@ def scaled_dot_product_attention(
             enable_math=enable_math,
         ):
             return F.scaled_dot_product_attention(
-                query, key, value,
+                query,
+                key,
+                value,
                 attn_mask=attn_mask,
                 dropout_p=dropout_p,
                 is_causal=is_causal and attn_mask is None,
@@ -112,7 +114,9 @@ def scaled_dot_product_attention(
             )
     else:
         return F.scaled_dot_product_attention(
-            query, key, value,
+            query,
+            key,
+            value,
             attn_mask=attn_mask,
             dropout_p=dropout_p,
             is_causal=is_causal and attn_mask is None,
@@ -124,14 +128,15 @@ def scaled_dot_product_attention(
 # Attention wrapper — drop-in for MultiHeadAttention internals
 # ---------------------------------------------------------------------------
 
+
 def flash_attention_forward(
     q: torch.Tensor,
     k: torch.Tensor,
     v: torch.Tensor,
-    mask: Optional[torch.Tensor] = None,
+    mask: torch.Tensor | None = None,
     dropout_p: float = 0.0,
     training: bool = False,
-    force_backend: Optional[str] = None,
+    force_backend: str | None = None,
 ) -> torch.Tensor:
     """Optimized attention forward pass.
 
@@ -156,7 +161,9 @@ def flash_attention_forward(
     # (PyTorch SDP handles causal only when no mask is given)
     if mask is not None:
         return scaled_dot_product_attention(
-            q, k, v,
+            q,
+            k,
+            v,
             attn_mask=mask,
             dropout_p=use_dropout,
             is_causal=False,
@@ -164,7 +171,9 @@ def flash_attention_forward(
         )
     else:
         return scaled_dot_product_attention(
-            q, k, v,
+            q,
+            k,
+            v,
             dropout_p=use_dropout,
             is_causal=True,
             force_backend=force_backend,
@@ -174,6 +183,7 @@ def flash_attention_forward(
 # ---------------------------------------------------------------------------
 # Benchmark helper
 # ---------------------------------------------------------------------------
+
 
 def benchmark_attention(
     batch_size: int = 2,
@@ -189,12 +199,9 @@ def benchmark_attention(
 
     Returns timing and speedup for each backend.
     """
-    q = torch.randn(batch_size, n_heads, seq_len, d_head,
-                    dtype=dtype, device=device)
-    k = torch.randn(batch_size, n_heads, seq_len, d_head,
-                    dtype=dtype, device=device)
-    v = torch.randn(batch_size, n_heads, seq_len, d_head,
-                    dtype=dtype, device=device)
+    q = torch.randn(batch_size, n_heads, seq_len, d_head, dtype=dtype, device=device)
+    k = torch.randn(batch_size, n_heads, seq_len, d_head, dtype=dtype, device=device)
+    v = torch.randn(batch_size, n_heads, seq_len, d_head, dtype=dtype, device=device)
     scale = 1.0 / math.sqrt(d_head)
 
     results = {}
@@ -216,10 +223,11 @@ def benchmark_attention(
 
     if device == "cuda":
         torch.cuda.synchronize()
-    start = torch.cuda.Event(enable_timing=True) if device == "cuda" else None
-    end = torch.cuda.Event(enable_timing=True) if device == "cuda" else None
+    torch.cuda.Event(enable_timing=True) if device == "cuda" else None
+    torch.cuda.Event(enable_timing=True) if device == "cuda" else None
 
     import time
+
     t0 = time.perf_counter()
     for _ in range(num_trials):
         _manual()

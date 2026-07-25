@@ -12,8 +12,6 @@ Conceptual references (not copied):
 Implementation is original.
 """
 
-from typing import Optional
-
 import torch
 import torch.nn.functional as F
 
@@ -30,9 +28,7 @@ def sample_greedy(logits: torch.Tensor) -> torch.Tensor:
     return logits.argmax(dim=-1, keepdim=True)
 
 
-def sample_temperature(
-    logits: torch.Tensor, temperature: float = 1.0
-) -> torch.Tensor:
+def sample_temperature(logits: torch.Tensor, temperature: float = 1.0) -> torch.Tensor:
     """Sample with temperature scaling.
 
     Higher temperature (>1.0) → more uniform/random.
@@ -47,9 +43,7 @@ def sample_temperature(
         Token IDs (batch, 1).
     """
     if temperature < 0:
-        raise ValueError(
-            f"temperature must be >= 0, got {temperature}"
-        )
+        raise ValueError(f"temperature must be >= 0, got {temperature}")
     if temperature == 0:
         return sample_greedy(logits)
 
@@ -58,9 +52,7 @@ def sample_temperature(
     return torch.multinomial(probs, num_samples=1)
 
 
-def sample_top_k(
-    logits: torch.Tensor, top_k: int = 50, temperature: float = 1.0
-) -> torch.Tensor:
+def sample_top_k(logits: torch.Tensor, top_k: int = 50, temperature: float = 1.0) -> torch.Tensor:
     """Sample from the top-k most probable tokens.
 
     Args:
@@ -74,9 +66,7 @@ def sample_top_k(
     if top_k <= 0:
         raise ValueError(f"top_k must be > 0, got {top_k}")
     if temperature < 0:
-        raise ValueError(
-            f"temperature must be >= 0, got {temperature}"
-        )
+        raise ValueError(f"temperature must be >= 0, got {temperature}")
 
     if temperature == 0:
         return sample_greedy(logits)
@@ -115,18 +105,14 @@ def sample_top_p(
         Token IDs (batch, 1).
     """
     if not (0.0 < top_p <= 1.0):
-        raise ValueError(
-            f"top_p must be in (0, 1], got {top_p}"
-        )
+        raise ValueError(f"top_p must be in (0, 1], got {top_p}")
     if temperature < 0:
-        raise ValueError(
-            f"temperature must be >= 0, got {temperature}"
-        )
+        raise ValueError(f"temperature must be >= 0, got {temperature}")
 
     if temperature == 0:
         return sample_greedy(logits)
 
-    batch_size = logits.shape[0]
+    logits.shape[0]
 
     # Scale by temperature
     scaled = logits / temperature
@@ -156,8 +142,8 @@ def sample_top_p(
 def sample_token(
     logits: torch.Tensor,
     temperature: float = 1.0,
-    top_k: Optional[int] = None,
-    top_p: Optional[float] = None,
+    top_k: int | None = None,
+    top_p: float | None = None,
 ) -> torch.Tensor:
     """Sample next token with combined strategies.
 

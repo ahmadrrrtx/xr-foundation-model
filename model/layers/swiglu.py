@@ -59,7 +59,7 @@ class SwiGLU(nn.Module):
         Raises:
             ValueError: If `d_model` or `d_ff` is non-positive.
         """
-        super(SwiGLU, self).__init__()
+        super().__init__()
         if d_model <= 0:
             raise ValueError(
                 f"d_model must be positive, got {d_model}. Check ConfigLoader settings."

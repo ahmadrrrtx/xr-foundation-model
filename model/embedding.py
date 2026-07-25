@@ -22,9 +22,6 @@ Design principles (from Phase 4 architecture freeze):
 - Numerical stability (Xavier initialization prevents gradient explosion/vanishing).
 """
 
-import math
-from typing import Optional
-
 import torch
 import torch.nn as nn
 
@@ -55,7 +52,7 @@ class XRFMEmbedding(nn.Module):
         vocab_size: int,
         d_model: int,
         weight_tied: bool = True,
-        padding_idx: Optional[int] = None,
+        padding_idx: int | None = None,
     ) -> None:
         """Initialize the embedding layer.
 
@@ -73,7 +70,7 @@ class XRFMEmbedding(nn.Module):
         Raises:
             ValueError: If `vocab_size` or `d_model` is non-positive.
         """
-        super(XRFMEmbedding, self).__init__()
+        super().__init__()
         if vocab_size <= 0:
             raise ValueError(
                 f"vocab_size must be positive, got {vocab_size}. "
@@ -81,8 +78,7 @@ class XRFMEmbedding(nn.Module):
             )
         if d_model <= 0:
             raise ValueError(
-                f"d_model must be positive, got {d_model}. "
-                f"Check ConfigLoader model settings."
+                f"d_model must be positive, got {d_model}. " f"Check ConfigLoader model settings."
             )
 
         self.vocab_size = vocab_size

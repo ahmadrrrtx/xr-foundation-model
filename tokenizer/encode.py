@@ -13,17 +13,14 @@ from this module rather than from `bpe.py` directly. This ensures the loader
 remains independent of the specific tokenizer algorithm.
 """
 
-from typing import List, Union
-
 from tokenizer.interface import TokenizerInterface
-from tokenizer.bpe import BytePairEncoder
 
 
 def encode_text(
-    text: Union[str, List[str]],
+    text: str | list[str],
     tokenizer: TokenizerInterface,
     add_special_tokens: bool = False,
-) -> List[int]:
+) -> list[int]:
     """Encode text or list of texts using the provided tokenizer.
 
     Args:
@@ -54,16 +51,14 @@ def encode_text(
     elif isinstance(text, list) and all(isinstance(t, str) for t in text):
         return [tokenizer.encode(t) for t in text]
     else:
-        raise TypeError(
-            f"encode_text expects str or List[str], got {type(text)}"
-        )
+        raise TypeError(f"encode_text expects str or List[str], got {type(text)}")
 
 
 def decode_ids(
-    token_ids: Union[List[int], List[List[int]]],
+    token_ids: list[int] | list[list[int]],
     tokenizer: TokenizerInterface,
     skip_special_tokens: bool = False,
-) -> Union[str, List[str]]:
+) -> str | list[str]:
     """Decode token IDs or batches of token IDs back to text.
 
     Args:
@@ -85,10 +80,7 @@ def decode_ids(
     elif isinstance(token_ids, list) and len(token_ids) > 0 and isinstance(token_ids[0], list):
         # Batch of sequences.
         return [
-            decode_ids(seq, tokenizer, skip_special_tokens=skip_special_tokens)
-            for seq in token_ids
+            decode_ids(seq, tokenizer, skip_special_tokens=skip_special_tokens) for seq in token_ids
         ]
     else:
-        raise TypeError(
-            f"decode_ids expects List[int] or List[List[int]], got {type(token_ids)}"
-        )
+        raise TypeError(f"decode_ids expects List[int] or List[List[int]], got {type(token_ids)}")

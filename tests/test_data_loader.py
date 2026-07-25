@@ -14,25 +14,23 @@ Tests cover:
 Every public function in the loader module must have at least one test.
 """
 
+import os
+import tempfile
+
 import pytest
 import torch
-import tempfile
-import os
-from typing import List
 
-from tokenizer.interface import TokenizerInterface
 from tokenizer.bpe import BytePairEncoder
 from xrfm.config.loader import ConfigLoader
 from xrfm.data.loader import (
-    DatasetConfig,
-    load_config_for_dataset,
-    verify_text_file,
-    normalize_text,
-    split_dataset,
-    chunk_text,
     XRFMTextDataset,
     build_manifest,
+    chunk_text,
+    load_config_for_dataset,
+    normalize_text,
     save_manifest,
+    split_dataset,
+    verify_text_file,
 )
 
 
@@ -43,6 +41,7 @@ class TestDatasetConfig:
         """Config loader should extract dataset parameters from YAML."""
         # Use absolute path to config so test works regardless of CWD.
         import pathlib
+
         config_path = pathlib.Path(__file__).parent.parent / "config" / "config.yaml"
         config = ConfigLoader(str(config_path))
         dataset_cfg = load_config_for_dataset(config)
@@ -53,6 +52,7 @@ class TestDatasetConfig:
     def test_custom_config_values(self) -> None:
         """Custom dataset settings should be readable from config."""
         import pathlib
+
         config_path = pathlib.Path(__file__).parent.parent / "config" / "config.yaml"
         config = ConfigLoader(str(config_path))
         dataset_cfg = load_config_for_dataset(config)
@@ -199,7 +199,9 @@ class TestXRFMTextDataset:
         """Dataset should support train, val, and test splits."""
         encoder = BytePairEncoder(vocab_size_target=512)
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
-            f.write("This is a longer sample text for split selection test that exceeds the one hundred character minimum threshold easily and ensures the dataset loader can split properly.")
+            f.write(
+                "This is a longer sample text for split selection test that exceeds the one hundred character minimum threshold easily and ensures the dataset loader can split properly."
+            )
             temp_path = f.name
         try:
             encoder.train(temp_path)
@@ -264,7 +266,9 @@ class TestManifestGeneration:
         assert manifest["dataset_name"] == "tiny_shakespeare"
         assert "tokenizer" in manifest
         assert manifest["tokenizer"]["class_name"] == "BytePairEncoder"
-        assert manifest["tokenizer"]["vocab_size"] == 256  # Untrained BPE encoder has base byte vocabulary (256)
+        assert (
+            manifest["tokenizer"]["vocab_size"] == 256
+        )  # Untrained BPE encoder has base byte vocabulary (256)
         # Note: After training, vocab_size would be larger; manifest captures the tokenizer instance state at call time.
         assert manifest["version"] == "xrfm-manifest-v1"
         assert manifest["split_info"] == split_info
@@ -285,7 +289,8 @@ class TestManifestGeneration:
             # Verify file exists and is readable.
             assert os.path.exists(manifest_path)
             import json
-            with open(manifest_path, "r", encoding="utf-8") as f:
+
+            with open(manifest_path, encoding="utf-8") as f:
                 loaded = json.load(f)
             assert loaded["dataset_name"] == "test_manifest"
         finally:

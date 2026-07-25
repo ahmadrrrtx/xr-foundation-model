@@ -25,7 +25,7 @@ Design principles (Phase 5 architecture freeze):
 """
 
 import os
-from typing import Optional, Dict, Any
+from typing import Any
 
 import torch
 
@@ -72,7 +72,7 @@ class CheckpointLoader:
         step: int = 0,
         loss: float = float("inf"),
         best_loss: float = float("inf"),
-        filename: Optional[str] = None,
+        filename: str | None = None,
     ) -> str:
         """Save a checkpoint (`.pt` file) with full training state.
 
@@ -94,13 +94,9 @@ class CheckpointLoader:
             TypeError: If `filename` is provided but not a `str`.
         """
         if step < 0:
-            raise ValueError(
-                f"step must be non-negative, got {step}. Check training loop state."
-            )
+            raise ValueError(f"step must be non-negative, got {step}. Check training loop state.")
         if filename is not None and not isinstance(filename, str):
-            raise TypeError(
-                f"filename must be str or None, got {type(filename).__name__}."
-            )
+            raise TypeError(f"filename must be str or None, got {type(filename).__name__}.")
 
         # Build checkpoint dictionary (`torch.save` format; standard `PyTorch`).
         checkpoint = {
@@ -131,7 +127,7 @@ class CheckpointLoader:
         model,
         optimizer,
         scheduler=None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Load a checkpoint (`.pt` file) and restore model, optimizer, and scheduler states.
 
         Args:
@@ -148,9 +144,7 @@ class CheckpointLoader:
             TypeError: If `checkpoint_path` is not a `str`.
         """
         if not isinstance(checkpoint_path, str):
-            raise TypeError(
-                f"checkpoint_path must be str, got {type(checkpoint_path).__name__}."
-            )
+            raise TypeError(f"checkpoint_path must be str, got {type(checkpoint_path).__name__}.")
         if not os.path.exists(checkpoint_path):
             raise FileNotFoundError(
                 f"Checkpoint file not found: {checkpoint_path}. "

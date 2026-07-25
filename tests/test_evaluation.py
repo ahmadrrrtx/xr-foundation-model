@@ -6,24 +6,25 @@ benchmark framework, and the full evaluation suite.
 """
 
 import math
+
 import pytest
 import torch
 from torch.utils.data import DataLoader
 
-from model.gpt import GPTModel
-from evaluation.perplexity import (
-    compute_perplexity,
-    compute_perplexity_strided,
-    evaluate_checkpoint,
-)
 from evaluation.benchmarks import (
     TextCompletionAccuracy,
     TopKAccuracy,
     run_evaluation_suite,
 )
-
+from evaluation.perplexity import (
+    compute_perplexity,
+    compute_perplexity_strided,
+    evaluate_checkpoint,
+)
+from model.gpt import GPTModel
 
 # --- Shared fixtures ---
+
 
 class EvalDataset:
     """Minimal dataset returning (input, shifted-target) for eval tests."""
@@ -49,6 +50,7 @@ def make_dataloader(vocab_size=100, seq_len=16, size=20, batch_size=4):
 
 
 # --- Perplexity Tests ---
+
 
 class TestComputePerplexity:
     def test_basic(self):
@@ -97,9 +99,7 @@ class TestStridedPerplexity:
     def test_basic(self):
         model = GPTModel()
         token_ids = torch.randint(0, 50304, (50,))
-        result = compute_perplexity_strided(
-            model, token_ids, stride=16, max_seq_len=32
-        )
+        result = compute_perplexity_strided(model, token_ids, stride=16, max_seq_len=32)
         assert "perplexity" in result
         assert result["total_windows"] > 0
         assert result["total_tokens"] > 0
@@ -114,17 +114,13 @@ class TestStridedPerplexity:
         model = GPTModel()
         token_ids = torch.randint(0, 100, (20,))
         with pytest.raises(ValueError, match="exceeds model.max_seq_len"):
-            compute_perplexity_strided(
-                model, token_ids, max_seq_len=9999
-            )
+            compute_perplexity_strided(model, token_ids, max_seq_len=9999)
 
     def test_below_min_text(self):
         """Very short text should still produce a result."""
         model = GPTModel()
         token_ids = torch.randint(0, 100, (5,))
-        result = compute_perplexity_strided(
-            model, token_ids, stride=4, max_seq_len=8
-        )
+        result = compute_perplexity_strided(model, token_ids, stride=4, max_seq_len=8)
         assert "perplexity" in result
 
 
@@ -139,6 +135,7 @@ class TestEvaluateCheckpoint:
 
 
 # --- Benchmark Tests ---
+
 
 class TestTextCompletionAccuracy:
     def test_basic(self):

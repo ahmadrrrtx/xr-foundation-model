@@ -16,9 +16,8 @@ Conceptual references (not copied):
 Implementation is original.
 """
 
-import math
 import logging
-from typing import Optional, Dict, List
+import math
 
 import torch
 import torch.nn.functional as F
@@ -32,8 +31,8 @@ logger = logging.getLogger("xrfm.evaluation")
 def compute_perplexity(
     model: GPTModel,
     dataloader: DataLoader,
-    max_batches: Optional[int] = None,
-) -> Dict[str, float]:
+    max_batches: int | None = None,
+) -> dict[str, float]:
     """Compute perplexity over a dataset using next-token prediction.
 
     For each batch of token IDs (input_ids, target_ids), the model
@@ -124,7 +123,10 @@ def compute_perplexity(
 
     logger.info(
         "Perplexity evaluation: PPL=%.4f, loss=%.4f, tokens=%d, batches=%d",
-        perplexity, avg_loss, total_tokens, batch_count,
+        perplexity,
+        avg_loss,
+        total_tokens,
+        batch_count,
     )
 
     return {
@@ -140,7 +142,7 @@ def compute_perplexity_strided(
     token_ids: torch.Tensor,
     stride: int = 512,
     max_seq_len: int = 1024,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Compute perplexity with strided sliding window over a long sequence.
 
     For texts longer than max_seq_len, slides a window of size max_seq_len
@@ -167,8 +169,7 @@ def compute_perplexity_strided(
         raise ValueError(f"max_seq_len must be positive, got {max_seq_len}")
     if max_seq_len > model.max_seq_len:
         raise ValueError(
-            f"max_seq_len ({max_seq_len}) exceeds model.max_seq_len "
-            f"({model.max_seq_len})"
+            f"max_seq_len ({max_seq_len}) exceeds model.max_seq_len " f"({model.max_seq_len})"
         )
 
     model.eval()
@@ -219,15 +220,23 @@ def compute_perplexity_strided(
             prev_end_loc = end_loc
 
     if total_predicted_tokens == 0:
-        return {"perplexity": float("inf"), "loss": float("inf"),
-                "total_tokens": 0, "total_windows": window_count}
+        return {
+            "perplexity": float("inf"),
+            "loss": float("inf"),
+            "total_tokens": 0,
+            "total_windows": window_count,
+        }
 
     avg_loss = total_nll / total_predicted_tokens
     perplexity = math.exp(avg_loss)
 
     logger.info(
         "Strided PPL: %.4f, loss=%.4f, tokens=%d, stride=%d, windows=%d",
-        perplexity, avg_loss, total_predicted_tokens, stride, window_count,
+        perplexity,
+        avg_loss,
+        total_predicted_tokens,
+        stride,
+        window_count,
     )
 
     return {
@@ -241,8 +250,8 @@ def compute_perplexity_strided(
 def evaluate_checkpoint(
     model: GPTModel,
     dataloader: DataLoader,
-    max_batches: Optional[int] = None,
-) -> Dict[str, float]:
+    max_batches: int | None = None,
+) -> dict[str, float]:
     """Convenience wrapper for full checkpoint evaluation.
 
     Returns perplexity and additional diagnostics.

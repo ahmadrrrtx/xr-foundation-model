@@ -21,16 +21,15 @@ Implementation is original.
 """
 
 import math
-from typing import Dict, Tuple, Optional
 from dataclasses import dataclass
 
 import torch
 import torch.nn as nn
 
-
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class QuantizedWeight:
@@ -45,9 +44,10 @@ class QuantizedWeight:
         group_size: Group size for group-wise quantization (-1 = per-channel).
         symmetric: Whether symmetric quantization was used (zero_point is None).
     """
+
     data: torch.Tensor
     scale: torch.Tensor
-    zero_point: Optional[torch.Tensor]
+    zero_point: torch.Tensor | None
     original_shape: torch.Size
     bits: int
     group_size: int
@@ -62,12 +62,13 @@ class QuantizedWeight:
 # Core quantization functions
 # ---------------------------------------------------------------------------
 
+
 def _compute_scale_zp(
     tensor: torch.Tensor,
     qmin: int,
     qmax: int,
     symmetric: bool = False,
-) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+) -> tuple[torch.Tensor, torch.Tensor | None]:
     """Compute scale and zero_point for quantization.
 
     Affine:  scale = (rmax - rmin) / (qmax - qmin)
@@ -100,7 +101,7 @@ def _compute_scale_zp(
 def _quantize_tensor(
     tensor: torch.Tensor,
     scale: torch.Tensor,
-    zero_point: Optional[torch.Tensor],
+    zero_point: torch.Tensor | None,
     qmin: int,
     qmax: int,
 ) -> torch.Tensor:
@@ -227,9 +228,7 @@ def quantize_int4_groupwise(
     scales = (absmax / qmax).squeeze(1)
 
     # Vectorized quantization
-    q_grouped = torch.clamp(
-        torch.round(grouped / scales.unsqueeze(1)), qmin, qmax
-    ).to(torch.int8)
+    q_grouped = torch.clamp(torch.round(grouped / scales.unsqueeze(1)), qmin, qmax).to(torch.int8)
     q_flat = q_grouped.reshape(-1)
 
     # Vectorized nibble packing: two INT4 values per int8 byte
@@ -251,6 +250,7 @@ def quantize_int4_groupwise(
 # ---------------------------------------------------------------------------
 # Dequantization
 # ---------------------------------------------------------------------------
+
 
 def dequantize_weight(qw: QuantizedWeight) -> torch.Tensor:
     """Reconstruct approximate FP32 tensor from quantized weight."""
@@ -299,13 +299,14 @@ def dequantize_weight(qw: QuantizedWeight) -> torch.Tensor:
 # Model quantization
 # ---------------------------------------------------------------------------
 
+
 def quantize_model_weights(
     model: nn.Module,
     bits: int = 8,
     group_size: int = 128,
     per_channel: bool = True,
     symmetric: bool = True,
-) -> Tuple[nn.Module, Dict[str, QuantizedWeight]]:
+) -> tuple[nn.Module, dict[str, QuantizedWeight]]:
     """Quantize all Linear layer weights in a model.
 
     Args:
@@ -322,7 +323,7 @@ def quantize_model_weights(
     if bits not in (4, 8):
         raise ValueError(f"bits must be 4 or 8, got {bits}")
 
-    q_map: Dict[str, QuantizedWeight] = {}
+    q_map: dict[str, QuantizedWeight] = {}
 
     for name, module in model.named_modules():
         if isinstance(module, nn.Linear):
@@ -334,9 +335,7 @@ def quantize_model_weights(
                 else:
                     qw = quantize_int8_per_tensor(weight, symmetric=symmetric)
             else:  # bits == 4
-                qw = quantize_int4_groupwise(
-                    weight, group_size=group_size, symmetric=True
-                )
+                qw = quantize_int4_groupwise(weight, group_size=group_size, symmetric=True)
 
             q_map[name] = qw
 
@@ -344,7 +343,7 @@ def quantize_model_weights(
 
 
 def compute_compression_ratio(
-    q_map: Dict[str, QuantizedWeight],
+    q_map: dict[str, QuantizedWeight],
 ) -> float:
     """Compute compression ratio: original_size / quantized_size."""
     original_bits = 0

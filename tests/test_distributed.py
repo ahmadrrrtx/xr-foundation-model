@@ -9,19 +9,19 @@ import pytest
 import torch
 import torch.nn as nn
 
-from training.distributed import (
-    is_distributed,
-    get_rank,
-    get_world_size,
-    is_main_process,
-    get_raw_model,
-    wrap_model_ddp,
-    GradientAccumulator,
-    create_distributed_dataloader,
-    reduce_loss,
-    barrier,
-)
 from model.gpt import GPTModel
+from training.distributed import (
+    GradientAccumulator,
+    barrier,
+    create_distributed_dataloader,
+    get_rank,
+    get_raw_model,
+    get_world_size,
+    is_distributed,
+    is_main_process,
+    reduce_loss,
+    wrap_model_ddp,
+)
 
 
 class TestDistributedUtils:
@@ -106,12 +106,14 @@ class TestDataLoaderCreation:
     def test_standard_dataloader(self):
         """In single-process, returns standard DataLoader."""
         from torch.utils.data import TensorDataset
+
         ds = TensorDataset(torch.randn(10, 4), torch.randn(10, 2))
         dl = create_distributed_dataloader(ds, batch_size=2)
         assert len(dl) > 0
 
     def test_shuffle_flag(self):
         from torch.utils.data import TensorDataset
+
         ds = TensorDataset(torch.randn(10, 4), torch.randn(10, 2))
         dl = create_distributed_dataloader(ds, batch_size=2, shuffle=False)
         batches = list(dl)
@@ -124,8 +126,10 @@ class TestTrainingLoopGradAccum:
     class _TinyDataset:
         def __init__(self, vocab=100, seq=8, n=20):
             self.vocab, self.seq, self.n = vocab, seq, n
+
         def __len__(self):
             return self.n
+
         def __getitem__(self, idx):
             ids = torch.randint(0, self.vocab, (self.seq,))
             return ids[:-1], ids[1:]
@@ -133,11 +137,13 @@ class TestTrainingLoopGradAccum:
     def test_grad_accum_advances_step_correctly(self):
         """With grad_accum_steps=2, step advances every 2 micro-batches."""
         from training.loop import TrainingLoop
+
         model = GPTModel()
         ds = self._TinyDataset(vocab=100, seq=8, n=20)
         loop = TrainingLoop(
             config_path="config/config.yaml",
-            model=model, dataset=ds,
+            model=model,
+            dataset=ds,
         )
         loop.grad_accum_steps = 2
         loop.max_steps = 4
@@ -149,11 +155,13 @@ class TestTrainingLoopGradAccum:
     def test_grad_accum_loss_scaling(self):
         """Loss per micro-batch is scaled by 1/accum_steps."""
         from training.loop import TrainingLoop
+
         model = GPTModel()
         ds = self._TinyDataset(vocab=100, seq=8, n=10)
         loop = TrainingLoop(
             config_path="config/config.yaml",
-            model=model, dataset=ds,
+            model=model,
+            dataset=ds,
         )
         loop.grad_accum_steps = 3
 

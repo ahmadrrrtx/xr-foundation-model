@@ -5,15 +5,14 @@ Production API server with: health checks, model info, text generation
 security headers, and CORS.
 """
 
-import time
 import logging
 import sys
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
 
 # Model and engine (lazy loaded in lifespan)
 _model = None
@@ -39,8 +38,8 @@ async def lifespan(app: FastAPI):
     _startup_time = time.time()
 
     try:
-        from model.gpt import GPTModel
         from inference.engine import GenerationEngine
+        from model.gpt import GPTModel
         from tokenizer.bpe import BytePairEncoder
 
         _model = GPTModel()
@@ -76,6 +75,7 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
+
 # Security headers
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
@@ -85,6 +85,7 @@ async def security_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     return response
 
+
 # Request timing
 @app.middleware("http")
 async def request_timing(request: Request, call_next):
@@ -92,11 +93,15 @@ async def request_timing(request: Request, call_next):
     response = await call_next(request)
     elapsed = time.perf_counter() - start
     response.headers["X-Process-Time-Ms"] = str(round(elapsed * 1000, 2))
-    logger.info("%s %s %d %.2fms", request.method, request.url.path, response.status_code, elapsed*1000)
+    logger.info(
+        "%s %s %d %.2fms", request.method, request.url.path, response.status_code, elapsed * 1000
+    )
     return response
 
+
 # Import and register routes
-from api.routes import health, completions, tokenize_endpoints, metrics, search_routes  # noqa: E402
+from api.routes import completions, health, metrics, search_routes, tokenize_endpoints  # noqa: E402
+
 app.include_router(health.router, tags=["Health"])
 app.include_router(completions.router, tags=["Completions"])
 app.include_router(tokenize_endpoints.router, tags=["Tokenize"])

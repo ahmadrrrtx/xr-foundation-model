@@ -23,11 +23,9 @@ The vocabulary and ordered merge list are saved to disk for reproducibility
 and for loading during inference without retraining.
 """
 
-import os
-import re
 import json
-from collections import Counter, defaultdict
-from typing import Dict, List, Tuple, Optional, Set
+import os
+from collections import Counter
 
 from tokenizer.interface import TokenizerInterface
 
@@ -62,9 +60,9 @@ class BytePairEncoder(TokenizerInterface):
                 f"got {vocab_size_target}"
             )
         self.vocab_size_target = vocab_size_target
-        self.vocab: Dict[str, int] = {}
-        self.merges: List[Tuple[str, str]] = []
-        self.special_tokens: Dict[str, int] = {}
+        self.vocab: dict[str, int] = {}
+        self.merges: list[tuple[str, str]] = []
+        self.special_tokens: dict[str, int] = {}
         # Initialize basic vocabulary with individual characters.
         # This ensures any text can be encoded, though quality improves
         # with larger vocabulary trained on domain-specific data.
@@ -75,7 +73,7 @@ class BytePairEncoder(TokenizerInterface):
     def train(
         self,
         text_path: str,
-        special_tokens: Optional[Dict[str, int]] = None,
+        special_tokens: dict[str, int] | None = None,
     ) -> None:
         """Train BPE vocabulary on text data.
 
@@ -102,7 +100,7 @@ class BytePairEncoder(TokenizerInterface):
         if not os.path.exists(text_path):
             raise FileNotFoundError(f"Training text file not found: {text_path}")
 
-        with open(text_path, "r", encoding="utf-8", errors="replace") as f:
+        with open(text_path, encoding="utf-8", errors="replace") as f:
             raw_text = f.read()
 
         if not raw_text or len(raw_text) < 100:
@@ -132,7 +130,7 @@ class BytePairEncoder(TokenizerInterface):
         # For simplicity in this first version, special tokens are added
         # to vocab after base vocabulary but before target size is reached.
         # A more advanced version may reserve high-number IDs (like tiktoken).
-        reserved_ids: Set[int] = set()
+        reserved_ids: set[int] = set()
         for token_str, token_id in self.special_tokens.items():
             reserved_ids.add(token_id)
             if token_str not in self.vocab:
@@ -181,7 +179,11 @@ class BytePairEncoder(TokenizerInterface):
                 new_split = []
                 i = 0
                 while i < len(split):
-                    if i < len(split) - 1 and split[i] == best_pair[0] and split[i + 1] == best_pair[1]:
+                    if (
+                        i < len(split) - 1
+                        and split[i] == best_pair[0]
+                        and split[i + 1] == best_pair[1]
+                    ):
                         new_split.append(best_pair_str)
                         i += 2  # Skip both elements of the pair since merged.
                     else:
@@ -200,7 +202,7 @@ class BytePairEncoder(TokenizerInterface):
             # This should not normally occur, but we include a safeguard.
             pass  # Vocabulary slightly exceeds target; user should review config.
 
-    def _preprocess_text_for_training(self, text: str) -> List[str]:
+    def _preprocess_text_for_training(self, text: str) -> list[str]:
         """Split text into words for BPE pair counting.
 
         Uses a simple regex-based approach: split on whitespace, treat punctuation
@@ -222,7 +224,7 @@ class BytePairEncoder(TokenizerInterface):
         words = [word for word in words if word]
         return words
 
-    def _find_next_available_id(self, reserved_ids: Set[int]) -> int:
+    def _find_next_available_id(self, reserved_ids: set[int]) -> int:
         """Find the smallest non-reserved integer ID for a new vocabulary token.
 
         Args:
@@ -242,13 +244,15 @@ class BytePairEncoder(TokenizerInterface):
         # in this version, but the vocabulary size target limits growth).
         return candidate
 
-    def _get_ranks(self) -> Dict[Tuple[str, str], int]:
+    def _get_ranks(self) -> dict[tuple[str, str], int]:
         """Return cached map of (part_a, part_b) -> merge_rank for fast lookup."""
-        if not hasattr(self, "_merge_ranks_cache") or len(getattr(self, "_merge_ranks_cache", {})) != len(self.merges):
+        if not hasattr(self, "_merge_ranks_cache") or len(
+            getattr(self, "_merge_ranks_cache", {})
+        ) != len(self.merges):
             self._merge_ranks_cache = {pair: rank for rank, pair in enumerate(self.merges)}
         return self._merge_ranks_cache
 
-    def encode(self, text: str, **kwargs) -> List[int]:
+    def encode(self, text: str, **kwargs) -> list[int]:
         """Encode text into integer token IDs using the learned BPE vocabulary.
 
         Uses rank-based priority queue for O(N log N) merge lookup.
@@ -270,7 +274,7 @@ class BytePairEncoder(TokenizerInterface):
         words = normalized.split()
         ranks = self._get_ranks()
 
-        token_ids: List[int] = []
+        token_ids: list[int] = []
         for word in words:
             split = list(word)
             while len(split) >= 2:
@@ -279,7 +283,7 @@ class BytePairEncoder(TokenizerInterface):
                 valid_pairs = [p for p in pairs if p in ranks]
                 if not valid_pairs:
                     break
-                
+
                 # Pick pair with lowest rank (learned earliest in BPE training)
                 best_pair = min(valid_pairs, key=lambda p: ranks[p])
                 part_a, part_b = best_pair
@@ -311,7 +315,7 @@ class BytePairEncoder(TokenizerInterface):
 
         return token_ids
 
-    def decode(self, tokens: List[int], strict: bool = False, **kwargs) -> str:
+    def decode(self, tokens: list[int], strict: bool = False, **kwargs) -> str:
         """Decode integer token IDs back to a text string.
 
         Args:
@@ -325,9 +329,11 @@ class BytePairEncoder(TokenizerInterface):
         if not isinstance(tokens, list):
             raise TypeError(f"decode() expects a list of integers, got {type(tokens)}")
 
-        id_to_token: Dict[int, str] = {token_id: token_str for token_str, token_id in self.vocab.items()}
+        id_to_token: dict[int, str] = {
+            token_id: token_str for token_str, token_id in self.vocab.items()
+        }
 
-        reconstructed_parts: List[str] = []
+        reconstructed_parts: list[str] = []
         for token_id in tokens:
             if token_id in id_to_token:
                 reconstructed_parts.append(id_to_token[token_id])
@@ -369,9 +375,7 @@ class BytePairEncoder(TokenizerInterface):
         save_data = {
             "vocab_size_target": self.vocab_size_target,
             "vocab": self.vocab,
-            "merges": [
-                {"part_a": pair[0], "part_b": pair[1]} for pair in self.merges
-            ],
+            "merges": [{"part_a": pair[0], "part_b": pair[1]} for pair in self.merges],
             "special_tokens": self.special_tokens,
             "version": "xrfm-bpe-v1",
         }
@@ -395,24 +399,23 @@ class BytePairEncoder(TokenizerInterface):
             raise FileNotFoundError(f"Tokenizer save file not found: {path}")
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 save_data = json.load(f)
         except (json.JSONDecodeError, OSError) as exc:
-            raise ValueError(f"Failed to load tokenizer from {path}: invalid file format: {exc}") from exc
+            raise ValueError(
+                f"Failed to load tokenizer from {path}: invalid file format: {exc}"
+            ) from exc
 
         # Validate expected structure.
         required_keys = {"vocab", "merges", "vocab_size_target"}
         missing = required_keys - set(save_data.keys())
         if missing:
-            raise ValueError(
-                f"Tokenizer save file {path} is missing required fields: {missing}"
-            )
+            raise ValueError(f"Tokenizer save file {path} is missing required fields: {missing}")
 
         # Restore state.
         self.vocab = {str(k): int(v) for k, v in save_data["vocab"].items()}
         self.merges = [
-            (entry.get("part_a", entry.get("a", "")),
-             entry.get("part_b", entry.get("b", "")))
+            (entry.get("part_a", entry.get("a", "")), entry.get("part_b", entry.get("b", "")))
             for entry in save_data.get("merges", [])
         ]
         self.vocab_size_target = int(save_data.get("vocab_size_target", len(self.vocab)))

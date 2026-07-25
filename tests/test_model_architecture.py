@@ -84,15 +84,11 @@ class TestGPTModel:
 
     def test_weight_tied(self):
         model = GPTModel(weight_tied=True)
-        assert torch.equal(
-            model.lm_head.weight, model.embedding.embedding.weight
-        )
+        assert torch.equal(model.lm_head.weight, model.embedding.embedding.weight)
 
     def test_weight_untied(self):
         model = GPTModel(weight_tied=False)
-        assert not torch.equal(
-            model.lm_head.weight, model.embedding.embedding.weight
-        )
+        assert not torch.equal(model.lm_head.weight, model.embedding.embedding.weight)
 
     def test_vocab_bounds_error(self):
         model = GPTModel()

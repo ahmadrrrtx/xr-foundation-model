@@ -14,10 +14,10 @@ Design reference (conceptual, not copied):
 - OpenAI tiktoken — Vocabulary persistence patterns (concept only)
 """
 
-from tokenizer.interface import TokenizerInterface
 from tokenizer.bpe import BytePairEncoder
-from tokenizer.encode import encode_text
 from tokenizer.decode import decode_text
+from tokenizer.encode import encode_text
+from tokenizer.interface import TokenizerInterface
 
 __all__ = [
     "TokenizerInterface",

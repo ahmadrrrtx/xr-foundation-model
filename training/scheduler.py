@@ -21,9 +21,7 @@ Design principles (Phase 5 architecture freeze):
 """
 
 import math
-from typing import Optional
 
-import torch
 import torch.optim as optim
 
 
@@ -78,8 +76,7 @@ class SchedulerLoader:
             )
         if base_lr <= 0:
             raise ValueError(
-                f"base_lr must be positive, got {base_lr}. "
-                f"Check ConfigLoader settings."
+                f"base_lr must be positive, got {base_lr}. " f"Check ConfigLoader settings."
             )
 
         self.optimizer = optimizer
@@ -88,7 +85,7 @@ class SchedulerLoader:
         self.max_steps = max_steps
         self.current_step = 0
 
-    def get_lr(self, step: Optional[int] = None) -> float:
+    def get_lr(self, step: int | None = None) -> float:
         """Compute the current learning rate (`cosine` + `warmup`).
 
         Mathematical formulation:

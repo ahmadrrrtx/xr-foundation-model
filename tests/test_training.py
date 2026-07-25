@@ -7,17 +7,18 @@ with proper next-token prediction targets.
 
 import os
 import tempfile
+
 import pytest
 import torch
 
+from training.checkpoint import CheckpointLoader
+from training.loop import TrainingLoop
+from training.mixed_precision import MixedPrecisionLoader, NoOpScaler
 from training.optimizer import OptimizerLoader
 from training.scheduler import SchedulerLoader
-from training.checkpoint import CheckpointLoader
-from training.mixed_precision import MixedPrecisionLoader, NoOpScaler
-from training.loop import TrainingLoop
-
 
 # --- Shared fixtures ---
+
 
 class MiniDataset:
     """Dataset returning (input_ids, target_ids) tuples for training tests."""
@@ -36,6 +37,7 @@ class MiniDataset:
 
 
 # --- Optimizer ---
+
 
 class TestOptimizerLoader:
     def test_adamw_init(self):
@@ -68,6 +70,7 @@ class TestOptimizerLoader:
 
 # --- Scheduler ---
 
+
 class TestSchedulerLoader:
     def test_cosine_warmup(self):
         opt = torch.optim.AdamW([torch.randn(2, 2, requires_grad=True)], lr=0.1)
@@ -94,6 +97,7 @@ class TestSchedulerLoader:
 
 
 # --- Checkpoint ---
+
 
 class TestCheckpointLoader:
     def test_save_load_roundtrip(self):
@@ -122,6 +126,7 @@ class TestCheckpointLoader:
 
 # --- Mixed Precision ---
 
+
 class TestMixedPrecisionLoader:
     def test_noop_scaler_identity(self):
         loader = MixedPrecisionLoader(enabled=False)
@@ -144,9 +149,11 @@ class TestMixedPrecisionLoader:
 
 # --- Training Loop (v0.5.1) ---
 
+
 class TestTrainingLoop:
     def test_init_from_config(self):
         from model.gpt import GPTModel
+
         model = GPTModel()
         dataset = MiniDataset()
         loop = TrainingLoop(
@@ -162,6 +169,7 @@ class TestTrainingLoop:
 
     def test_train_step_with_targets(self):
         from model.gpt import GPTModel
+
         model = GPTModel()
         dataset = MiniDataset(vocab_size=100, seq_len=16)
         loop = TrainingLoop(
@@ -178,6 +186,7 @@ class TestTrainingLoop:
 
     def test_training_loop_runs(self):
         from model.gpt import GPTModel
+
         model = GPTModel()
         dataset = MiniDataset(vocab_size=100, seq_len=8, size=20)
         loop = TrainingLoop(
@@ -195,6 +204,7 @@ class TestTrainingLoop:
 
     def test_requires_dataset(self):
         from model.gpt import GPTModel
+
         model = GPTModel()
         with pytest.raises(ValueError, match="dataset is required"):
             TrainingLoop(model=model)

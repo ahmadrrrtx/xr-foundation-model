@@ -9,6 +9,7 @@ Bug C-5: Training loop used random dummy data, not real dataset.
 
 import pytest
 import torch
+
 from model.gpt import GPTModel
 from training.loop import TrainingLoop
 
@@ -41,7 +42,8 @@ class TestNextTokenPrediction:
         dataset = DummyRegressionDataset(vocab_size=100, seq_len=8)
         loop = TrainingLoop(
             config_path="config/config.yaml",
-            model=model, dataset=dataset,
+            model=model,
+            dataset=dataset,
         )
         bi = torch.randint(0, 100, (2, 7))
         bt = torch.randint(0, 100, (2, 7))
@@ -55,10 +57,11 @@ class TestNextTokenPrediction:
         dataset = DummyRegressionDataset(vocab_size=100, seq_len=8)
         loop = TrainingLoop(
             config_path="config/config.yaml",
-            model=model, dataset=dataset,
+            model=model,
+            dataset=dataset,
         )
-        bi = torch.tensor([[0,1,2,3,4,5,6],[0,1,2,3,4,5,6]])
-        bt = torch.tensor([[1,2,3,4,5,6,7],[1,2,3,4,5,6,7]])
+        bi = torch.tensor([[0, 1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6]])
+        bt = torch.tensor([[1, 2, 3, 4, 5, 6, 7], [1, 2, 3, 4, 5, 6, 7]])
         metrics = loop.train_step(bi, bt)
         assert metrics["loss"] == metrics["loss"]
 
@@ -71,7 +74,8 @@ class TestDatasetIntegration:
         dataset = DummyRegressionDataset(vocab_size=100, seq_len=8, size=10)
         loop = TrainingLoop(
             config_path="config/config.yaml",
-            model=model, dataset=dataset,
+            model=model,
+            dataset=dataset,
         )
         result = loop.training_loop(max_steps=3, checkpoint_every=100, log_interval=100)
         assert result["final_step"] == 3
@@ -91,17 +95,22 @@ class TestVersionConsistency:
     """REGRESSION C-1: Version consistent across all indicators."""
 
     def test_package_version_matches_config(self):
-        import yaml, pathlib
+        import pathlib
+
+        import yaml
+
         from xrfm import __version__ as pkgv
+
         cfg_path = pathlib.Path(__file__).parent.parent / "config" / "config.yaml"
         with open(cfg_path) as f:
             cfg = yaml.safe_load(f)
-        assert pkgv == cfg["project"]["version"], (
-            f"Mismatch: __init__={pkgv}, config={cfg['project']['version']}"
-        )
+        assert (
+            pkgv == cfg["project"]["version"]
+        ), f"Mismatch: __init__={pkgv}, config={cfg['project']['version']}"
 
     def test_version_is_0_5_1(self):
         from xrfm import __version__
+
         assert __version__ == "1.0.0", f"Expected 1.0.0, got {__version__}"
 
 

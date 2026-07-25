@@ -6,10 +6,11 @@ sampling overhead, and numerical stability.
 """
 
 import time
+
 import torch
 
-from model.gpt import GPTModel
 from inference.engine import GenerationEngine
+from model.gpt import GPTModel
 
 
 def benchmark_full_vs_cached(

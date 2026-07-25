@@ -16,8 +16,6 @@ training code from rewrites.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Optional, Union
-import os
 
 
 class TokenizerInterface(ABC):
@@ -37,7 +35,7 @@ class TokenizerInterface(ABC):
         super().__init__()
 
     @abstractmethod
-    def encode(self, text: str, **kwargs) -> List[int]:
+    def encode(self, text: str, **kwargs) -> list[int]:
         """Convert a text string into a sequence of integer token IDs.
 
         Args:
@@ -60,7 +58,7 @@ class TokenizerInterface(ABC):
         ...
 
     @abstractmethod
-    def decode(self, tokens: List[int], **kwargs) -> str:
+    def decode(self, tokens: list[int], **kwargs) -> str:
         """Convert a sequence of integer token IDs back to a text string.
 
         Args:

@@ -21,10 +21,9 @@ Implementation is original.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
+from typing import Any
 
 import torch
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from model.gpt import GPTModel
@@ -48,9 +47,7 @@ class Benchmark(ABC):
         self.description = description
 
     @abstractmethod
-    def compute(
-        self, model: GPTModel, **kwargs
-    ) -> Dict[str, float]:
+    def compute(self, model: GPTModel, **kwargs) -> dict[str, float]:
         """Run the benchmark and return metrics.
 
         Args:
@@ -96,8 +93,8 @@ class TextCompletionAccuracy(Benchmark):
         self,
         model: GPTModel,
         dataloader: DataLoader,
-        max_batches: Optional[int] = None,
-    ) -> Dict[str, float]:
+        max_batches: int | None = None,
+    ) -> dict[str, float]:
         """Compute next-token prediction accuracy.
 
         Args:
@@ -136,7 +133,9 @@ class TextCompletionAccuracy(Benchmark):
         accuracy = total_correct / total_tokens
         logger.info(
             "Text completion accuracy: %.4f (%d/%d tokens)",
-            accuracy, total_correct, total_tokens,
+            accuracy,
+            total_correct,
+            total_tokens,
         )
 
         return {
@@ -169,8 +168,8 @@ class TopKAccuracy(Benchmark):
         self,
         model: GPTModel,
         dataloader: DataLoader,
-        max_batches: Optional[int] = None,
-    ) -> Dict[str, float]:
+        max_batches: int | None = None,
+    ) -> dict[str, float]:
         """Compute top-k accuracy.
 
         Args:
@@ -204,13 +203,15 @@ class TopKAccuracy(Benchmark):
                     break
 
         if total_tokens == 0:
-            return {f"top{self.k}_accuracy": 0.0,
-                    "total_correct": 0, "total_tokens": 0}
+            return {f"top{self.k}_accuracy": 0.0, "total_correct": 0, "total_tokens": 0}
 
         accuracy = total_correct / total_tokens
         logger.info(
             "Top-%d accuracy: %.4f (%d/%d tokens)",
-            self.k, accuracy, total_correct, total_tokens,
+            self.k,
+            accuracy,
+            total_correct,
+            total_tokens,
         )
 
         return {
@@ -223,8 +224,8 @@ class TopKAccuracy(Benchmark):
 def run_evaluation_suite(
     model: GPTModel,
     dataloader: DataLoader,
-    max_batches: Optional[int] = None,
-) -> Dict[str, Any]:
+    max_batches: int | None = None,
+) -> dict[str, Any]:
     """Run the full evaluation suite: perplexity + benchmarks.
 
     Args:
@@ -238,7 +239,7 @@ def run_evaluation_suite(
     from evaluation.perplexity import compute_perplexity
 
     logger.info("Starting evaluation suite...")
-    results: Dict[str, Any] = {}
+    results: dict[str, Any] = {}
 
     # 1. Perplexity
     ppl = compute_perplexity(model, dataloader, max_batches=max_batches)
@@ -246,21 +247,17 @@ def run_evaluation_suite(
 
     # 2. Top-1 accuracy
     acc1 = TextCompletionAccuracy()
-    results["top1_accuracy"] = acc1.compute(
-        model, dataloader, max_batches=max_batches
-    )
+    results["top1_accuracy"] = acc1.compute(model, dataloader, max_batches=max_batches)
 
     # 3. Top-5 accuracy
     acc5 = TopKAccuracy(k=5)
-    results["top5_accuracy"] = acc5.compute(
-        model, dataloader, max_batches=max_batches
-    )
+    results["top5_accuracy"] = acc5.compute(model, dataloader, max_batches=max_batches)
 
     logger.info(
         "Evaluation complete: PPL=%.2f, Top-1=%.4f, Top-5=%.4f",
         ppl["perplexity"],
         results["top1_accuracy"]["accuracy"],
-        results["top5_accuracy"][f"top5_accuracy"],
+        results["top5_accuracy"]["top5_accuracy"],
     )
 
     return results

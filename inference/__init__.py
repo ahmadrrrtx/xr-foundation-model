@@ -20,9 +20,9 @@ from inference.kv_cache import KVCache
 from inference.sampling import (
     sample_greedy,
     sample_temperature,
+    sample_token,
     sample_top_k,
     sample_top_p,
-    sample_token,
 )
 
 __all__ = [

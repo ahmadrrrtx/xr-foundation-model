@@ -1,9 +1,12 @@
 """Tokenize/detokenize endpoints."""
+
 from fastapi import APIRouter, HTTPException
-from api.main import _tokenizer, _model_loaded
-from api.schemas import TokenizeRequest, TokenizeResponse, DetokenizeRequest, DetokenizeResponse
+
+from api.main import _model_loaded, _tokenizer
+from api.schemas import DetokenizeRequest, DetokenizeResponse, TokenizeRequest, TokenizeResponse
 
 router = APIRouter()
+
 
 @router.post("/v1/tokenize", response_model=TokenizeResponse)
 async def tokenize(req: TokenizeRequest):
@@ -11,6 +14,7 @@ async def tokenize(req: TokenizeRequest):
         raise HTTPException(503, "Model not loaded")
     tokens = _tokenizer.encode(req.text)
     return TokenizeResponse(tokens=tokens, count=len(tokens))
+
 
 @router.post("/v1/detokenize", response_model=DetokenizeResponse)
 async def detokenize(req: DetokenizeRequest):

@@ -26,7 +26,6 @@ Implementation is original.
 """
 
 import logging
-from typing import Optional, List, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -76,8 +75,8 @@ class SpeculativeDecoder:
         input_ids: torch.Tensor,
         max_new_tokens: int = 50,
         temperature: float = 1.0,
-        top_k: Optional[int] = None,
-        top_p: Optional[float] = None,
+        top_k: int | None = None,
+        top_p: float | None = None,
     ) -> torch.Tensor:
         """Generate tokens using speculative decoding.
 
@@ -102,9 +101,7 @@ class SpeculativeDecoder:
 
         while generated.shape[1] - input_ids.shape[1] < max_new_tokens:
             # --- Phase 1: Draft model generates gamma candidates ---
-            draft_tokens, draft_probs = self._draft_phase(
-                current, temperature, top_k, top_p
-            )
+            draft_tokens, draft_probs = self._draft_phase(current, temperature, top_k, top_p)
 
             if not draft_tokens:
                 break
@@ -140,9 +137,9 @@ class SpeculativeDecoder:
         self,
         input_ids: torch.Tensor,
         temperature: float,
-        top_k: Optional[int],
-        top_p: Optional[float],
-    ) -> Tuple[List[int], List[float]]:
+        top_k: int | None,
+        top_p: float | None,
+    ) -> tuple[list[int], list[float]]:
         """Generate gamma candidate tokens using the draft model.
 
         Uses autoregressive generation without KV cache for simplicity.
@@ -152,14 +149,13 @@ class SpeculativeDecoder:
             (draft_tokens, draft_probs) where draft_probs[i] is the
             probability the draft model assigned to draft_tokens[i].
         """
-        draft_tokens: List[int] = []
-        draft_probs: List[float] = []
+        draft_tokens: list[int] = []
+        draft_probs: list[float] = []
         current = input_ids.clone()
-        vocab_size = self.draft_model.embedding.vocab_size
 
         for _ in range(self.gamma):
             # Truncate to max_seq_len
-            seq_input = current[:, -self.draft_model.max_seq_len:]
+            seq_input = current[:, -self.draft_model.max_seq_len :]
 
             logits, _ = self.draft_model(seq_input, use_cache=False)
             next_logits = logits[:, -1, :].float()
@@ -194,12 +190,12 @@ class SpeculativeDecoder:
     def _verify_and_accept(
         self,
         target_logits: torch.Tensor,
-        draft_tokens: List[int],
-        draft_probs: List[float],
+        draft_tokens: list[int],
+        draft_probs: list[float],
         temperature: float,
-        top_k: Optional[int],
-        top_p: Optional[float],
-    ) -> List[int]:
+        top_k: int | None,
+        top_p: float | None,
+    ) -> list[int]:
         """Verify draft tokens using the target model.
 
         For each draft token x at position i:
@@ -219,7 +215,7 @@ class SpeculativeDecoder:
         Returns:
             List of accepted token IDs (may include resampled).
         """
-        accepted: List[int] = []
+        accepted: list[int] = []
 
         for i, (draft_tok, draft_p) in enumerate(zip(draft_tokens, draft_probs)):
             t_logits = target_logits[0, i, :]
@@ -243,9 +239,7 @@ class SpeculativeDecoder:
             else:
                 # Reject: sample from adjusted distribution
                 # P'(x) = normalize(max(0, P_target(x) - P_draft(x)))
-                draft_full = F.softmax(
-                    self._draft_logits_at_position(i), dim=-1
-                )
+                draft_full = F.softmax(self._draft_logits_at_position(i), dim=-1)
                 adjusted = torch.clamp(t_probs - draft_full, min=0)
 
                 if adjusted.sum() > 0:
@@ -286,8 +280,8 @@ class SpeculativeDecoder:
     @staticmethod
     def _apply_filters(
         logits: torch.Tensor,
-        top_k: Optional[int],
-        top_p: Optional[float],
+        top_k: int | None,
+        top_p: float | None,
     ) -> torch.Tensor:
         """Apply top-k and top-p filtering to logits."""
         if top_k is not None and top_k > 0:

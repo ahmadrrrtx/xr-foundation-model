@@ -7,19 +7,19 @@ Covers sampling strategies, KV cache, and end-to-end generation.
 import pytest
 import torch
 
-from model.gpt import GPTModel
+from inference.engine import GenerationEngine
+from inference.kv_cache import KVCache
 from inference.sampling import (
     sample_greedy,
     sample_temperature,
+    sample_token,
     sample_top_k,
     sample_top_p,
-    sample_token,
 )
-from inference.kv_cache import KVCache
-from inference.engine import GenerationEngine
-
+from model.gpt import GPTModel
 
 # --- Sampling Tests ---
+
 
 class TestGreedySampling:
     def test_selects_max(self):
@@ -73,8 +73,7 @@ class TestTopPSampling:
         """Very small p should behave like greedy for concentrated dist."""
         logits = torch.tensor([[0.1, 10.0, 0.2, 0.05]])
         # Top token dominates; small p should still include it
-        tokens = {sample_top_p(logits, top_p=0.1, temperature=1.0).item()
-                  for _ in range(10)}
+        tokens = {sample_top_p(logits, top_p=0.1, temperature=1.0).item() for _ in range(10)}
         assert 1 in tokens  # highest prob token always present
 
     def test_invalid_p(self):
@@ -102,6 +101,7 @@ class TestSampleToken:
 
 
 # --- KV Cache Tests ---
+
 
 class TestKVCache:
     def test_init(self):
@@ -156,6 +156,7 @@ class TestKVCache:
 
 
 # --- Generation Engine Tests ---
+
 
 class TestGenerationEngine:
     def test_init(self):

@@ -15,9 +15,11 @@ Tests use only the Python standard library and the tokenizer module itself
 (no external testing frameworks beyond pytest).
 """
 
-import pytest
 import os
 import tempfile
+
+import pytest
+
 from tokenizer.bpe import BytePairEncoder
 from tokenizer.interface import TokenizerInterface
 
@@ -159,7 +161,9 @@ class TestBytePairEncoderVocabularyPersistence:
         """Vocabulary saved to file must be fully restorable by load()."""
         encoder = BytePairEncoder(vocab_size_target=512)
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
-            f.write("This is a longer test vocabulary training text for persistence check that exceeds the one hundred character minimum threshold easily.")
+            f.write(
+                "This is a longer test vocabulary training text for persistence check that exceeds the one hundred character minimum threshold easily."
+            )
             temp_path = f.name
         try:
             encoder.train(temp_path)
@@ -197,7 +201,9 @@ class TestBytePairEncoderSpecialTokens:
         encoder = BytePairEncoder(vocab_size_target=512)
         special = {"<|endoftext|>": 50256}
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
-            f.write("This is a special token test text with enough characters to exceed the hundred character minimum threshold required by the BPE training function.")
+            f.write(
+                "This is a special token test text with enough characters to exceed the hundred character minimum threshold required by the BPE training function."
+            )
             temp_path = f.name
         try:
             encoder.train(temp_path, special_tokens=special)

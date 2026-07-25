@@ -5,9 +5,9 @@ Loads and validates YAML configuration, provides typed dataclass configs,
 and exposes dot-notation access for all hyperparameters.
 """
 
-from typing import Any, Dict, Optional
-from dataclasses import dataclass, field
 import os
+from dataclasses import dataclass
+from typing import Any
 
 import yaml
 
@@ -29,7 +29,7 @@ class ConfigLoader:
         if not os.path.isfile(config_path):
             raise FileNotFoundError(f"Config not found: '{config_path}'")
 
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             self._config = yaml.safe_load(f)
 
         if self._config is None:
@@ -91,7 +91,7 @@ class ConfigLoader:
             use_fsdp=t.get("use_fsdp", False),
         )
 
-    def dataset_config(self) -> Dict[str, Any]:
+    def dataset_config(self) -> dict[str, Any]:
         """Return the dataset config dictionary."""
         return self._config.get("datasets", {})
 
@@ -124,7 +124,7 @@ class TrainingConfig:
     gradient_clip: float
     mixed_precision: bool
     checkpoint_every: int
-    resume_from: Optional[str]
+    resume_from: str | None
     grad_accum_steps: int
     use_ddp: bool
     use_fsdp: bool

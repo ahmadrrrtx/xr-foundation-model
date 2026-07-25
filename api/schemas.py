@@ -1,16 +1,15 @@
 """Pydantic schemas for XRFM API (v1.0.0)."""
 
-from typing import Optional, List
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 
 class CompletionRequest(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=32768)
     max_new_tokens: int = Field(default=50, ge=1, le=4096)
     temperature: float = Field(default=1.0, ge=0.0, le=2.0)
-    top_k: Optional[int] = Field(default=None, ge=1, le=1000)
-    top_p: Optional[float] = Field(default=None, gt=0.0, le=1.0)
-    stop: Optional[List[str]] = Field(default=None)
+    top_k: int | None = Field(default=None, ge=1, le=1000)
+    top_p: float | None = Field(default=None, gt=0.0, le=1.0)
+    stop: list[str] | None = Field(default=None)
     stream: bool = Field(default=False)
 
 
@@ -31,7 +30,7 @@ class CompletionResponse(BaseModel):
     object: str = "text_completion"
     created: int = 0
     model: str = "xrfm"
-    choices: List[CompletionChoice]
+    choices: list[CompletionChoice]
     usage: CompletionUsage
 
 
@@ -40,12 +39,12 @@ class TokenizeRequest(BaseModel):
 
 
 class TokenizeResponse(BaseModel):
-    tokens: List[int]
+    tokens: list[int]
     count: int
 
 
 class DetokenizeRequest(BaseModel):
-    tokens: List[int] = Field(..., min_length=1, max_length=32768)
+    tokens: list[int] = Field(..., min_length=1, max_length=32768)
 
 
 class DetokenizeResponse(BaseModel):

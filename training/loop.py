@@ -5,28 +5,28 @@ Supports DDP/FSDP, gradient accumulation, mixed precision,
 gradient clipping, checkpointing, and resume.
 """
 
-from typing import Optional, Dict, Any
-from contextlib import nullcontext
 import logging
+from contextlib import nullcontext
+from typing import Any
 
 import torch
 import torch.nn as nn
 
-from xrfm.config.loader import ConfigLoader
-from training.optimizer import OptimizerLoader
-from training.scheduler import SchedulerLoader
-from training.mixed_precision import MixedPrecisionLoader
 from training.checkpoint import CheckpointLoader
 from training.distributed import (
-    is_main_process,
+    barrier,
+    create_distributed_dataloader,
+    get_raw_model,
     is_distributed,
+    is_main_process,
     reduce_loss,
     wrap_model_ddp,
     wrap_model_fsdp,
-    get_raw_model,
-    create_distributed_dataloader,
-    barrier,
 )
+from training.mixed_precision import MixedPrecisionLoader
+from training.optimizer import OptimizerLoader
+from training.scheduler import SchedulerLoader
+from xrfm.config.loader import ConfigLoader
 
 logger = logging.getLogger("xrfm.training")
 
@@ -41,10 +41,10 @@ class TrainingLoop:
     def __init__(
         self,
         config_path: str = "config/config.yaml",
-        model: Optional[nn.Module] = None,
-        dataset: Optional[Any] = None,
-        optimizer: Optional[OptimizerLoader] = None,
-        scheduler: Optional[SchedulerLoader] = None,
+        model: nn.Module | None = None,
+        dataset: Any | None = None,
+        optimizer: OptimizerLoader | None = None,
+        scheduler: SchedulerLoader | None = None,
         checkpoint_dir: str = "checkpoints/",
     ) -> None:
         if model is None:
@@ -80,7 +80,9 @@ class TrainingLoop:
         raw_model = get_raw_model(self.model)
         if optimizer is not None:
             if not isinstance(optimizer, OptimizerLoader):
-                raise TypeError(f"optimizer must be OptimizerLoader, got {type(optimizer).__name__}")
+                raise TypeError(
+                    f"optimizer must be OptimizerLoader, got {type(optimizer).__name__}"
+                )
             self.optimizer = optimizer
         else:
             self.optimizer = OptimizerLoader(
@@ -92,7 +94,9 @@ class TrainingLoop:
         # Scheduler
         if scheduler is not None:
             if not isinstance(scheduler, SchedulerLoader):
-                raise TypeError(f"scheduler must be SchedulerLoader, got {type(scheduler).__name__}")
+                raise TypeError(
+                    f"scheduler must be SchedulerLoader, got {type(scheduler).__name__}"
+                )
             self.scheduler = scheduler
         else:
             self.scheduler = SchedulerLoader(
@@ -112,14 +116,16 @@ class TrainingLoop:
         self.checkpoint_every: int = loader.get("training.checkpoint_every", 1000)
         self.batch_size: int = loader.get("training.batch_size", 32)
         self.grad_accum_steps: int = loader.get("training.grad_accum_steps", 1)
-        self.resume_from: Optional[str] = loader.get("training.resume_from", None)
+        self.resume_from: str | None = loader.get("training.resume_from", None)
 
         self.current_step: int = 0
         self.best_loss: float = float("inf")
         self._micro_counter: int = 0
 
         if not hasattr(dataset, "__getitem__") or not hasattr(dataset, "__len__"):
-            raise ValueError(f"dataset must implement __getitem__/__len__. Got: {type(dataset).__name__}")
+            raise ValueError(
+                f"dataset must implement __getitem__/__len__. Got: {type(dataset).__name__}"
+            )
         if self.grad_accum_steps <= 0:
             raise ValueError(f"grad_accum_steps must be positive: {self.grad_accum_steps}")
 
@@ -153,8 +159,8 @@ class TrainingLoop:
         self,
         batch_input_ids: torch.Tensor,
         batch_target_ids: torch.Tensor,
-        batch_mask: Optional[torch.Tensor] = None,
-    ) -> Dict[str, float]:
+        batch_mask: torch.Tensor | None = None,
+    ) -> dict[str, float]:
         if self.optimizer is None or self.model is None:
             raise RuntimeError("model/optimizer not initialized")
         if batch_input_ids.dim() != 2 or batch_target_ids.dim() != 2:
@@ -183,12 +189,22 @@ class TrainingLoop:
 
         if not self._ready_to_step():
             lr = self.scheduler.get_lr() if self.scheduler else self.optimizer.learning_rate
-            return {"loss": loss.item(), "learning_rate": lr, "step": self.current_step, "step_performed": False}
+            return {
+                "loss": loss.item(),
+                "learning_rate": lr,
+                "step": self.current_step,
+                "step_performed": False,
+            }
 
         # optimizer step
         self.mixed_precision_loader.unscale_(self.optimizer.optimizer)
         if self.gradient_clip > 0:
-            torch.nn.utils.clip_grad_norm_(raw.parameters(), max_norm=self.gradient_clip, norm_type=2.0, error_if_nonfinite=True)
+            torch.nn.utils.clip_grad_norm_(
+                raw.parameters(),
+                max_norm=self.gradient_clip,
+                norm_type=2.0,
+                error_if_nonfinite=True,
+            )
         ok = self.mixed_precision_loader.step(self.optimizer.optimizer)
         if self.scheduler:
             self.scheduler.step()
@@ -199,16 +215,21 @@ class TrainingLoop:
         if reduced < self.best_loss:
             self.best_loss = reduced
         lr = self.scheduler.get_lr() if self.scheduler else self.optimizer.learning_rate
-        return {"loss": reduced, "learning_rate": lr, "step": self.current_step, "step_performed": ok}
+        return {
+            "loss": reduced,
+            "learning_rate": lr,
+            "step": self.current_step,
+            "step_performed": ok,
+        }
 
     # -- full loop --
 
     def training_loop(
         self,
-        max_steps: Optional[int] = None,
-        checkpoint_every: Optional[int] = None,
+        max_steps: int | None = None,
+        checkpoint_every: int | None = None,
         log_interval: int = 10,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if self.model is None or self.optimizer is None:
             raise RuntimeError("model and optimizer required")
 
@@ -225,21 +246,29 @@ class TrainingLoop:
         if len(dataloader) == 0:
             logger.warning(
                 "Dataset length (%d) < batch_size (%d) with drop_last=True. Retrying with drop_last=False.",
-                len(self.dataset), self.batch_size,
+                len(self.dataset),
+                self.batch_size,
             )
             dataloader = create_distributed_dataloader(
-                self.dataset, batch_size=min(self.batch_size, len(self.dataset)), shuffle=True, drop_last=False
+                self.dataset,
+                batch_size=min(self.batch_size, len(self.dataset)),
+                shuffle=True,
+                drop_last=False,
             )
         if len(dataloader) == 0:
-            raise ValueError(
-                f"Dataset length ({len(self.dataset)}) is too small for training."
-            )
+            raise ValueError(f"Dataset length ({len(self.dataset)}) is too small for training.")
         eff_bs = self.batch_size * self.grad_accum_steps
         if is_distributed():
             eff_bs *= torch.distributed.get_world_size()
 
         if is_main_process():
-            logger.info("Starting: max_steps=%d per_dev_bs=%d accum=%d eff_bs=%d", max_steps, self.batch_size, self.grad_accum_steps, eff_bs)
+            logger.info(
+                "Starting: max_steps=%d per_dev_bs=%d accum=%d eff_bs=%d",
+                max_steps,
+                self.batch_size,
+                self.grad_accum_steps,
+                eff_bs,
+            )
 
         final_ckpt = None
         metrics = {"loss": 0.0, "learning_rate": 0.0, "step": 0, "step_performed": False}
@@ -253,18 +282,34 @@ class TrainingLoop:
                     continue
 
                 if is_main_process() and self.current_step % log_interval == 0:
-                    logger.info("Step %d/%d | Loss: %.4f | LR: %.6f | EffBS: %d",
-                                self.current_step, max_steps, metrics["loss"], metrics["learning_rate"], eff_bs)
+                    logger.info(
+                        "Step %d/%d | Loss: %.4f | LR: %.6f | EffBS: %d",
+                        self.current_step,
+                        max_steps,
+                        metrics["loss"],
+                        metrics["learning_rate"],
+                        eff_bs,
+                    )
 
                 if (self.current_step % checkpoint_every == 0) or (self.current_step >= max_steps):
                     if is_main_process():
                         final_ckpt = self.checkpoint_loader.save_checkpoint(
-                            get_raw_model(self.model), self.optimizer, self.scheduler,
-                            step=self.current_step, loss=metrics["loss"], best_loss=self.best_loss)
+                            get_raw_model(self.model),
+                            self.optimizer,
+                            self.scheduler,
+                            step=self.current_step,
+                            loss=metrics["loss"],
+                            best_loss=self.best_loss,
+                        )
                         logger.info("Checkpoint: %s", final_ckpt)
                     barrier()
 
         if is_main_process():
             logger.info("Training complete: loss=%.4f best=%.4f", metrics["loss"], self.best_loss)
         barrier()
-        return {"final_loss": metrics["loss"], "best_loss": self.best_loss, "final_step": self.current_step, "checkpoint_path": final_ckpt}
+        return {
+            "final_loss": metrics["loss"],
+            "best_loss": self.best_loss,
+            "final_step": self.current_step,
+            "checkpoint_path": final_ckpt,
+        }

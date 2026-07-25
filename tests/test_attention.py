@@ -25,7 +25,7 @@ class TestAttentionShape:
         assert isinstance(pkv, tuple)
         assert len(pkv) == 2
         k, v = pkv
-        assert k.shape == (1, 4, 5, 32)   # (batch, heads, seq, d_head)
+        assert k.shape == (1, 4, 5, 32)  # (batch, heads, seq, d_head)
         assert v.shape == (1, 4, 5, 32)
 
     def test_past_kv_concatenation(self):

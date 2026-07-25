@@ -12,8 +12,6 @@ Conceptual references (not copied):
 Implementation is original.
 """
 
-from typing import Optional, List, Tuple
-
 import torch
 import torch.nn as nn
 
@@ -41,16 +39,12 @@ class GPTModel(nn.Module):
         super().__init__()
 
         if not isinstance(config_path, str):
-            raise TypeError(
-                f"config_path must be str, got {type(config_path).__name__}"
-            )
+            raise TypeError(f"config_path must be str, got {type(config_path).__name__}")
 
         try:
             loader = ConfigLoader(config_path)
         except FileNotFoundError as exc:
-            raise FileNotFoundError(
-                f"Config not found: '{config_path}'"
-            ) from exc
+            raise FileNotFoundError(f"Config not found: '{config_path}'") from exc
 
         model_cfg = loader.model_config()
         self.config_path = config_path
@@ -67,8 +61,7 @@ class GPTModel(nn.Module):
             raise ValueError(f"n_heads must be positive: {model_cfg.n_heads}")
         if model_cfg.d_model % model_cfg.n_heads != 0:
             raise ValueError(
-                f"d_model ({model_cfg.d_model}) not divisible by "
-                f"n_heads ({model_cfg.n_heads})"
+                f"d_model ({model_cfg.d_model}) not divisible by " f"n_heads ({model_cfg.n_heads})"
             )
         if model_cfg.d_ff <= 0:
             raise ValueError(f"d_ff must be positive: {model_cfg.d_ff}")
@@ -86,29 +79,27 @@ class GPTModel(nn.Module):
         )
 
         # Stacked transformer blocks
-        self.blocks = nn.ModuleList([
-            TransformerBlock(
-                d_model=model_cfg.d_model,
-                n_heads=model_cfg.n_heads,
-                d_ff=model_cfg.d_ff,
-                dropout=model_cfg.dropout,
-                use_rmsnorm=model_cfg.use_rmsnorm,
-                use_rope=model_cfg.use_rope,
-            )
-            for _ in range(model_cfg.n_layers)
-        ])
+        self.blocks = nn.ModuleList(
+            [
+                TransformerBlock(
+                    d_model=model_cfg.d_model,
+                    n_heads=model_cfg.n_heads,
+                    d_ff=model_cfg.d_ff,
+                    dropout=model_cfg.dropout,
+                    use_rmsnorm=model_cfg.use_rmsnorm,
+                    use_rope=model_cfg.use_rope,
+                )
+                for _ in range(model_cfg.n_layers)
+            ]
+        )
 
         # Final norm
         self.norm_final = (
-            RMSNorm(model_cfg.d_model)
-            if model_cfg.use_rmsnorm
-            else nn.LayerNorm(model_cfg.d_model)
+            RMSNorm(model_cfg.d_model) if model_cfg.use_rmsnorm else nn.LayerNorm(model_cfg.d_model)
         )
 
         # LM head (weight-tied with embedding by default)
-        self.lm_head = nn.Linear(
-            model_cfg.d_model, model_cfg.vocab_size, bias=False
-        )
+        self.lm_head = nn.Linear(model_cfg.d_model, model_cfg.vocab_size, bias=False)
         if weight_tied:
             self.lm_head.weight = self.embedding.embedding.weight
         else:
@@ -117,12 +108,12 @@ class GPTModel(nn.Module):
     def forward(
         self,
         input_ids: torch.Tensor,
-        mask: Optional[torch.Tensor] = None,
-        past_key_values: Optional[List[Tuple[torch.Tensor, torch.Tensor]]] = None,
+        mask: torch.Tensor | None = None,
+        past_key_values: list[tuple[torch.Tensor, torch.Tensor]] | None = None,
         use_cache: bool = False,
-    ) -> Tuple[
+    ) -> tuple[
         torch.Tensor,
-        Optional[List[Tuple[torch.Tensor, torch.Tensor]]],
+        list[tuple[torch.Tensor, torch.Tensor]] | None,
     ]:
         """Forward pass with optional KV cache.
 
@@ -140,9 +131,7 @@ class GPTModel(nn.Module):
         """
         # Validate input
         if input_ids.dim() not in (1, 2):
-            raise ValueError(
-                f"input_ids must be 1D or 2D, got {input_ids.dim()}D"
-            )
+            raise ValueError(f"input_ids must be 1D or 2D, got {input_ids.dim()}D")
 
         original_dim = input_ids.dim()
         if input_ids.dim() == 1:
@@ -152,8 +141,7 @@ class GPTModel(nn.Module):
         if (input_ids >= self.embedding.vocab_size).any():
             max_id = int(input_ids.max().item())
             raise IndexError(
-                f"Token ID {max_id} exceeds vocab size "
-                f"({self.embedding.vocab_size})"
+                f"Token ID {max_id} exceeds vocab size " f"({self.embedding.vocab_size})"
             )
 
         batch_size, seq_len = input_ids.shape
@@ -162,16 +150,14 @@ class GPTModel(nn.Module):
         x = self.embedding(input_ids)
 
         # Pass through transformer blocks with KV cache
-        present_key_values: List[Tuple[torch.Tensor, torch.Tensor]] = []
+        present_key_values: list[tuple[torch.Tensor, torch.Tensor]] = []
         for i, block in enumerate(self.blocks):
             past_kv = (
                 past_key_values[i]
                 if (past_key_values is not None and i < len(past_key_values))
                 else None
             )
-            x, present_kv = block(
-                x, mask=mask, past_kv=past_kv, use_cache=use_cache
-            )
+            x, present_kv = block(x, mask=mask, past_kv=past_kv, use_cache=use_cache)
             if use_cache and present_kv is not None:
                 present_key_values.append(present_kv)
 

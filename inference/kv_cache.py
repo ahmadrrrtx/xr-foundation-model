@@ -17,8 +17,6 @@ Shape convention per layer:
     V_cache: (batch_size, num_heads, cached_seq_len, head_dim)
 """
 
-from typing import List, Tuple
-
 import torch
 
 
@@ -36,13 +34,11 @@ class KVCache:
 
     def __init__(self, max_cache_len: int = 2048) -> None:
         if max_cache_len <= 0:
-            raise ValueError(
-                f"max_cache_len must be positive, got {max_cache_len}"
-            )
-        self.layers: List[Tuple[torch.Tensor, torch.Tensor]] = []
+            raise ValueError(f"max_cache_len must be positive, got {max_cache_len}")
+        self.layers: list[tuple[torch.Tensor, torch.Tensor]] = []
         self.max_cache_len = max_cache_len
         self._seq_len: int = 0
-        self._static_buffers: List[Tuple[torch.Tensor, torch.Tensor]] = []
+        self._static_buffers: list[tuple[torch.Tensor, torch.Tensor]] = []
 
     def is_empty(self) -> bool:
         """True if no cache entries have been populated yet."""
@@ -58,7 +54,7 @@ class KVCache:
         layer_idx: int,
         k_new: torch.Tensor,
         v_new: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Update cache for one layer with new K, V tensors.
 
         On first call: initializes the cache entry for this layer.
@@ -73,9 +69,7 @@ class KVCache:
             (K_full, V_full) — cached + new, concatenated along seq dim.
         """
         if layer_idx < 0:
-            raise ValueError(
-                f"layer_idx must be non-negative, got {layer_idx}"
-            )
+            raise ValueError(f"layer_idx must be non-negative, got {layer_idx}")
 
         # Extend layers list on first population
         while len(self.layers) <= layer_idx:

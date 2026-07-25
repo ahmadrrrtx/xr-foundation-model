@@ -24,7 +24,6 @@ Design principles (Phase 5 architecture freeze):
 """
 
 import torch
-from typing import Optional
 
 
 class MixedPrecisionLoader:
@@ -91,7 +90,7 @@ class MixedPrecisionLoader:
         """
         return self.scaler.scale(loss) if hasattr(self.scaler, "scale") else loss
 
-    def unscale_(self, optimizer: Optional[torch.optim.Optimizer] = None) -> None:
+    def unscale_(self, optimizer: torch.optim.Optimizer | None = None) -> None:
         """Unscale gradients before gradient clipping (`GradScaler.unscale_(optimizer)`).
 
         Args:
@@ -144,7 +143,7 @@ class NoOpScaler:
         """Return unscaled loss (`NoOpScaler`)."""
         return loss
 
-    def unscale_(self, optimizer: Optional[torch.optim.Optimizer] = None) -> None:
+    def unscale_(self, optimizer: torch.optim.Optimizer | None = None) -> None:
         """No-op (`NoOpScaler`)."""
         pass
 

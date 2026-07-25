@@ -15,12 +15,13 @@ Classification:
   vLLM serving benchmark.
 """
 
-import time
 import sys
+import time
 
 sys.path.insert(0, ".")
 
 import torch
+
 from model.gpt import GPTModel
 
 
@@ -109,7 +110,9 @@ def verify_parameter_count(expected_approx: int = 10_000_000, tolerance: float =
 
     print(f"[Benchmark] XRFM-10M Preset Parameter Count: {param_count:,}")
     print(f"[Benchmark] Approximate expected: {expected_approx:,} (documented reference)")
-    print(f"[Benchmark] Note: Actual count reflects full architecture (embedding, attention, SwiGLU, norm, output with weight tying).")
+    print(
+        "[Benchmark] Note: Actual count reflects full architecture (embedding, attention, SwiGLU, norm, output with weight tying)."
+    )
 
 
 def run_full_benchmark() -> None:
@@ -126,9 +129,7 @@ def run_full_benchmark() -> None:
     print("\n--- Forward Pass Timing ---")
     for batch_size in (1, 2, 4):
         for seq_len in (8, 32, 64):
-            result = benchmark_forward_pass(
-                batch_size=batch_size, seq_len=seq_len, repetitions=5
-            )
+            result = benchmark_forward_pass(batch_size=batch_size, seq_len=seq_len, repetitions=5)
             print(
                 f"Batch={batch_size}, Seq={seq_len}: "
                 f"avg={result['avg_time_ms']:.2f}ms, "

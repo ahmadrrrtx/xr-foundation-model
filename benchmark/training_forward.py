@@ -5,16 +5,16 @@ Measures training step timing, checkpoint I/O, and numerical stability.
 Uses a minimal DummyDataset for benchmark isolation.
 """
 
-import time
 import tempfile
+import time
 
 import torch
 
 from model.gpt import GPTModel
-from training.optimizer import OptimizerLoader
-from training.scheduler import SchedulerLoader
 from training.checkpoint import CheckpointLoader
 from training.loop import TrainingLoop
+from training.optimizer import OptimizerLoader
+from training.scheduler import SchedulerLoader
 
 
 class DummyDataset:

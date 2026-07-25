@@ -11,17 +11,15 @@ loader and evaluation pipeline can call decode functionality without depending
 on the specific tokenizer algorithm.
 """
 
-from typing import List, Union
-
-from tokenizer.interface import TokenizerInterface
 from tokenizer.encode import decode_ids
+from tokenizer.interface import TokenizerInterface
 
 
 def decode_text(
-    token_ids: Union[List[int], List[List[int]]],
+    token_ids: list[int] | list[list[int]],
     tokenizer: TokenizerInterface,
     skip_special_tokens: bool = False,
-) -> Union[str, List[str]]:
+) -> str | list[str]:
     """Decode token IDs using the provided tokenizer instance.
 
     This is a thin wrapper around `tokenizer.decode()` that applies

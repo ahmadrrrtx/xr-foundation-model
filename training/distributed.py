@@ -23,7 +23,7 @@ from __future__ import annotations
 import logging
 import os
 from contextlib import nullcontext
-from typing import Optional, Any, List
+from typing import Any
 
 import torch
 import torch.nn as nn
@@ -37,12 +37,10 @@ logger = logging.getLogger("xrfm.distributed")
 # Environment detection
 # ---------------------------------------------------------------------------
 
+
 def is_distributed() -> bool:
     """Return True if torch.distributed is initialized and available."""
-    return (
-        torch.distributed.is_available()
-        and torch.distributed.is_initialized()
-    )
+    return torch.distributed.is_available() and torch.distributed.is_initialized()
 
 
 def get_rank() -> int:
@@ -65,7 +63,7 @@ def is_main_process() -> bool:
 
 
 def init_distributed(
-    backend: Optional[str] = None,
+    backend: str | None = None,
     timeout_seconds: int = 600,
 ) -> None:
     """Initialize the distributed process group.
@@ -109,7 +107,11 @@ def init_distributed(
 
     logger.info(
         "Distributed initialized: rank=%d/%d, local_rank=%d, backend=%s, device=%s",
-        get_rank(), get_world_size(), local_rank, backend, device,
+        get_rank(),
+        get_world_size(),
+        local_rank,
+        backend,
+        device,
     )
 
 
@@ -129,6 +131,7 @@ def barrier() -> None:
 # ---------------------------------------------------------------------------
 # Model wrapping
 # ---------------------------------------------------------------------------
+
 
 def wrap_model_ddp(
     model: nn.Module,
@@ -185,9 +188,11 @@ def wrap_model_fsdp(
 
     try:
         from torch.distributed.fsdp import (
-            FullyShardedDataParallel as FSDP,
-            ShardingStrategy,
             CPUOffload,
+            ShardingStrategy,
+        )
+        from torch.distributed.fsdp import (
+            FullyShardedDataParallel as FSDP,
         )
 
         strategy_map = {
@@ -196,9 +201,7 @@ def wrap_model_fsdp(
             "NO_SHARD": ShardingStrategy.NO_SHARD,
         }
 
-        strategy = strategy_map.get(
-            sharding_strategy, ShardingStrategy.FULL_SHARD
-        )
+        strategy = strategy_map.get(sharding_strategy, ShardingStrategy.FULL_SHARD)
 
         fsdp_kwargs = {"sharding_strategy": strategy}
 
@@ -208,10 +211,7 @@ def wrap_model_fsdp(
         return FSDP(model, **fsdp_kwargs)
 
     except ImportError:
-        logger.warning(
-            "FSDP not available in this PyTorch version. "
-            "Falling back to DDP."
-        )
+        logger.warning("FSDP not available in this PyTorch version. " "Falling back to DDP.")
         return wrap_model_ddp(model)
 
 
@@ -239,6 +239,7 @@ def get_raw_model(model: nn.Module) -> nn.Module:
 # Gradient accumulation
 # ---------------------------------------------------------------------------
 
+
 class GradientAccumulator:
     """Manages gradient accumulation for simulating larger batch sizes.
 
@@ -264,9 +265,7 @@ class GradientAccumulator:
         steps: int = 1,
     ) -> None:
         if steps <= 0:
-            raise ValueError(
-                f"accumulation_steps must be positive, got {steps}"
-            )
+            raise ValueError(f"accumulation_steps must be positive, got {steps}")
         self.model = model
         self.steps = steps
         self._counter: int = 0
@@ -301,7 +300,7 @@ class GradientAccumulator:
     def step(
         self,
         optimizer: torch.optim.Optimizer,
-        scaler: Optional[Any] = None,
+        scaler: Any | None = None,
     ) -> bool:
         """Perform optimizer step (and scheduler step).
 
@@ -332,6 +331,7 @@ class GradientAccumulator:
 # ---------------------------------------------------------------------------
 # Distributed DataLoader
 # ---------------------------------------------------------------------------
+
 
 def create_distributed_dataloader(
     dataset: Dataset,
@@ -392,7 +392,8 @@ def create_distributed_dataloader(
 # Distributed logging & metrics
 # ---------------------------------------------------------------------------
 
-def reduce_loss(loss: torch.Tensor, device: Optional[torch.device] = None) -> float:
+
+def reduce_loss(loss: torch.Tensor, device: torch.device | None = None) -> float:
     """Average a loss value across all distributed processes.
 
     Args:
@@ -414,6 +415,7 @@ def reduce_loss(loss: torch.Tensor, device: Optional[torch.device] = None) -> fl
 # FSDP checkpoint helpers
 # ---------------------------------------------------------------------------
 
+
 def save_fsdp_checkpoint(
     model: nn.Module,
     path: str,
@@ -428,9 +430,11 @@ def save_fsdp_checkpoint(
     """
     try:
         from torch.distributed.fsdp import (
-            FullyShardedDataParallel as FSDP,
-            StateDictType,
             FullStateDictConfig,
+            StateDictType,
+        )
+        from torch.distributed.fsdp import (
+            FullyShardedDataParallel as FSDP,
         )
 
         cfg = FullStateDictConfig(offload_to_cpu=True, rank0_only=rank0_only)
@@ -456,9 +460,11 @@ def load_fsdp_checkpoint(
     """
     try:
         from torch.distributed.fsdp import (
-            FullyShardedDataParallel as FSDP,
-            StateDictType,
             FullStateDictConfig,
+            StateDictType,
+        )
+        from torch.distributed.fsdp import (
+            FullyShardedDataParallel as FSDP,
         )
 
         cfg = FullStateDictConfig(offload_to_cpu=True, rank0_only=False)

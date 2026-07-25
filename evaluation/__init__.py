@@ -13,16 +13,16 @@ Usage:
     results = run_evaluation_suite(model, val_dataloader)
 """
 
-from evaluation.perplexity import (
-    compute_perplexity,
-    compute_perplexity_strided,
-    evaluate_checkpoint,
-)
 from evaluation.benchmarks import (
     Benchmark,
     TextCompletionAccuracy,
     TopKAccuracy,
     run_evaluation_suite,
+)
+from evaluation.perplexity import (
+    compute_perplexity,
+    compute_perplexity_strided,
+    evaluate_checkpoint,
 )
 
 __all__ = [

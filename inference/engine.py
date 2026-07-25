@@ -13,13 +13,11 @@ Implementation is original.
 """
 
 import logging
-from typing import Optional, List
 
 import torch
 
-from model.gpt import GPTModel
-from inference.kv_cache import KVCache
 from inference.sampling import sample_token
+from model.gpt import GPTModel
 
 logger = logging.getLogger("xrfm.inference")
 
@@ -38,9 +36,7 @@ class GenerationEngine:
 
     def __init__(self, model: GPTModel, compile_model: bool = False) -> None:
         if not isinstance(model, GPTModel):
-            raise TypeError(
-                f"model must be GPTModel, got {type(model).__name__}"
-            )
+            raise TypeError(f"model must be GPTModel, got {type(model).__name__}")
         self.model = model
         self.max_seq_len = model.max_seq_len
         self.compiled = False
@@ -58,9 +54,9 @@ class GenerationEngine:
         input_ids: torch.Tensor,
         max_new_tokens: int = 50,
         temperature: float = 1.0,
-        top_k: Optional[int] = None,
-        top_p: Optional[float] = None,
-        stop_token_id: Optional[int] = None,
+        top_k: int | None = None,
+        top_p: float | None = None,
+        stop_token_id: int | None = None,
     ) -> torch.Tensor:
         """Generate tokens autoregressively with KV cache.
 
@@ -83,13 +79,9 @@ class GenerationEngine:
             ValueError: If max_new_tokens <= 0 or temperature < 0.
         """
         if max_new_tokens <= 0:
-            raise ValueError(
-                f"max_new_tokens must be > 0, got {max_new_tokens}"
-            )
+            raise ValueError(f"max_new_tokens must be > 0, got {max_new_tokens}")
         if temperature < 0:
-            raise ValueError(
-                f"temperature must be >= 0, got {temperature}"
-            )
+            raise ValueError(f"temperature must be >= 0, got {temperature}")
 
         self.model.eval()
 
@@ -99,26 +91,23 @@ class GenerationEngine:
 
         batch_size, prompt_len = input_ids.shape
         if batch_size != 1:
-            raise ValueError(
-                f"generate() expects batch_size=1, got {batch_size}"
-            )
+            raise ValueError(f"generate() expects batch_size=1, got {batch_size}")
 
         # Truncate prompt if exceeds max_seq_len
         if prompt_len > self.max_seq_len:
             logger.warning(
                 "Prompt length (%d) exceeds max_seq_len (%d). Truncating.",
-                prompt_len, self.max_seq_len,
+                prompt_len,
+                self.max_seq_len,
             )
-            input_ids = input_ids[:, -self.max_seq_len:]
+            input_ids = input_ids[:, -self.max_seq_len :]
             prompt_len = input_ids.shape[1]
 
         generated = input_ids.clone()
-        past_key_values: Optional[List] = None
+        past_key_values: list | None = None
 
         # Process prompt: full forward pass with caching
-        logits, past_key_values = self.model(
-            input_ids, use_cache=True, past_key_values=None
-        )
+        logits, past_key_values = self.model(input_ids, use_cache=True, past_key_values=None)
         # logits: (1, prompt_len, vocab_size)
         next_token_logits = logits[:, -1, :]
 
@@ -171,8 +160,8 @@ class GenerationEngine:
         input_ids: torch.Tensor,
         max_new_tokens: int = 50,
         temperature: float = 1.0,
-        top_k: Optional[int] = None,
-        top_p: Optional[float] = None,
+        top_k: int | None = None,
+        top_p: float | None = None,
     ) -> torch.Tensor:
         """Generate for a batch of prompts (without KV cache, for simplicity).
 
@@ -191,16 +180,14 @@ class GenerationEngine:
             Full sequences: (batch, seq + max_new_tokens).
         """
         if max_new_tokens <= 0:
-            raise ValueError(
-                f"max_new_tokens must be > 0, got {max_new_tokens}"
-            )
+            raise ValueError(f"max_new_tokens must be > 0, got {max_new_tokens}")
 
         self.model.eval()
         generated = input_ids.clone()
 
         for _ in range(max_new_tokens):
             # Truncate to max_seq_len
-            seq_input = generated[:, -self.max_seq_len:]
+            seq_input = generated[:, -self.max_seq_len :]
 
             logits, _ = self.model(seq_input, use_cache=False)
             next_token_logits = logits[:, -1, :]

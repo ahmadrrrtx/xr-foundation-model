@@ -22,9 +22,9 @@ Design principles (Phase 5 architecture freeze):
 - Original attribution in module docstring.
 """
 
-import torch
+from typing import Any
+
 import torch.optim as optim
-from typing import Optional, Dict, Any
 
 
 class OptimizerLoader:
@@ -71,13 +71,9 @@ class OptimizerLoader:
                 f"Check ConfigLoader training settings."
             )
         if len(betas) != 2 or not (0.0 <= betas[0] < 1.0) or not (0.0 <= betas[1] < 1.0):
-            raise ValueError(
-                f"betas must be a tuple of two values in [0, 1), got {betas}."
-            )
+            raise ValueError(f"betas must be a tuple of two values in [0, 1), got {betas}.")
         if eps <= 0:
-            raise ValueError(
-                f"eps must be positive, got {eps}. Check AdamW initialization."
-            )
+            raise ValueError(f"eps must be positive, got {eps}. Check AdamW initialization.")
 
         # Initialize AdamW optimizer (`torch.optim.AdamW`).
         # `AdamW` decouples `weight_decay` from gradient updates (`Loshchilov & Hutter 2019`),
@@ -106,10 +102,10 @@ class OptimizerLoader:
         """Clear parameter gradients (`optimizer.zero_grad()`)."""
         self.optimizer.zero_grad()
 
-    def state_dict(self) -> Dict[str, Any]:
+    def state_dict(self) -> dict[str, Any]:
         """Return optimizer state (`optimizer.state_dict()`) for checkpointing."""
         return self.optimizer.state_dict()
 
-    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
+    def load_state_dict(self, state_dict: dict[str, Any]) -> None:
         """Load optimizer state (`optimizer.load_state_dict()`) from checkpoint."""
         self.optimizer.load_state_dict(state_dict)
