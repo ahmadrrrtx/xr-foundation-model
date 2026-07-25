@@ -64,7 +64,6 @@ async def completions_stream(req: CompletionRequest):
     input_ids.shape[1]
 
     async def generate_stream():
-
         _model.eval()
         generated = input_ids.clone()
         past_kv = None

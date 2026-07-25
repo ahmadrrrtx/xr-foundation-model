@@ -92,9 +92,11 @@ class TokenizerInterface(ABC):
 # Planned abstract interface
 class DatasetInterface(ABC):
     @abstractmethod
-    def load(self, tokenizer: TokenizerInterface) -> "Dataset": ...
+    def load(self, tokenizer: TokenizerInterface) -> "Dataset":
+        ...
     @abstractmethod
-    def split_train_val(self, val_ratio: float = 0.1): ...
+    def split_train_val(self, val_ratio: float = 0.1):
+        ...
 ```
 
 **Stability guarantee:** Dataset loader depends only on `TokenizerInterface`, not on specific tokenizer algorithms.
@@ -133,8 +135,9 @@ class InferenceEngine(ABC):
         temperature: float = 0.7,
         top_p: float = 0.9,
         top_k: int = 50,
-        **sampling_params,
-    ) -> Union[str, List[str]]: ...
+        **sampling_params
+    ) -> Union[str, List[str]]:
+        ...
     @abstractmethod
     def stream_generate(self, prompt: str, **params):
         """Generate tokens one at a time for streaming APIs."""
@@ -178,9 +181,11 @@ class CheckpointManager:
         token_count: int,
         dataset_version: str,
         git_commit: str,
-        config_snapshot: Dict,
-    ) -> None: ...
-    def load(self, path: str) -> CheckpointData: ...
+        config_snapshot: Dict
+    ) -> None:
+        ...
+    def load(self, path: str) -> CheckpointData:
+        ...
 ```
 
 **Stability guarantee:** Checkpoint format is designed for future scaling. Adding new fields (e.g., FSDP sharded states) extends the interface without breaking backward compatibility.
