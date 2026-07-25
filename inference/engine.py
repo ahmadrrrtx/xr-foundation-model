@@ -36,13 +36,21 @@ class GenerationEngine:
         max_seq_len: Maximum total sequence length (prompt + generated).
     """
 
-    def __init__(self, model: GPTModel) -> None:
+    def __init__(self, model: GPTModel, compile_model: bool = False) -> None:
         if not isinstance(model, GPTModel):
             raise TypeError(
                 f"model must be GPTModel, got {type(model).__name__}"
             )
         self.model = model
         self.max_seq_len = model.max_seq_len
+        self.compiled = False
+        if compile_model and hasattr(torch, "compile"):
+            try:
+                self.model = torch.compile(model, mode="reduce-overhead")
+                self.compiled = True
+                logger.info("Compiled model with torch.compile(mode='reduce-overhead')")
+            except Exception as e:
+                logger.warning(f"torch.compile failed: {e}. Falling back to eager model.")
 
     @torch.no_grad()
     def generate(

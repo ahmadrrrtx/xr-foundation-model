@@ -129,11 +129,12 @@ class SpeculativeDecoder:
             )
 
             # Append accepted tokens
-            new_tokens = torch.tensor([accepted], device=current.device).unsqueeze(0)
+            new_tokens = torch.tensor([accepted], device=current.device)
             generated = torch.cat([generated, new_tokens], dim=1)
             current = torch.cat([current, new_tokens], dim=1)
 
-        return generated.squeeze(0)
+        total_len = input_ids.shape[1] + max_new_tokens
+        return generated.squeeze(0)[:total_len]
 
     def _draft_phase(
         self,

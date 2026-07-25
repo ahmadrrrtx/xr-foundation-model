@@ -296,7 +296,7 @@ class GradientAccumulator:
 
     def should_step(self) -> bool:
         """True when gradients are ready for optimizer step."""
-        return self._counter % self.steps == 0
+        return self._counter > 0 and self._counter % self.steps == 0
 
     def step(
         self,

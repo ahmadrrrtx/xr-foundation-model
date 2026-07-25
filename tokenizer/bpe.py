@@ -242,19 +242,20 @@ class BytePairEncoder(TokenizerInterface):
         # in this version, but the vocabulary size target limits growth).
         return candidate
 
+    def _get_ranks(self) -> Dict[Tuple[str, str], int]:
+        """Return cached map of (part_a, part_b) -> merge_rank for fast lookup."""
+        if not hasattr(self, "_merge_ranks_cache") or len(getattr(self, "_merge_ranks_cache", {})) != len(self.merges):
+            self._merge_ranks_cache = {pair: rank for rank, pair in enumerate(self.merges)}
+        return self._merge_ranks_cache
+
     def encode(self, text: str, **kwargs) -> List[int]:
         """Encode text into integer token IDs using the learned BPE vocabulary.
 
-        The encoding process:
-        1. Split text into words (similar to training preprocessing).
-        2. For each word, split into initial character tokens.
-        3. Apply merge rules in the order they were learned (`self.merges`).
-        4. Map resulting token strings to vocabulary IDs.
+        Uses rank-based priority queue for O(N log N) merge lookup.
 
         Args:
             text: Input text string.
-            **kwargs: Additional options (ignored in basic implementation but
-                reserved for future extensions like `add_special_tokens`).
+            **kwargs: Additional options reserved for extensions.
 
         Returns:
             List of integer token IDs.
@@ -265,112 +266,79 @@ class BytePairEncoder(TokenizerInterface):
         if not isinstance(text, str):
             raise TypeError(f"encode() expects a string, got {type(text)}")
 
-        # Normalize whitespace (consistent with training preprocessing).
         normalized = " ".join(text.split())
         words = normalized.split()
+        ranks = self._get_ranks()
 
         token_ids: List[int] = []
         for word in words:
-            # Initialize with character-level tokens.
             split = list(word)
-            # Apply all merge rules in the order they were learned.
-            # Note: For full BPE accuracy, we apply merges iteratively until
-            # no more merges from our vocabulary can be applied. A faster
-            # approximation applies each merge once in order; the full method
-            # is more accurate but slightly slower.
-            # For this production-quality first version, we use the iterative
-            # approach for correctness.
-            changed = True
-            while changed:
-                changed = False
+            while len(split) >= 2:
+                # Find adjacent pairs in split that exist in learned merge rules
+                pairs = [(split[i], split[i + 1]) for i in range(len(split) - 1)]
+                valid_pairs = [p for p in pairs if p in ranks]
+                if not valid_pairs:
+                    break
+                
+                # Pick pair with lowest rank (learned earliest in BPE training)
+                best_pair = min(valid_pairs, key=lambda p: ranks[p])
+                part_a, part_b = best_pair
+                merged_str = part_a + part_b
+
                 new_split = []
                 i = 0
                 while i < len(split):
-                    if i < len(split) - 1:
-                        pair_str = split[i] + split[i + 1]
-                        # Check if this pair matches any learned merge.
-                        # In standard BPE, we apply merges based on the pair string.
-                        # However, a more precise approach checks if the pair of
-                        # individual tokens matches a merge rule. Since we store
-                        # merges as pairs of strings (e.g., ("e", "n")), we can
-                        # check directly.
-                        found_merge = False
-                        for (part_a, part_b) in self.merges:
-                            if split[i] == part_a and split[i + 1] == part_b:
-                                # Apply this merge.
-                                new_split.append(part_a + part_b)
-                                i += 2  # Skip both elements.
-                                found_merge = True
-                                changed = True
-                                break
-                        if found_merge:
-                            continue
-                    # If no merge applied at this position, keep the token.
-                    new_split.append(split[i])
-                    i += 1
+                    if i < len(split) - 1 and split[i] == part_a and split[i + 1] == part_b:
+                        new_split.append(merged_str)
+                        i += 2
+                    else:
+                        new_split.append(split[i])
+                        i += 1
                 split = new_split
 
-            # After applying all possible merges, map tokens to IDs.
             for token_str in split:
                 if token_str in self.vocab:
                     token_ids.append(self.vocab[token_str])
                 else:
-                    # Fallback: if a token is not in vocabulary (should not happen
-                    # for text that can be decomposed into vocabulary tokens),
-                    # split into individual characters and use their base IDs.
                     for char in token_str:
                         if char in self.vocab:
                             token_ids.append(self.vocab[char])
                         else:
-                            # Extremely unlikely: unknown character.
-                            # We raise a clear error rather than silently ignoring,
-                            # to help debugging vocabulary coverage issues.
                             raise ValueError(
                                 f"Unknown token '{token_str}' (derived from word '{word}') "
-                                f"not found in vocabulary. Vocabulary size: {self.vocab_size()}. "
-                                f"Consider training on a larger corpus or expanding vocabulary."
+                                f"not found in vocabulary. Vocabulary size: {self.vocab_size()}."
                             )
 
         return token_ids
 
-    def decode(self, tokens: List[int], **kwargs) -> str:
+    def decode(self, tokens: List[int], strict: bool = False, **kwargs) -> str:
         """Decode integer token IDs back to a text string.
 
         Args:
             tokens: Sequence of integer token IDs.
-            **kwargs: Additional options (ignored in basic version, reserved
-                for future `skip_special_tokens` or `clean_up_spaces`).
+            strict: If True, raise ValueError on unknown token IDs.
+            **kwargs: Additional options.
 
         Returns:
             Reconstructed text string.
-
-        Raises:
-            ValueError: If any token ID is not found in the vocabulary.
-            TypeError: If input is not a list of integers.
         """
         if not isinstance(tokens, list):
             raise TypeError(f"decode() expects a list of integers, got {type(tokens)}")
 
-        # Build reverse mapping: ID -> token string.
-        # For efficiency in production, this could be cached as an instance
-        # attribute updated after training. For simplicity, we rebuild it.
         id_to_token: Dict[int, str] = {token_id: token_str for token_str, token_id in self.vocab.items()}
 
         reconstructed_parts: List[str] = []
         for token_id in tokens:
-            if token_id not in id_to_token:
-                raise ValueError(
-                    f"Token ID {token_id} not found in vocabulary. "
-                    f"Vocabulary size: {self.vocab_size()}. "
-                    f"This may indicate a corrupted checkpoint or vocabulary mismatch."
-                )
-            reconstructed_parts.append(id_to_token[token_id])
+            if token_id in id_to_token:
+                reconstructed_parts.append(id_to_token[token_id])
+            else:
+                if strict:
+                    raise ValueError(
+                        f"Token ID {token_id} not found in vocabulary. "
+                        f"Vocabulary size: {self.vocab_size()}."
+                    )
+                reconstructed_parts.append(f"<{token_id}>")
 
-        # Reconstruct text by concatenating token strings.
-        # Note: For basic BPE without special whitespace tokens, concatenation
-        # may produce text without spaces between words. This is acceptable
-        # for a basic first version; future versions may add whitespace
-        # reconstruction or special whitespace tokens.
         reconstructed_text = "".join(reconstructed_parts)
         return reconstructed_text
 

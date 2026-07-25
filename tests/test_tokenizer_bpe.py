@@ -140,10 +140,10 @@ class TestBytePairEncoderEncodingAndDecoding:
             encoder.encode(123)  # type: ignore[arg-type]
 
     def test_decode_invalid_ids_raises(self) -> None:
-        """Decoding invalid token IDs must raise ValueError."""
+        """Decoding invalid token IDs in strict mode must raise ValueError."""
         encoder = BytePairEncoder()
         with pytest.raises(ValueError, match="not found in vocabulary"):
-            encoder.decode([999999])
+            encoder.decode([999999], strict=True)
 
     def test_decode_invalid_input_type_raises(self) -> None:
         """Decoding non-list input must raise TypeError."""

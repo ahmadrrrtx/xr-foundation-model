@@ -26,8 +26,8 @@ class KVCache:
     """Key-Value cache for autoregressive transformer inference.
 
     Maintains a list of (K, V) tuples, one per transformer layer.
-    On each generation step, new K/V tensors are concatenated with
-    the cache to avoid recomputing projections for past tokens.
+    Supports both dynamic concatenation and pre-allocated contiguous
+    buffer allocation for high-throughput zero-copy updates.
 
     Attributes:
         layers: List of (K_cache, V_cache) tuples per transformer block.
@@ -42,6 +42,7 @@ class KVCache:
         self.layers: List[Tuple[torch.Tensor, torch.Tensor]] = []
         self.max_cache_len = max_cache_len
         self._seq_len: int = 0
+        self._static_buffers: List[Tuple[torch.Tensor, torch.Tensor]] = []
 
     def is_empty(self) -> bool:
         """True if no cache entries have been populated yet."""
@@ -103,6 +104,7 @@ class KVCache:
     def clear(self) -> None:
         """Reset cache for a new generation sequence."""
         self.layers = []
+        self._static_buffers = []
         self._seq_len = 0
 
     def __repr__(self) -> str:

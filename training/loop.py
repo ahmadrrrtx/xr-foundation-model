@@ -145,7 +145,7 @@ class TrainingLoop:
         return self.model.no_sync()
 
     def _ready_to_step(self) -> bool:
-        return (self._micro_counter + 1) % self.grad_accum_steps == 0
+        return self._micro_counter % self.grad_accum_steps == 0
 
     # -- train step --
 
@@ -219,7 +219,21 @@ class TrainingLoop:
         if self.dataset is None:
             raise ValueError("dataset is required")
 
-        dataloader = create_distributed_dataloader(self.dataset, batch_size=self.batch_size, shuffle=True, drop_last=True)
+        dataloader = create_distributed_dataloader(
+            self.dataset, batch_size=self.batch_size, shuffle=True, drop_last=True
+        )
+        if len(dataloader) == 0:
+            logger.warning(
+                "Dataset length (%d) < batch_size (%d) with drop_last=True. Retrying with drop_last=False.",
+                len(self.dataset), self.batch_size,
+            )
+            dataloader = create_distributed_dataloader(
+                self.dataset, batch_size=min(self.batch_size, len(self.dataset)), shuffle=True, drop_last=False
+            )
+        if len(dataloader) == 0:
+            raise ValueError(
+                f"Dataset length ({len(self.dataset)}) is too small for training."
+            )
         eff_bs = self.batch_size * self.grad_accum_steps
         if is_distributed():
             eff_bs *= torch.distributed.get_world_size()

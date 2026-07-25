@@ -1,0 +1,12 @@
+{
+  "name": "xr-ai-agent",
+  "version": "1.1.0",
+  "description": "XR AI Agent — The AI Agent You Can Actually Trust",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

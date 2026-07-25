@@ -96,11 +96,12 @@ async def request_timing(request: Request, call_next):
     return response
 
 # Import and register routes
-from api.routes import health, completions, tokenize_endpoints, metrics  # noqa: E402
+from api.routes import health, completions, tokenize_endpoints, metrics, search_routes  # noqa: E402
 app.include_router(health.router, tags=["Health"])
 app.include_router(completions.router, tags=["Completions"])
 app.include_router(tokenize_endpoints.router, tags=["Tokenize"])
 app.include_router(metrics.router, tags=["Metrics"])
+app.include_router(search_routes.router, tags=["Search Engine"])
 
 # Mount web UI
 try:

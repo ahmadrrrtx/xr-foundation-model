@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "name": "xr-ai-agent",
+  "cleanUrls": true,
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}

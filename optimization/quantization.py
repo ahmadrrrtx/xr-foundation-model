@@ -189,7 +189,7 @@ def quantize_int4_groupwise(
     group_size: int = 128,
     symmetric: bool = True,
 ) -> QuantizedWeight:
-    """Quantize weight to INT4 with group-wise quantization.
+    """Quantize weight to INT4 with group-wise quantization using vectorized PyTorch ops.
 
     For INT4, group-wise quantization is essential to maintain accuracy
     since 4 bits have very limited representational capacity.
@@ -198,7 +198,7 @@ def quantize_int4_groupwise(
     INT4 values are packed: 2 values per int8 byte.
 
     Args:
-        weight: FP32 weight tensor, flattened internally.
+        weight: FP32 weight tensor.
         group_size: Number of elements per quantization group.
         symmetric: If True, use symmetric quantization (recommended for INT4).
 
@@ -215,38 +215,27 @@ def quantize_int4_groupwise(
     # Pad to multiple of group_size
     pad = (group_size - (n_elements % group_size)) % group_size
     if pad > 0:
-        flat = torch.cat([flat, torch.zeros(pad)])
+        flat = torch.cat([flat, torch.zeros(pad, device=flat.device)])
 
     n_groups = flat.numel() // group_size
     qmin, qmax = -8, 7  # INT4 range
 
-    scales = torch.zeros(n_groups, dtype=torch.float32)
-    q_values = torch.zeros(flat.numel(), dtype=torch.float32)
+    # Vectorized group-wise scale computation
+    grouped = flat.reshape(n_groups, group_size)
+    absmax = grouped.abs().max(dim=1, keepdim=True).values
+    absmax = torch.where(absmax == 0, torch.ones_like(absmax), absmax)
+    scales = (absmax / qmax).squeeze(1)
 
-    for g in range(n_groups):
-        start = g * group_size
-        end = start + group_size
-        group = flat[start:end]
+    # Vectorized quantization
+    q_grouped = torch.clamp(
+        torch.round(grouped / scales.unsqueeze(1)), qmin, qmax
+    ).to(torch.int8)
+    q_flat = q_grouped.reshape(-1)
 
-        absmax = group.abs().max()
-        if absmax == 0:
-            absmax = torch.tensor(1.0)
-        s = absmax / qmax
-        scales[g] = s
-
-        q_group = torch.round(group / s)
-        q_group = torch.clamp(q_group, qmin, qmax)
-        q_values[start:end] = q_group
-
-    # Pack: two INT4 values per int8 byte
-    # low nibble = even index, high nibble = odd index
-    q_int = q_values.to(torch.int8)
-    packed = torch.zeros(n_elements // 2 + pad // 2, dtype=torch.int8)
-
-    for i in range(0, len(q_int), 2):
-        low = q_int[i] & 0xF
-        high = q_int[i + 1] & 0xF
-        packed[i // 2] = (low | (high << 4)).to(torch.int8)
+    # Vectorized nibble packing: two INT4 values per int8 byte
+    even = q_flat[0::2] & 0xF
+    odd = q_flat[1::2] & 0xF
+    packed = (even | (odd << 4)).to(torch.int8)
 
     return QuantizedWeight(
         data=packed,
@@ -283,34 +272,25 @@ def dequantize_weight(qw: QuantizedWeight) -> torch.Tensor:
         return flat.reshape(qw.original_shape)
 
     elif qw.bits == 4:
-        # Unpack INT4
-        n_packed = qw.data.numel()
-        unpacked = torch.zeros(n_packed * 2, dtype=torch.float32)
+        # Vectorized INT4 unpacking
+        data_int = qw.data.to(torch.int32)
+        low = data_int & 0xF
+        high = (data_int >> 4) & 0xF
 
-        for i in range(n_packed):
-            byte = int(qw.data[i].item())
-            low = byte & 0xF
-            high = (byte >> 4) & 0xF
-            # Sign-extend 4-bit values
-            if low > 7:
-                low -= 16
-            if high > 7:
-                high -= 16
-            unpacked[i * 2] = float(low)
-            unpacked[i * 2 + 1] = float(high)
+        # Sign-extend 4-bit signed ints (-8 to 7)
+        low = torch.where(low > 7, low - 16, low).float()
+        high = torch.where(high > 7, high - 16, high).float()
 
-        # Apply per-group scales
+        # Interleave low and high nibbles
+        unpacked = torch.stack([low, high], dim=1).reshape(-1)
+
+        # Vectorized group-wise scaling
+        n_groups = qw.scale.numel()
         group_size = qw.group_size
-        for g in range(qw.scale.numel()):
-            start = g * group_size
-            end = start + group_size
-            if end > unpacked.numel():
-                end = unpacked.numel()
-            unpacked[start:end] *= qw.scale[g]
+        scaled = (unpacked.reshape(n_groups, group_size) * qw.scale.unsqueeze(1)).reshape(-1)
 
-        # Trim to original size
         n_orig = math.prod(qw.original_shape)
-        return unpacked[:n_orig].reshape(qw.original_shape)
+        return scaled[:n_orig].reshape(qw.original_shape)
 
     raise ValueError(f"Unsupported bit width: {qw.bits}")
 
