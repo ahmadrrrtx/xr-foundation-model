@@ -1,0 +1,38 @@
+name: Release - Create GitHub Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: XRFM ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## XR Foundation Model (XRFM) ${{ steps.version.outputs.VERSION }}
+
+            See [CHANGELOG.md](CHANGELOG.md) for details.
+
+            ### Installation
+            ```bash
+            pip install xrfm==${{ steps.version.outputs.VERSION }}
+            ```
+
+            ### Docker
+            ```bash
+            docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.VERSION }}
+            ```
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, 'rc') || contains(steps.version.outputs.VERSION, 'beta') }}
