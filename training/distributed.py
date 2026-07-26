@@ -333,6 +333,18 @@ class GradientAccumulator:
 # ---------------------------------------------------------------------------
 
 
+def xrfm_collate_fn(batch: list) -> tuple[torch.Tensor, torch.Tensor]:
+    """Custom collate function that guarantees equal length padding for all batch tensors."""
+    inputs = [item[0] for item in batch]
+    targets = [item[1] for item in batch]
+    max_len = max(x.size(0) for x in inputs)
+    padded_inputs = [torch.nn.functional.pad(x, (0, max_len - x.size(0)), value=0) for x in inputs]
+    padded_targets = [
+        torch.nn.functional.pad(y, (0, max_len - y.size(0)), value=0) for y in targets
+    ]
+    return torch.stack(padded_inputs, dim=0), torch.stack(padded_targets, dim=0)
+
+
 def create_distributed_dataloader(
     dataset: Dataset,
     batch_size: int,
@@ -359,6 +371,8 @@ def create_distributed_dataloader(
         DataLoader with DistributedSampler if distributed, else
         standard DataLoader.
     """
+    if "collate_fn" not in dataloader_kwargs:
+        dataloader_kwargs["collate_fn"] = xrfm_collate_fn
     if is_distributed():
         sampler = DistributedSampler(
             dataset,
