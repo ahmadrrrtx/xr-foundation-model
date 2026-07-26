@@ -53,16 +53,14 @@ class RMSNorm(nn.Module):
         Raises:
             ValueError: If `dim` or `eps` is invalid (non-positive `dim`, non-positive `eps`).
         """
-        super(RMSNorm, self).__init__()
+        super().__init__()
         if dim <= 0:
             raise ValueError(
                 f"Normalization dimension must be positive, got {dim}. "
                 f"Check ConfigLoader model settings (d_model)."
             )
         if eps <= 0:
-            raise ValueError(
-                f"Epsilon must be positive, got {eps}. Check RMSNorm initialization."
-            )
+            raise ValueError(f"Epsilon must be positive, got {eps}. Check RMSNorm initialization.")
         self.dim = dim
         self.eps = eps
         # Learnable scale parameter (gamma). No bias parameter (beta) —

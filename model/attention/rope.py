@@ -12,9 +12,6 @@ Conceptual references (not copied):
 Implementation is original.
 """
 
-import math
-from typing import Tuple
-
 import torch
 import torch.nn as nn
 
@@ -60,9 +57,7 @@ class RoPE(nn.Module):
         x2 = x[..., half_dim:]
         return torch.cat((-x2, x1), dim=-1)
 
-    def apply_rotary_emb(
-        self, x: torch.Tensor, seq_len: int, offset: int = 0
-    ) -> torch.Tensor:
+    def apply_rotary_emb(self, x: torch.Tensor, seq_len: int, offset: int = 0) -> torch.Tensor:
         """Apply rotary embedding with optional position offset.
 
         Args:
@@ -77,22 +72,16 @@ class RoPE(nn.Module):
         half_dim = d // 2
 
         # Compute inverse frequencies for this device/dtype
-        freq_indices = torch.arange(
-            0, half_dim, dtype=torch.float32, device=x.device
-        )
+        freq_indices = torch.arange(0, half_dim, dtype=torch.float32, device=x.device)
         freq_indices = freq_indices * self.scale_factor
 
         if half_dim > 0:
-            inv_freq = 1.0 / (
-                self.base ** (freq_indices / half_dim)
-            )
+            inv_freq = 1.0 / (self.base ** (freq_indices / half_dim))
         else:
             inv_freq = torch.ones(0, device=x.device, dtype=torch.float32)
 
         # Position indices: offset, offset+1, ..., offset+seq_len-1
-        t = torch.arange(
-            offset, offset + seq_len, device=x.device, dtype=torch.float32
-        )
+        t = torch.arange(offset, offset + seq_len, device=x.device, dtype=torch.float32)
 
         # freqs: (seq_len, half_dim)
         freqs = torch.outer(t, inv_freq)
@@ -113,7 +102,7 @@ class RoPE(nn.Module):
         k: torch.Tensor,
         seq_len: int,
         offset: int = 0,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Apply rotary embedding to Q and K with optional cache offset.
 
         Args:
