@@ -312,7 +312,20 @@ class TrainingLoop:
                     barrier()
 
         if is_main_process():
-            logger.info("Training complete: loss=%.4f best=%.4f", metrics["loss"], self.best_loss)
+            final_ckpt = self.checkpoint_loader.save_checkpoint(
+                get_raw_model(self.model),
+                self.optimizer,
+                self.scheduler,
+                step=self.current_step,
+                loss=metrics["loss"],
+                best_loss=self.best_loss,
+            )
+            logger.info(
+                "Training complete: loss=%.4f best=%.4f | Saved final checkpoint: %s",
+                metrics["loss"],
+                self.best_loss,
+                final_ckpt,
+            )
         barrier()
         return {
             "final_loss": metrics["loss"],
