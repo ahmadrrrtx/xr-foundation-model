@@ -167,6 +167,13 @@ class TrainingLoop:
             raise ValueError("batch tensors must be 2D")
 
         raw = get_raw_model(self.model)
+        device = next(raw.parameters()).device
+        if batch_input_ids.device != device:
+            batch_input_ids = batch_input_ids.to(device)
+        if batch_target_ids.device != device:
+            batch_target_ids = batch_target_ids.to(device)
+        if batch_mask is not None and batch_mask.device != device:
+            batch_mask = batch_mask.to(device)
         if (batch_input_ids >= raw.embedding.vocab_size).any():
             raise IndexError(f"Token ID exceeds vocab size ({raw.embedding.vocab_size})")
 

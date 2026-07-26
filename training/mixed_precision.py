@@ -66,12 +66,10 @@ class MixedPrecisionLoader:
         # prevent `bfloat16` `underflow`. The `scale_factor` is adjusted dynamically
         # based on whether `Inf`/`NaN` gradients are detected (`GradScaler.update()`).
         if self.enabled and torch.cuda.is_available():
-            # `GradScaler` (`torch.cuda.amp.GradScaler`) — standard `PyTorch` class.
-            # `growth_factor`: multiplier for `scale_factor` when `Inf`/`NaN` not detected.
-            # `backoff_factor`: divisor for `scale_factor` when `Inf`/`NaN` detected.
-            # `growth_interval`: number of consecutive `Inf`-free steps before `growth_factor` applied.
-            # Default values (`2.0`, `0.5`, `2000`) are standard (`PyTorch` documentation).
-            self.scaler = torch.cuda.amp.GradScaler()
+            if hasattr(torch, "amp") and hasattr(torch.amp, "GradScaler"):
+                self.scaler = torch.amp.GradScaler("cuda")
+            else:
+                self.scaler = torch.cuda.amp.GradScaler()
         else:
             # `NoOpScaler` — no-op scaler for `CPU` or `mixed_precision: False`.
             # This ensures `grad_scaler.scale(loss)`, `.step(optimizer)`, `.update()`

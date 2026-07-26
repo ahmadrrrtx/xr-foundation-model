@@ -15,11 +15,12 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
+import torch  # noqa: E402
 
-from model.gpt import GPTModel
-from tokenizer.bpe import BytePairEncoder
-from training.loop import TrainingLoop
-from xrfm.data.loader import XRFMTextDataset
+from model.gpt import GPTModel  # noqa: E402
+from tokenizer.bpe import BytePairEncoder  # noqa: E402
+from training.loop import TrainingLoop  # noqa: E402
+from xrfm.data.loader import XRFMTextDataset  # noqa: E402
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("xrfm.train")
@@ -52,7 +53,9 @@ def train_custom_model(dataset_path: str, max_steps: int = 1000, batch_size: int
     )
 
     logger.info("Instantiating XRFM Model...")
-    model = GPTModel("config/config.yaml")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    logger.info(f"Using compute device: {device}")
+    model = GPTModel("config/config.yaml").to(device)
 
     logger.info(f"Starting custom training loop for {max_steps} steps...")
     loop = TrainingLoop(

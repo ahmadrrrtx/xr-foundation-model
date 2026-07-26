@@ -164,9 +164,9 @@ class XRFMTextDataset(Dataset):
 
         chunk = self.chunks[idx]
 
-        # Ensure chunk is padded to max_seq_len so all tensors in batch have equal shape
-        if len(chunk) < self.max_seq_len:
-            chunk = chunk + [0] * (self.max_seq_len - len(chunk))
+        # Ensure chunk has at least 2 tokens (input and target)
+        if len(chunk) < 2:
+            chunk = chunk + [0] * (2 - len(chunk))
 
         # Input: all tokens except last, Target: all tokens except first
         input_ids = torch.tensor(chunk[:-1], dtype=torch.long)
