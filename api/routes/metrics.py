@@ -1,14 +1,9 @@
 """Metrics endpoint."""
-
-import time
-
-import torch
+import time, torch
 from fastapi import APIRouter
-
 from api.main import _model, _model_loaded, _startup_time
 
 router = APIRouter()
-
 
 @router.get("/metrics")
 async def metrics():

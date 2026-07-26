@@ -13,6 +13,7 @@ Implementation is original.
 """
 
 import math
+from typing import Optional, Tuple
 
 import torch
 import torch.nn as nn
@@ -47,7 +48,9 @@ class MultiHeadAttention(nn.Module):
         if n_heads <= 0:
             raise ValueError(f"n_heads must be positive, got {n_heads}")
         if d_model % n_heads != 0:
-            raise ValueError(f"d_model ({d_model}) must be divisible by n_heads ({n_heads})")
+            raise ValueError(
+                f"d_model ({d_model}) must be divisible by n_heads ({n_heads})"
+            )
         if not (0.0 <= dropout < 1.0):
             raise ValueError(f"dropout must be in [0, 1), got {dropout}")
 
@@ -78,10 +81,10 @@ class MultiHeadAttention(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        mask: torch.Tensor | None = None,
-        past_kv: tuple[torch.Tensor, torch.Tensor] | None = None,
+        mask: Optional[torch.Tensor] = None,
+        past_kv: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         use_cache: bool = False,
-    ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor] | None]:
+    ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """Compute multi-head self-attention with optional KV cache.
 
         When use_cache=True and past_kv is provided:
@@ -100,10 +103,14 @@ class MultiHeadAttention(nn.Module):
             present_kv is (K_full, V_full) or None if use_cache=False.
         """
         if x.dim() != 3:
-            raise ValueError(f"Expected 3D input (batch, seq, d_model), got {x.dim()}D")
+            raise ValueError(
+                f"Expected 3D input (batch, seq, d_model), got {x.dim()}D"
+            )
         batch_size, seq_len, d_model_in = x.shape
         if d_model_in != self.d_model:
-            raise ValueError(f"Input dim ({d_model_in}) != model dim ({self.d_model})")
+            raise ValueError(
+                f"Input dim ({d_model_in}) != model dim ({self.d_model})"
+            )
 
         # Project to Q, K, V
         Q = self.W_q(x)
@@ -131,7 +138,7 @@ class MultiHeadAttention(nn.Module):
             V_full = V
 
         # Build present KV for caching
-        present_kv: tuple[torch.Tensor, torch.Tensor] | None = None
+        present_kv: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
         if use_cache:
             present_kv = (K_full, V_full)
 
@@ -141,11 +148,8 @@ class MultiHeadAttention(nn.Module):
         if mask is None and cache_len == 0:
             try:
                 from optimization.flash_attention import flash_attention_forward
-
                 out = flash_attention_forward(
-                    Q,
-                    K_full,
-                    V_full,
+                    Q, K_full, V_full,
                     dropout_p=self.dropout_p,
                     training=self.training,
                 )
@@ -158,7 +162,9 @@ class MultiHeadAttention(nn.Module):
 
             if mask is not None:
                 if mask.dim() not in (2, 3, 4):
-                    raise ValueError(f"Mask must have 2-4 dims, got {mask.dim()}")
+                    raise ValueError(
+                        f"Mask must have 2-4 dims, got {mask.dim()}"
+                    )
                 scores = scores.masked_fill(mask == 0, float("-inf"))
 
             attn_weights = F.softmax(scores, dim=-1)
@@ -170,7 +176,6 @@ class MultiHeadAttention(nn.Module):
         output = self.W_o(out)
 
         return output, present_kv
-
 
 # To use: replace the softmax+matmul block in forward() with:
 #

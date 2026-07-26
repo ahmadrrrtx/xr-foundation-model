@@ -5,8 +5,9 @@ Provides XRFMTextDataset for loading and processing text datasets,
 with support for train/val/test splits, chunking, and manifest generation.
 """
 
+from typing import Optional, Dict, List, Tuple
+from dataclasses import dataclass, field
 import os
-from dataclasses import dataclass
 
 import torch
 from torch.utils.data import Dataset
@@ -58,7 +59,6 @@ def verify_text_file(file_path: str) -> None:
 def normalize_text(text: str) -> str:
     """Normalize whitespace in text."""
     import re
-
     text = text.replace("\n", " ").replace("\t", " ")
     text = re.sub(r"\s+", " ", text)
     return text.strip()
@@ -70,14 +70,13 @@ def split_dataset(
     val_ratio: float = 0.05,
     test_ratio: float = 0.05,
     seed: int = 42,
-) -> tuple[str, str, str]:
+) -> Tuple[str, str, str]:
     """Split text into train/val/test sets."""
     total = train_ratio + val_ratio + test_ratio
     if abs(total - 1.0) > 0.01:
         raise ValueError(f"Split ratios must sum to ~1.0, got {total}")
 
     import random
-
     random.seed(seed)
 
     text_len = len(text)
@@ -96,7 +95,7 @@ def chunk_text(
     max_seq_len: int,
     tokenizer: TokenizerInterface,
     overlap: int = 0,
-) -> list[list[int]]:
+) -> List[List[int]]:
     """Chunk text into fixed-length sequences."""
     # Tokenize full text
     token_ids = tokenizer.encode(text)
@@ -136,16 +135,12 @@ class XRFMTextDataset(Dataset):
 
         # Load and process dataset
         verify_text_file(dataset_path)
-        with open(dataset_path, encoding="utf-8") as f:
+        with open(dataset_path, "r", encoding="utf-8") as f:
             text = f.read()
 
         text = normalize_text(text)
         train_text, val_text, test_text = split_dataset(
-            text,
-            train_ratio=split_ratio,
-            val_ratio=(1 - split_ratio) / 2,
-            test_ratio=(1 - split_ratio) / 2,
-            seed=seed,
+            text, train_ratio=split_ratio, val_ratio=(1 - split_ratio) / 2, test_ratio=(1 - split_ratio) / 2, seed=seed
         )
 
         if split == "train":
@@ -158,7 +153,7 @@ class XRFMTextDataset(Dataset):
     def __len__(self) -> int:
         return len(self.chunks)
 
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         if idx < 0 or idx >= len(self.chunks):
             raise IndexError(f"Index {idx} out of range for dataset of size {len(self.chunks)}")
 
@@ -179,8 +174,8 @@ def build_manifest(
     dataset_name: str,
     dataset_path: str,
     tokenizer: TokenizerInterface,
-    split_info: dict[str, int],
-) -> dict:
+    split_info: Dict[str, int],
+) -> Dict:
     """Build dataset manifest for reproducibility."""
     manifest = {
         "version": "xrfm-manifest-v1",
@@ -195,10 +190,9 @@ def build_manifest(
     return manifest
 
 
-def save_manifest(manifest: dict, path: str) -> None:
+def save_manifest(manifest: Dict, path: str) -> None:
     """Save manifest to JSON file."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         import json
-
         json.dump(manifest, f, indent=2)

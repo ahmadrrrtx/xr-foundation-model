@@ -12,6 +12,8 @@ Conceptual references (not copied):
 Implementation is original.
 """
 
+from typing import Optional, Tuple
+
 import torch
 import torch.nn as nn
 
@@ -43,7 +45,9 @@ class TransformerBlock(nn.Module):
         if d_model <= 0 or n_heads <= 0 or d_ff <= 0:
             raise ValueError("d_model, n_heads, d_ff must be positive")
         if d_model % n_heads != 0:
-            raise ValueError(f"d_model ({d_model}) must be divisible by n_heads ({n_heads})")
+            raise ValueError(
+                f"d_model ({d_model}) must be divisible by n_heads ({n_heads})"
+            )
         if not (0.0 <= dropout < 1.0):
             raise ValueError(f"dropout must be in [0, 1), got {dropout}")
 
@@ -61,12 +65,12 @@ class TransformerBlock(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        mask: torch.Tensor | None = None,
-        past_kv: tuple[torch.Tensor, torch.Tensor] | None = None,
+        mask: Optional[torch.Tensor] = None,
+        past_kv: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         use_cache: bool = False,
-    ) -> tuple[
+    ) -> Tuple[
         torch.Tensor,
-        tuple[torch.Tensor, torch.Tensor] | None,
+        Optional[Tuple[torch.Tensor, torch.Tensor]],
     ]:
         """Apply transformer block with optional KV cache.
 
@@ -81,10 +85,14 @@ class TransformerBlock(nn.Module):
             and present_kv is the updated KV cache for this layer.
         """
         if x.dim() != 3:
-            raise ValueError(f"Expected 3D input (batch, seq, d_model), got {x.dim()}D")
+            raise ValueError(
+                f"Expected 3D input (batch, seq, d_model), got {x.dim()}D"
+            )
 
         # Attention sub-layer with pre-norm
-        h, present_kv = self.attn(self.norm1(x), mask=mask, past_kv=past_kv, use_cache=use_cache)
+        h, present_kv = self.attn(
+            self.norm1(x), mask=mask, past_kv=past_kv, use_cache=use_cache
+        )
         x = x + self.dropout(h)
 
         # SwiGLU sub-layer with pre-norm

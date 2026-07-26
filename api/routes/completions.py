@@ -1,19 +1,13 @@
 """Text generation endpoints (sync + streaming SSE)."""
-
-import json
-import logging
-import time
-
-import torch
+import json, time, logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-
-from api.main import _engine, _model, _model_loaded, _tokenizer
-from api.schemas import CompletionChoice, CompletionRequest, CompletionResponse, CompletionUsage
+from api.main import _model, _engine, _tokenizer, _model_loaded
+from api.schemas import CompletionRequest, CompletionResponse, CompletionChoice, CompletionUsage
+import torch
 
 router = APIRouter()
 logger = logging.getLogger("xrfm.api.completions")
-
 
 @router.post("/v1/completions", response_model=CompletionResponse)
 async def completions(req: CompletionRequest):
@@ -31,11 +25,8 @@ async def completions(req: CompletionRequest):
     # Generate
     try:
         output_ids = _engine.generate(
-            input_ids,
-            max_new_tokens=req.max_new_tokens,
-            temperature=req.temperature,
-            top_k=req.top_k,
-            top_p=req.top_p,
+            input_ids, max_new_tokens=req.max_new_tokens,
+            temperature=req.temperature, top_k=req.top_k, top_p=req.top_p,
         )
     except Exception as e:
         raise HTTPException(500, f"Generation failed: {e}")
@@ -50,10 +41,9 @@ async def completions(req: CompletionRequest):
         usage=CompletionUsage(
             prompt_tokens=prompt_tokens,
             completion_tokens=len(new_tokens),
-            total_tokens=prompt_tokens + len(new_tokens),
+            total_tokens=prompt_tokens+len(new_tokens),
         ),
     )
-
 
 @router.post("/v1/completions/stream")
 async def completions_stream(req: CompletionRequest):
@@ -61,10 +51,10 @@ async def completions_stream(req: CompletionRequest):
         raise HTTPException(503, "Model not loaded")
 
     input_ids = torch.tensor([_tokenizer.encode(req.prompt)], dtype=torch.long)
-    input_ids.shape[1]
+    prompt_tokens = input_ids.shape[1]
 
     async def generate_stream():
-
+        from inference.sampling import sample_token
         _model.eval()
         generated = input_ids.clone()
         past_kv = None
@@ -78,7 +68,6 @@ async def completions_stream(req: CompletionRequest):
                 next_token = next_logits.argmax(dim=-1, keepdim=True)
             else:
                 from inference.sampling import sample_token as st
-
                 next_token = st(next_logits, req.temperature, req.top_k, req.top_p)
         generated = torch.cat([generated, next_token], dim=1)
         token_text = _tokenizer.decode([next_token.item()])
@@ -92,7 +81,6 @@ async def completions_stream(req: CompletionRequest):
                 next_token = next_logits.argmax(dim=-1, keepdim=True)
             else:
                 from inference.sampling import sample_token as st
-
                 next_token = st(next_logits, req.temperature, req.top_k, req.top_p)
             generated = torch.cat([generated, next_token], dim=1)
             token_text = _tokenizer.decode([next_token.item()])
