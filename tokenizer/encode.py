@@ -13,6 +13,8 @@ from this module rather than from `bpe.py` directly. This ensures the loader
 remains independent of the specific tokenizer algorithm.
 """
 
+from typing import cast
+
 from tokenizer.interface import TokenizerInterface
 
 
@@ -20,7 +22,7 @@ def encode_text(
     text: str | list[str],
     tokenizer: TokenizerInterface,
     add_special_tokens: bool = False,
-) -> list[int]:
+) -> list[int] | list[list[int]]:
     """Encode text or list of texts using the provided tokenizer.
 
     Args:
@@ -49,7 +51,8 @@ def encode_text(
             pass
         return token_ids
     elif isinstance(text, list) and all(isinstance(t, str) for t in text):
-        return [tokenizer.encode(t) for t in text]
+        out: list[list[int]] = [tokenizer.encode(t) for t in text]
+        return out
     else:
         raise TypeError(f"encode_text expects str or List[str], got {type(text)}")
 
@@ -71,16 +74,19 @@ def decode_ids(
         Reconstructed text string(s).
     """
     if isinstance(token_ids, list) and len(token_ids) > 0 and isinstance(token_ids[0], int):
-        # Single sequence.
-        ids_to_decode = token_ids
+        # Single sequence. The isinstance guard on the first element plus an
+        # explicit cast narrows for mypy (container-level narrowing is not
+        # inferred from element checks).
+        single: list[int] = cast(list[int], token_ids)
+        ids_to_decode: list[int] = single
         if skip_special_tokens and hasattr(tokenizer, "special_tokens"):
             special_ids = set(tokenizer.special_tokens.values())
-            ids_to_decode = [token_id for token_id in token_ids if token_id not in special_ids]
+            ids_to_decode = [t for t in single if t not in special_ids]
         return tokenizer.decode(ids_to_decode)
     elif isinstance(token_ids, list) and len(token_ids) > 0 and isinstance(token_ids[0], list):
         # Batch of sequences.
-        return [
-            decode_ids(seq, tokenizer, skip_special_tokens=skip_special_tokens) for seq in token_ids
-        ]
+        batch: list[list[int]] = cast(list[list[int]], token_ids)
+        out: list[str] = [cast(str, decode_ids(s, tokenizer, skip_special_tokens=skip_special_tokens)) for s in batch]
+        return out
     else:
         raise TypeError(f"decode_ids expects List[int] or List[List[int]], got {type(token_ids)}")

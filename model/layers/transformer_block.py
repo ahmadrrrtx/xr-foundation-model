@@ -37,6 +37,7 @@ class TransformerBlock(nn.Module):
         dropout: float = 0.1,
         use_rmsnorm: bool = True,
         use_rope: bool = True,
+        bias: bool = True,
     ) -> None:
         super().__init__()
 
@@ -52,10 +53,8 @@ class TransformerBlock(nn.Module):
         self.norm2 = RMSNorm(d_model) if use_rmsnorm else nn.LayerNorm(d_model)
 
         # Sub-layers
-        self.attn = MultiHeadAttention(
-            d_model=d_model, n_heads=n_heads, dropout=dropout, use_rope=use_rope
-        )
-        self.ffn = SwiGLU(d_model=d_model, d_ff=d_ff)
+        self.attn = MultiHeadAttention(d_model=d_model, n_heads=n_heads, dropout=dropout, use_rope=use_rope, bias=bias)
+        self.ffn = SwiGLU(d_model=d_model, d_ff=d_ff, bias=bias)
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(

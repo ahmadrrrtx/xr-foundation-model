@@ -48,7 +48,7 @@ class SwiGLU(nn.Module):
         W_3 (nn.Linear): Output linear projection (dimension `d_ff` -> `d_model`).
     """
 
-    def __init__(self, d_model: int, d_ff: int) -> None:
+    def __init__(self, d_model: int, d_ff: int, bias: bool = True) -> None:
         """Initialize SwiGLU layer.
 
         Args:
@@ -61,19 +61,17 @@ class SwiGLU(nn.Module):
         """
         super().__init__()
         if d_model <= 0:
-            raise ValueError(
-                f"d_model must be positive, got {d_model}. Check ConfigLoader settings."
-            )
+            raise ValueError(f"d_model must be positive, got {d_model}. Check ConfigLoader settings.")
         if d_ff <= 0:
-            raise ValueError(
-                f"d_ff must be positive, got {d_ff}. Check ConfigLoader settings (d_ff)."
-            )
+            raise ValueError(f"d_ff must be positive, got {d_ff}. Check ConfigLoader settings (d_ff).")
 
         # Three linear projections: W_1 (gate), W_2 (value), W_3 (output).
         # W_3 projects from expanded dimension `d_ff` back to `d_model`.
-        self.W_1 = nn.Linear(d_model, d_ff, bias=True)
-        self.W_2 = nn.Linear(d_model, d_ff, bias=True)
-        self.W_3 = nn.Linear(d_ff, d_model, bias=True)
+        # bias configurable; modern LLMs use bias=False (Phase 35).
+        self.W_1 = nn.Linear(d_model, d_ff, bias=bias)
+        self.W_2 = nn.Linear(d_model, d_ff, bias=bias)
+        self.W_3 = nn.Linear(d_ff, d_model, bias=bias)
+        self.bias = bias
 
         # Initialize weights with Xavier uniform initialization for stability.
         # This prevents gradient explosion or vanishing at the start of training,
@@ -126,6 +124,4 @@ class SwiGLU(nn.Module):
         gated = gate * value_input
 
         # Project back to model dimension `d_model`.
-        output = self.W_3(gated)
-
-        return output
+        return self.W_3(gated)  # type: ignore[no-any-return]  # nn.Linear returns Tensor

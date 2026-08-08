@@ -1,5 +1,14 @@
 # XRFM Evaluation Pipeline — v0.7.0
 
+> **AUDIT REMEDIATION NOTE (2026-08-08):** this document describes the original
+> design. A forensic audit found and fixed several issues (implicit causal
+> masking, character-level tokenizer, padding-loss, resume/scheduler state,
+> API import, version chaos). See `docs/audit/FORENSIC_AUDIT.md`,
+> `docs/audit/GAP_ANALYSIS.md`, and `docs/implementation/REMEDIATION_PLAN.md`
+> for the authoritative current state. Historical claims below are preserved
+> as evidence, not as current truth.
+
+
 ## Overview
 
 The evaluation pipeline provides intrinsic metrics for language model quality:
@@ -61,9 +70,7 @@ For texts longer than `max_seq_len`, use strided evaluation:
 
 ```python
 token_ids = tokenizer.encode(long_text)
-ppl = compute_perplexity_strided(
-    model, token_ids, stride=512, max_seq_len=1024
-)
+ppl = compute_perplexity_strided(model, token_ids, stride=512, max_seq_len=1024)
 ```
 
 The sliding window with overlap avoids double-counting while providing full context.
@@ -100,6 +107,7 @@ Extend the `Benchmark` base class:
 
 ```python
 from evaluation.benchmarks import Benchmark
+
 
 class MyBenchmark(Benchmark):
     def __init__(self):

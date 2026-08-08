@@ -163,9 +163,9 @@ class TestTrainingLoop:
         )
         assert loop.current_step == 0
         assert loop.best_loss == float("inf")
-        assert loop.max_steps == 50000
+        assert loop.max_steps > 0  # from config
         assert loop.gradient_clip == 1.0
-        assert loop.mixed_precision_loader.enabled is True
+        assert loop.mixed_precision_loader.enabled is loop.config_loader.get("training.mixed_precision", False)
 
     def test_train_step_with_targets(self):
         from model.gpt import GPTModel

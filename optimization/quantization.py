@@ -169,7 +169,7 @@ def quantize_int8_per_channel(
         slc = weight.select(axis, i)
         s, zp = _compute_scale_zp(slc, qmin, qmax, symmetric=symmetric)
         scales[i] = s
-        if zps is not None:
+        if zps is not None and zp is not None:
             zps[i] = zp
         q_slice = _quantize_tensor(slc, s, zp, qmin, qmax)
         q_weight.select(axis, i).copy_(q_slice)

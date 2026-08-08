@@ -76,9 +76,7 @@ class XRFMEmbedding(nn.Module):
                 f"vocab_size must be positive, got {vocab_size}. Check tokenizer vocabulary or ConfigLoader settings."
             )
         if d_model <= 0:
-            raise ValueError(
-                f"d_model must be positive, got {d_model}. Check ConfigLoader model settings."
-            )
+            raise ValueError(f"d_model must be positive, got {d_model}. Check ConfigLoader model settings.")
 
         self.vocab_size = vocab_size
         self.d_model = d_model
@@ -146,4 +144,4 @@ class XRFMEmbedding(nn.Module):
                 f"Check tokenizer training (vocab_size_target) and ConfigLoader settings (model.vocab_size)."
             )
         # Standard embedding lookup: mapping integer IDs to dense vectors.
-        return self.embedding(input_ids)
+        return self.embedding(input_ids)  # type: ignore[no-any-return]  # nn.Embedding returns Tensor

@@ -21,6 +21,7 @@ Design principles (Phase 5 architecture freeze):
 """
 
 import math
+from typing import Any
 
 import torch.optim as optim
 
@@ -64,18 +65,14 @@ class SchedulerLoader:
                 f"warmup_steps must be positive, got {warmup_steps}. Check ConfigLoader training settings."
             )
         if max_steps <= 0:
-            raise ValueError(
-                f"max_steps must be positive, got {max_steps}. Check ConfigLoader training settings."
-            )
+            raise ValueError(f"max_steps must be positive, got {max_steps}. Check ConfigLoader training settings.")
         if warmup_steps >= max_steps:
             raise ValueError(
                 f"warmup_steps ({warmup_steps}) must be less than max_steps ({max_steps}). "
                 f"Check ConfigLoader settings (training.max_steps > training.warmup_steps)."
             )
         if base_lr <= 0:
-            raise ValueError(
-                f"base_lr must be positive, got {base_lr}. Check ConfigLoader settings."
-            )
+            raise ValueError(f"base_lr must be positive, got {base_lr}. Check ConfigLoader settings.")
 
         self.optimizer = optimizer
         self.base_lr = base_lr
@@ -120,6 +117,34 @@ class SchedulerLoader:
         this method updates each group's `lr` based on `base_lr` and the schedule.
         """
         self.current_step += 1
+        lr = self.get_lr()
+        for param_group in self.optimizer.param_groups:
+            param_group["lr"] = lr
+
+    # ------------------------------------------------------------------
+    # State serialization (forensic-audit fix, F-24): without these,
+    # CheckpointLoader silently skips scheduler state and resume restarts
+    # the LR schedule from step 0.
+    # ------------------------------------------------------------------
+    def state_dict(self) -> dict[str, Any]:
+        """Return scheduler state for checkpointing."""
+        return {
+            "current_step": self.current_step,
+            "base_lr": self.base_lr,
+            "warmup_steps": self.warmup_steps,
+            "max_steps": self.max_steps,
+        }
+
+    def load_state_dict(self, state_dict: dict[str, Any]) -> None:
+        """Restore scheduler state from a checkpoint."""
+        self.current_step = int(state_dict.get("current_step", 0))
+        if "base_lr" in state_dict:
+            self.base_lr = float(state_dict["base_lr"])
+        if "warmup_steps" in state_dict:
+            self.warmup_steps = int(state_dict["warmup_steps"])
+        if "max_steps" in state_dict:
+            self.max_steps = int(state_dict["max_steps"])
+        # Re-apply the restored schedule to the optimizer's param groups.
         lr = self.get_lr()
         for param_group in self.optimizer.param_groups:
             param_group["lr"] = lr

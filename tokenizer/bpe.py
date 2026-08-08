@@ -1,106 +1,176 @@
 """
-Byte Pair Encoding (BPE) tokenizer implementation for XRFM.
+Byte Pair Encoding (BPE) tokenizer for XRFM — v2 (byte-level).
 
-Purpose: Build a vocabulary from text by iteratively merging the most frequent
-adjacent character pairs. This is the standard tokenization approach for
-decoder-only language models (GPT family, Llama, Mistral, DeepSeek, Qwen).
+Forensic-audit remediation (F-11, F-12, F-16):
+- v1 was a *character*-level tokenizer over latin-1 characters: it destroyed
+  all whitespace on encode (decode(encode(x)) != x), and raised ValueError on
+  any character above U+00FF (no Chinese, Arabic, emoji, ...).
+- v2 is a true **byte-level** tokenizer following the GPT-2/tiktoken design:
+  * the base vocabulary is the 256 UTF-8 byte values (represented as
+    latin-1-decoded strings, the tiktoken convention);
+  * merges are learned over byte sequences;
+  * whitespace (including newlines/tabs) is preserved exactly, so
+    decode(encode(text)) == text for any Unicode text;
+  * PAD/BOS/EOS/UNK special tokens are reserved at the top of the vocabulary
+    (configurable), giving the training pipeline a stable padding id.
 
-Conceptual references (NOT copied):
-- Sennrich, R., Haddow, B., & Birch, A. (2016). Neural Machine Translation
-  of Rare Words with Subword Units. Proceedings of ACL.
-- Raschka, S. (2024). Build a Large Language Model (From Scratch).
-  Manning Publications. (Conceptual tokenizer pipeline reference only.)
-- Karpathy, A. (2023). nanoGPT. (Conceptual reference for dataset/token
-  pipeline. No code copied.)
-
-Implementation is original. The algorithm follows the standard BPE procedure:
-1. Initialize vocabulary with individual bytes/characters.
-2. Count pair frequencies across the training text.
-3. Merge the most frequent pair and add to vocabulary.
-4. Repeat until target vocabulary size is reached.
-
-The vocabulary and ordered merge list are saved to disk for reproducibility
-and for loading during inference without retraining.
+Public interface is unchanged (TokenizerInterface): train / encode / decode /
+vocab_size / save / load. Original implementation (algorithm: Sennrich et al.
+2016; byte-level design follows the GPT-2/tiktoken convention conceptually).
 """
 
 import json
 import os
+import re
 from collections import Counter
 
 from tokenizer.interface import TokenizerInterface
 
+_WS_RE = re.compile(r"\s+|\S+")
+
 
 class BytePairEncoder(TokenizerInterface):
-    """Original Byte Pair Encoding tokenizer for XR Foundation Model.
+    """Byte-level Byte Pair Encoding tokenizer.
 
     Attributes:
-        vocab (Dict[str, int]): Mapping from token string to integer ID.
-        merges (List[Tuple[str, str]]): Ordered list of merge rules learned
-            during vocabulary training. Used for encoding new text.
-        vocab_size_target (int): Target size for vocabulary (from config).
-        special_tokens (Dict[str, int]): Mapping of special token strings to IDs.
+        vocab (Dict[str, int]): token string -> id. Token strings are
+            latin-1 views of UTF-8 byte sequences (tiktoken convention).
+        merges (List[Tuple[str, str]]): ordered merge rules.
+        vocab_size_target (int): target vocabulary size.
+        special_tokens (Dict[str, int]): name -> id (e.g. "<|pad|>").
+        pad_id / bos_id / eos_id / unk_id (int | None): resolved special ids.
     """
 
     def __init__(self, vocab_size_target: int = 50304) -> None:
-        """Initialize BPE tokenizer with target vocabulary size.
+        """Initialize with the 256 byte tokens as the base vocabulary.
 
         Args:
-            vocab_size_target: Maximum number of tokens in the vocabulary.
-                Must be at least 256 (to cover all byte values) and ideally
-                a multiple of 64 or 128 for alignment with common practices.
-                Default: 50304 (standard for small-to-medium LLMs).
+            vocab_size_target: Target number of tokens (>= 256).
 
         Raises:
-            ValueError: If vocab_size_target is less than 256.
+            ValueError: If vocab_size_target < 256.
         """
         super().__init__()
         if vocab_size_target < 256:
-            raise ValueError(
-                f"vocab_size_target must be at least 256 to cover byte range, got {vocab_size_target}"
-            )
+            raise ValueError(f"vocab_size_target must be at least 256 to cover byte range, got {vocab_size_target}")
         self.vocab_size_target = vocab_size_target
         self.vocab: dict[str, int] = {}
         self.merges: list[tuple[str, str]] = []
         self.special_tokens: dict[str, int] = {}
-        # Initialize basic vocabulary with individual characters.
-        # This ensures any text can be encoded, though quality improves
-        # with larger vocabulary trained on domain-specific data.
+        self.pad_id: int | None = None
+        self.bos_id: int | None = None
+        self.eos_id: int | None = None
+        self.unk_id: int | None = None
+        self._version = "xrfm-bpe-v2"
+        # Base vocabulary: all 256 byte values as latin-1 strings.
         for i in range(256):
-            char_str = bytes([i]).decode("latin-1", errors="replace")
-            self.vocab[char_str] = i
+            self.vocab[bytes([i]).decode("latin-1")] = i
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _text_to_byte_tokens(text: str) -> list[str]:
+        """Convert a text string into a list of single-byte token strings.
+
+        Each UTF-8 byte is mapped to its latin-1 character, which keeps the
+        byte stream intact and lossless.
+        """
+        return [bytes([b]).decode("latin-1") for b in text.encode("utf-8")]
+
+    @staticmethod
+    def _tokens_to_text(tokens: list[str]) -> str:
+        """Inverse of _text_to_byte_tokens: latin-1 strings -> UTF-8 text."""
+        return b"".join(t.encode("latin-1") for t in tokens).decode("utf-8", errors="replace")
+
+    @staticmethod
+    def _split_words(text: str) -> list[str]:
+        """Split text into words that tile the input EXACTLY.
+
+        Whitespace runs are attached as a prefix to the following word so the
+        tokenizer can learn space-prefixed tokens (" the", "\\n") while every
+        byte of the original text remains present in the stream.
+        """
+        parts = _WS_RE.findall(text)
+        words: list[str] = []
+        pending_ws: str | None = None
+        for part in parts:
+            if part.isspace():
+                pending_ws = (pending_ws or "") + part
+            else:
+                words.append((pending_ws or "") + part)
+                pending_ws = None
+        if pending_ws:
+            words.append(pending_ws)
+        return words
+
+    def _resolve_special_ids(self) -> None:
+        """Set pad/bos/eos/unk ids from self.special_tokens (if present)."""
+        self.pad_id = self.special_tokens.get("<|pad|>")
+        self.bos_id = self.special_tokens.get("<|bos|>")
+        self.eos_id = self.special_tokens.get("<|endoftext|>")
+        if self.eos_id is None:
+            self.eos_id = self.special_tokens.get("<|eos|>")
+        self.unk_id = self.special_tokens.get("<|unk|>")
+
+    # ------------------------------------------------------------------
+    # Training
+    # ------------------------------------------------------------------
 
     def train(
         self,
         text_path: str,
         special_tokens: dict[str, int] | None = None,
     ) -> None:
-        """Train BPE vocabulary on text data.
-
-        Reads text from a file, splits it into words (using whitespace and
-        basic punctuation rules), counts adjacent pair frequencies, and
-        iteratively merges pairs until the vocabulary reaches the target size.
+        """Train byte-level BPE merges on a text file.
 
         Args:
             text_path: Path to training text file.
-            special_tokens: Optional dictionary mapping special token strings
-                to reserved integer IDs (e.g., `{ '<|endoftext|>': 50256 }`).
-                These IDs are reserved and will not be assigned to learned tokens.
+            special_tokens: Optional dict mapping special-token names to
+                reserved integer ids (ids >= 256 recommended). If None,
+                PAD/BOS/EOS/UNK are auto-reserved at the top of the target
+                vocabulary.
 
         Raises:
             FileNotFoundError: If the text file does not exist.
-            ValueError: If the text file is empty or too short to produce
-                meaningful vocabulary.
+            ValueError: If the text file is empty or too short.
         """
-        if special_tokens is not None:
-            self.special_tokens = special_tokens.copy()
-        else:
-            self.special_tokens = {}
-
         if not os.path.exists(text_path):
             raise FileNotFoundError(f"Training text file not found: {text_path}")
-
         with open(text_path, encoding="utf-8", errors="replace") as f:
             raw_text = f.read()
+        self.train_on_text(raw_text, special_tokens=special_tokens)
+
+    def train_on_text(
+        self,
+        raw_text: str,
+        special_tokens: dict[str, int] | None = None,
+    ) -> None:
+        """Train byte-level BPE merges on an in-memory text string.
+
+        Args:
+            raw_text: Training text.
+            special_tokens: Optional dict mapping special-token names to
+                reserved integer ids (ids >= 256 recommended). If None,
+                PAD/BOS/EOS/UNK are auto-reserved at the top of the target
+                vocabulary.
+
+        Raises:
+            ValueError: If the text is empty or too short.
+        """
+        if special_tokens is not None:
+            self.special_tokens = dict(special_tokens)
+        else:
+            # Auto-reserve PAD/BOS/EOS/UNK at the top of the target vocab.
+            top = self.vocab_size_target
+            self.special_tokens = {
+                "<|pad|>": top - 4,
+                "<|bos|>": top - 3,
+                "<|eos|>": top - 2,
+                "<|unk|>": top - 1,
+            }
+        self._resolve_special_ids()
 
         if not raw_text or len(raw_text) < 100:
             raise ValueError(
@@ -108,160 +178,96 @@ class BytePairEncoder(TokenizerInterface):
                 "need at least 100 characters for meaningful BPE vocabulary."
             )
 
-        # Split text into words for pair counting.
-        # We split on whitespace and treat punctuation as separate tokens
-        # to allow subword merging across word boundaries when appropriate.
-        words = self._preprocess_text_for_training(raw_text)
-        if not words:
+        # Words tile the text exactly; each word is a byte-token list.
+        word_splits: list[list[str]] = []
+        for word in self._split_words(raw_text):
+            word_splits.append(self._text_to_byte_tokens(word))
+        word_splits = [w for w in word_splits if w]
+        if not word_splits:
             raise ValueError("Text preprocessing produced no words for training.")
 
-        # Initialize vocabulary with current character-level tokens.
-        # We will expand this by merging pairs from the word splits.
-        vocab_size_start = len(self.vocab)
-        current_vocab_size = vocab_size_start
+        # Special tokens are reserved at the top of the target vocabulary but
+        # are NOT inserted into self.vocab until after merging completes, so
+        # learned merges take ids 256.. (target - n_specials - 1) and can never
+        # overflow past the reserved ids.
+        reserved_ids: set[int] = set(self.special_tokens.values())
+        merge_limit = self.vocab_size_target - len(self.special_tokens)
+        current_vocab_size = len(self.vocab)
 
-        # Build initial word representations as lists of character tokens.
-        word_splits = [list(word) for word in words]
-
-        # Reserve IDs for special tokens (if any) so they don't conflict
-        # with learned vocabulary IDs. Special tokens are assigned IDs
-        # above the base character range but below the target vocab size.
-        # For simplicity in this first version, special tokens are added
-        # to vocab after base vocabulary but before target size is reached.
-        # A more advanced version may reserve high-number IDs (like tiktoken).
-        reserved_ids: set[int] = set()
-        for token_str, token_id in self.special_tokens.items():
-            reserved_ids.add(token_id)
-            if token_str not in self.vocab:
-                # Assign reserved ID directly; do not learn this token.
-                self.vocab[token_str] = token_id
-                current_vocab_size += 1
-
-        # Main BPE training loop: iteratively merge most frequent pairs.
-        # We stop when we reach vocab_size_target or when no pairs
-        # have frequency above 1 (indicating the text is fully decomposed).
-        while current_vocab_size < self.vocab_size_target:
-            # Count pair frequencies across all word splits.
+        while current_vocab_size < merge_limit:
             pair_counts: Counter = Counter()
             for split in word_splits:
                 for i in range(len(split) - 1):
-                    pair = (split[i], split[i + 1])
-                    pair_counts[pair] += 1
+                    pair_counts[(split[i], split[i + 1])] += 1
 
             if not pair_counts:
-                # No adjacent pairs remain; vocabulary cannot grow further.
                 break
-
-            # Find the pair with the highest frequency.
             best_pair = max(pair_counts, key=lambda p: pair_counts[p])
             best_frequency = pair_counts[best_pair]
-
             if best_frequency < 2:
-                # Only merge pairs that occur at least twice to avoid
-                # overfitting to rare sequences.
                 break
 
-            # Create the merged token string.
-            best_pair_str = best_pair[0] + best_pair[1]
+            merged_str = best_pair[0] + best_pair[1]
 
-            # Add merged token to vocabulary (if not already present as special token).
-            if best_pair_str not in self.vocab:
-                # Find the smallest available ID that doesn't conflict with reserved IDs.
-                new_id = self._find_next_available_id(reserved_ids)
-                self.vocab[best_pair_str] = new_id
-                current_vocab_size += 1
-                self.merges.append(best_pair)
-
-            # Apply the merge to all word splits (replacing all occurrences of the pair).
+            # Apply the merge to every word (always — even if the merged
+            # string already exists, so training and encoding stay aligned).
             new_word_splits = []
             for split in word_splits:
                 new_split = []
                 i = 0
                 while i < len(split):
-                    if (
-                        i < len(split) - 1
-                        and split[i] == best_pair[0]
-                        and split[i + 1] == best_pair[1]
-                    ):
-                        new_split.append(best_pair_str)
-                        i += 2  # Skip both elements of the pair since merged.
+                    if i < len(split) - 1 and split[i] == best_pair[0] and split[i + 1] == best_pair[1]:
+                        new_split.append(merged_str)
+                        i += 2
                     else:
                         new_split.append(split[i])
                         i += 1
                 new_word_splits.append(new_split)
             word_splits = new_word_splits
 
-        # After training, ensure the vocabulary size does not exceed the target.
-        # If it exceeds (e.g., due to reserved special tokens added after base),
-        # we do not truncate; instead, the target is a guideline, and we rely
-        # on the user to set an appropriate `vocab_size_target`. For simplicity,
-        # this first version allows slight overages from special tokens but warns.
-        actual_size = len(self.vocab)
-        if actual_size > self.vocab_size_target + len(self.special_tokens):
-            # This should not normally occur, but we include a safeguard.
-            pass  # Vocabulary slightly exceeds target; user should review config.
+            # Record the merge rule and add the token (if not already present
+            # and not reserved for special tokens).
+            if merged_str not in self.vocab:
+                new_id = self._find_next_available_id(reserved_ids)
+                self.vocab[merged_str] = new_id
+                current_vocab_size += 1
+            self.merges.append(best_pair)
 
-    def _preprocess_text_for_training(self, text: str) -> list[str]:
-        """Split text into words for BPE pair counting.
-
-        Uses a simple regex-based approach: split on whitespace, treat punctuation
-        as separate tokens, and normalize whitespace. This is sufficient for
-        basic BPE training and avoids complex NLP dependencies.
-
-        Args:
-            text: Raw input text.
-
-        Returns:
-            List of word strings (each word may contain multiple characters).
-        """
-        # Normalize whitespace and split.
-        normalized = " ".join(text.split())
-        # Split on whitespace; treat punctuation as separate by inserting spaces.
-        # This is a simple but effective approach for subword tokenization.
-        words = normalized.split()
-        # Filter out empty words.
-        words = [word for word in words if word]
-        return words
+        # Now that merging is complete, register the special tokens so that
+        # vocab_size() covers their ids and decode() can render them.
+        for name, sid in self.special_tokens.items():
+            if name not in self.vocab:
+                self.vocab[name] = sid
+        self._resolve_special_ids()
 
     def _find_next_available_id(self, reserved_ids: set[int]) -> int:
-        """Find the smallest non-reserved integer ID for a new vocabulary token.
-
-        Args:
-            reserved_ids: Set of IDs reserved for special tokens.
-
-        Returns:
-            The smallest available integer ID.
-        """
         candidate = max(self.vocab.values()) + 1 if self.vocab else 0
-        # Skip reserved IDs; start from the first ID after the maximum existing.
         while candidate in reserved_ids or candidate in self.vocab.values():
-            # Note: we check `self.vocab.values()` to avoid conflicts with
-            # existing vocabulary tokens (this is a safeguard; normally
-            # `candidate` should be unique).
             candidate += 1
-        # Ensure we don't exceed a reasonable upper bound (not enforced strictly
-        # in this version, but the vocabulary size target limits growth).
         return candidate
 
     def _get_ranks(self) -> dict[tuple[str, str], int]:
-        """Return cached map of (part_a, part_b) -> merge_rank for fast lookup."""
-        if not hasattr(self, "_merge_ranks_cache") or len(
-            getattr(self, "_merge_ranks_cache", {})
-        ) != len(self.merges):
+        if not hasattr(self, "_merge_ranks_cache") or len(getattr(self, "_merge_ranks_cache", {})) != len(self.merges):
             self._merge_ranks_cache = {pair: rank for rank, pair in enumerate(self.merges)}
         return self._merge_ranks_cache
 
-    def encode(self, text: str, **kwargs) -> list[int]:
-        """Encode text into integer token IDs using the learned BPE vocabulary.
+    # ------------------------------------------------------------------
+    # Encoding / decoding
+    # ------------------------------------------------------------------
 
-        Uses rank-based priority queue for O(N log N) merge lookup.
+    def encode(self, text: str, **kwargs) -> list[int]:
+        """Encode text into token ids using the learned byte-level BPE.
+
+        Guarantees:
+        - decode(encode(text)) == text for arbitrary Unicode input.
+        - Deterministic for a fixed vocabulary/merge set.
 
         Args:
             text: Input text string.
-            **kwargs: Additional options reserved for extensions.
+            **kwargs: Reserved for extensions.
 
         Returns:
-            List of integer token IDs.
+            List of integer token ids.
 
         Raises:
             TypeError: If input is not a string.
@@ -269,113 +275,92 @@ class BytePairEncoder(TokenizerInterface):
         if not isinstance(text, str):
             raise TypeError(f"encode() expects a string, got {type(text)}")
 
-        normalized = " ".join(text.split())
-        words = normalized.split()
         ranks = self._get_ranks()
-
         token_ids: list[int] = []
-        for word in words:
-            split = list(word)
-            while len(split) >= 2:
-                # Find adjacent pairs in split that exist in learned merge rules
-                pairs = [(split[i], split[i + 1]) for i in range(len(split) - 1)]
-                valid_pairs = [p for p in pairs if p in ranks]
-                if not valid_pairs:
+
+        for word in self._split_words(text):
+            parts = self._text_to_byte_tokens(word)
+            # Repeatedly merge the lowest-rank adjacent pair (standard BPE).
+            while len(parts) > 1:
+                best_idx: int | None = None
+                best_rank = float("inf")
+                for i in range(len(parts) - 1):
+                    r = ranks.get((parts[i], parts[i + 1]))
+                    if r is not None and r < best_rank:
+                        best_rank = r
+                        best_idx = i
+                if best_idx is None:
                     break
+                merged = parts[best_idx] + parts[best_idx + 1]
+                parts = parts[:best_idx] + [merged] + parts[best_idx + 2 :]
 
-                # Pick pair with lowest rank (learned earliest in BPE training)
-                best_pair = min(valid_pairs, key=lambda p: ranks[p])
-                part_a, part_b = best_pair
-                merged_str = part_a + part_b
-
-                new_split = []
-                i = 0
-                while i < len(split):
-                    if i < len(split) - 1 and split[i] == part_a and split[i + 1] == part_b:
-                        new_split.append(merged_str)
-                        i += 2
-                    else:
-                        new_split.append(split[i])
-                        i += 1
-                split = new_split
-
-            for token_str in split:
-                if token_str in self.vocab:
-                    token_ids.append(self.vocab[token_str])
-                else:
-                    for char in token_str:
-                        if char in self.vocab:
-                            token_ids.append(self.vocab[char])
-                        else:
-                            raise ValueError(
-                                f"Unknown token '{token_str}' (derived from word '{word}') "
-                                f"not found in vocabulary. Vocabulary size: {self.vocab_size()}."
-                            )
+            for tok in parts:
+                token_ids.append(self.vocab[tok])
 
         return token_ids
 
     def decode(self, tokens: list[int], strict: bool = False, **kwargs) -> str:
-        """Decode integer token IDs back to a text string.
+        """Decode token ids back to a text string.
 
         Args:
-            tokens: Sequence of integer token IDs.
-            strict: If True, raise ValueError on unknown token IDs.
-            **kwargs: Additional options.
+            tokens: Sequence of integer token ids.
+            strict: If True, raise ValueError on unknown token ids.
+            **kwargs: Reserved.
 
         Returns:
-            Reconstructed text string.
+            Reconstructed text (lossless for ids produced by encode()).
+
+        Raises:
+            TypeError: If input is not a list of integers.
+            ValueError: If strict and an id is not in the vocabulary.
         """
         if not isinstance(tokens, list):
             raise TypeError(f"decode() expects a list of integers, got {type(tokens)}")
 
-        id_to_token: dict[int, str] = {
-            token_id: token_str for token_str, token_id in self.vocab.items()
-        }
-
-        reconstructed_parts: list[str] = []
+        id_to_token: dict[int, str] = {v: k for k, v in self.vocab.items()}
+        byte_parts: list[bytes] = []
         for token_id in tokens:
             if token_id in id_to_token:
-                reconstructed_parts.append(id_to_token[token_id])
+                byte_parts.append(id_to_token[token_id].encode("latin-1"))
             else:
                 if strict:
                     raise ValueError(
                         f"Token ID {token_id} not found in vocabulary. Vocabulary size: {self.vocab_size()}."
                     )
-                reconstructed_parts.append(f"<{token_id}>")
+                # Non-strict: render unknown ids visibly but keep byte stream safe.
+                byte_parts.append(f"<{token_id}>".encode())
 
-        reconstructed_text = "".join(reconstructed_parts)
-        return reconstructed_text
+        return b"".join(byte_parts).decode("utf-8", errors="replace")
 
     def vocab_size(self) -> int:
-        """Return the number of tokens in the vocabulary."""
-        return len(self.vocab)
+        """Return the number of entries in the vocabulary (max id + 1)."""
+        if not self.vocab:
+            return 0
+        return max(self.vocab.values()) + 1
+
+    # ------------------------------------------------------------------
+    # Persistence
+    # ------------------------------------------------------------------
 
     def save(self, path: str) -> None:
-        """Save vocabulary and merge rules to disk.
-
-        The saved file uses JSON format for portability and readability.
-        It includes both the vocabulary mapping and the ordered merge list,
-        ensuring the tokenizer can be fully reconstructed by `load()`.
+        """Persist vocabulary, merges, and special-token ids to JSON.
 
         Args:
-            path: File path (e.g., `tokenizer/vocab.json`).
+            path: Output file path.
 
         Raises:
-            FileNotFoundError: If parent directory does not exist.
-            OSError: If file write fails.
+            FileNotFoundError: If the parent directory does not exist.
+            OSError: If the write fails.
         """
         parent_dir = os.path.dirname(path)
         if parent_dir and not os.path.exists(parent_dir):
-            raise FileNotFoundError(
-                f"Parent directory for tokenizer save does not exist: {parent_dir}"
-            )
-
+            raise FileNotFoundError(f"Parent directory for tokenizer save does not exist: {parent_dir}")
         save_data = {
+            "version": self._version,
             "vocab_size_target": self.vocab_size_target,
             "vocab": self.vocab,
-            "merges": [{"part_a": pair[0], "part_b": pair[1]} for pair in self.merges],
+            "merges": [{"part_a": a, "part_b": b} for a, b in self.merges],
             "special_tokens": self.special_tokens,
-            "version": "xrfm-bpe-v1",
         }
         try:
             with open(path, "w", encoding="utf-8") as f:
@@ -384,39 +369,35 @@ class BytePairEncoder(TokenizerInterface):
             raise OSError(f"Failed to save tokenizer to {path}: {exc}") from exc
 
     def load(self, path: str) -> None:
-        """Load vocabulary and merge rules from disk.
+        """Restore a tokenizer previously saved with save().
 
         Args:
-            path: File path produced by `save()`.
+            path: Path to the JSON produced by save().
 
         Raises:
-            FileNotFoundError: If file does not exist.
-            ValueError: If file format is invalid or version is unsupported.
+            FileNotFoundError: If the file does not exist.
+            ValueError: If the format is invalid.
         """
         if not os.path.exists(path):
             raise FileNotFoundError(f"Tokenizer save file not found: {path}")
-
         try:
             with open(path, encoding="utf-8") as f:
                 save_data = json.load(f)
         except (json.JSONDecodeError, OSError) as exc:
-            raise ValueError(
-                f"Failed to load tokenizer from {path}: invalid file format: {exc}"
-            ) from exc
+            raise ValueError(f"Failed to load tokenizer from {path}: invalid file format: {exc}") from exc
 
-        # Validate expected structure.
-        required_keys = {"vocab", "merges", "vocab_size_target"}
-        missing = required_keys - set(save_data.keys())
+        required = {"vocab", "merges", "vocab_size_target"}
+        missing = required - set(save_data.keys())
         if missing:
             raise ValueError(f"Tokenizer save file {path} is missing required fields: {missing}")
 
-        # Restore state.
         self.vocab = {str(k): int(v) for k, v in save_data["vocab"].items()}
-        self.merges = [
-            (entry.get("part_a", entry.get("a", "")), entry.get("part_b", entry.get("b", "")))
-            for entry in save_data.get("merges", [])
-        ]
+        self.merges = [(entry.get("part_a", ""), entry.get("part_b", "")) for entry in save_data.get("merges", [])]
         self.vocab_size_target = int(save_data.get("vocab_size_target", len(self.vocab)))
-        self.special_tokens = {
-            str(k): int(v) for k, v in save_data.get("special_tokens", {}).items()
-        }
+        self.special_tokens = {str(k): int(v) for k, v in save_data.get("special_tokens", {}).items()}
+        self._version = str(save_data.get("version", "xrfm-bpe-v1"))
+        # Keep special tokens decodable (they may not be in older vocab files).
+        for name, sid in self.special_tokens.items():
+            if name not in self.vocab:
+                self.vocab[name] = sid
+        self._resolve_special_ids()

@@ -45,9 +45,9 @@ class TestDatasetConfig:
         config_path = pathlib.Path(__file__).parent.parent / "config" / "config.yaml"
         config = ConfigLoader(str(config_path))
         dataset_cfg = load_config_for_dataset(config)
-        assert dataset_cfg.dataset_name == "tiny_shakespeare"
+        assert dataset_cfg.dataset_name == "tiny_corpus"
         assert dataset_cfg.dataset_path == "data/datasets/"
-        assert dataset_cfg.max_seq_len == 512
+        assert dataset_cfg.max_seq_len == 256
 
     def test_custom_config_values(self) -> None:
         """Custom dataset settings should be readable from config."""
@@ -93,12 +93,16 @@ class TestTextNormalization:
     """Whitespace normalization for consistent tokenization."""
 
     def test_normalize_whitespace(self) -> None:
-        """Multiple spaces and newlines should collapse to single spaces."""
+        """Double spaces collapse, but newlines are PRESERVED (F-19).
+
+        The dataset no longer flattens newlines because a language model must
+        be able to learn line/paragraph structure.
+        """
         raw = "hello\nworld   test"
         normalized = normalize_text(raw)
         assert "  " not in normalized  # No double spaces
-        assert "\n" not in normalized  # Newlines normalized
-        assert "hello world test" == normalized
+        assert "\n" in normalized  # Newlines preserved (F-19)
+        assert normalized == "hello\nworld test"
 
 
 class TestDatasetSplitting:
@@ -113,9 +117,7 @@ class TestDatasetSplitting:
     def test_split_produces_three_parts(self) -> None:
         """Split must return exactly three strings."""
         text = "hello world ".join(["hello world"] * 50)
-        train_text, val_text, test_text = split_dataset(
-            text, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, seed=42
-        )
+        train_text, val_text, test_text = split_dataset(text, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, seed=42)
         assert isinstance(train_text, str)
         assert isinstance(val_text, str)
         assert isinstance(test_text, str)
@@ -266,9 +268,7 @@ class TestManifestGeneration:
         assert manifest["dataset_name"] == "tiny_shakespeare"
         assert "tokenizer" in manifest
         assert manifest["tokenizer"]["class_name"] == "BytePairEncoder"
-        assert (
-            manifest["tokenizer"]["vocab_size"] == 256
-        )  # Untrained BPE encoder has base byte vocabulary (256)
+        assert manifest["tokenizer"]["vocab_size"] == 256  # Untrained BPE encoder has base byte vocabulary (256)
         # Note: After training, vocab_size would be larger; manifest captures the tokenizer instance state at call time.
         assert manifest["version"] == "xrfm-manifest-v1"
         assert manifest["split_info"] == split_info

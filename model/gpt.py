@@ -35,6 +35,8 @@ class GPTModel(nn.Module):
         self,
         config_path: str = "config/config.yaml",
         weight_tied: bool = True,
+        vocab_size: int | None = None,
+        bias: bool | None = None,
     ) -> None:
         super().__init__()
 
@@ -47,10 +49,22 @@ class GPTModel(nn.Module):
             raise FileNotFoundError(f"Config not found: '{config_path}'") from exc
 
         model_cfg = loader.model_config()
+        # Forensic-audit fix (F-13): allow the caller to override the config's
+        # vocab_size with the tokenizer's ACTUAL vocabulary size, keeping the
+        # embedding/LM-head and the tokenizer coherent.
+        if vocab_size is not None:
+            if not isinstance(vocab_size, int) or vocab_size <= 0:
+                raise ValueError(f"vocab_size override must be a positive int, got {vocab_size}")
+            model_cfg.vocab_size = vocab_size
+
         self.config_path = config_path
         self.weight_tied = weight_tied
         self.max_seq_len = model_cfg.max_seq_len
         self.dropout_p = model_cfg.dropout
+        # bias=None -> read from config (model.use_bias); modern LLMs use False.
+        if bias is None:
+            bias = bool(model_cfg.use_bias)
+        self.use_bias = bias
 
         # Validate architecture parameters
         if model_cfg.d_model <= 0:
@@ -60,9 +74,7 @@ class GPTModel(nn.Module):
         if model_cfg.n_heads <= 0:
             raise ValueError(f"n_heads must be positive: {model_cfg.n_heads}")
         if model_cfg.d_model % model_cfg.n_heads != 0:
-            raise ValueError(
-                f"d_model ({model_cfg.d_model}) not divisible by n_heads ({model_cfg.n_heads})"
-            )
+            raise ValueError(f"d_model ({model_cfg.d_model}) not divisible by n_heads ({model_cfg.n_heads})")
         if model_cfg.d_ff <= 0:
             raise ValueError(f"d_ff must be positive: {model_cfg.d_ff}")
         if not (0.0 <= model_cfg.dropout < 1.0):
@@ -88,15 +100,14 @@ class GPTModel(nn.Module):
                     dropout=model_cfg.dropout,
                     use_rmsnorm=model_cfg.use_rmsnorm,
                     use_rope=model_cfg.use_rope,
+                    bias=self.use_bias,
                 )
                 for _ in range(model_cfg.n_layers)
             ]
         )
 
         # Final norm
-        self.norm_final = (
-            RMSNorm(model_cfg.d_model) if model_cfg.use_rmsnorm else nn.LayerNorm(model_cfg.d_model)
-        )
+        self.norm_final = RMSNorm(model_cfg.d_model) if model_cfg.use_rmsnorm else nn.LayerNorm(model_cfg.d_model)
 
         # LM head (weight-tied with embedding by default)
         self.lm_head = nn.Linear(model_cfg.d_model, model_cfg.vocab_size, bias=False)
@@ -150,11 +161,7 @@ class GPTModel(nn.Module):
         # Pass through transformer blocks with KV cache
         present_key_values: list[tuple[torch.Tensor, torch.Tensor]] = []
         for i, block in enumerate(self.blocks):
-            past_kv = (
-                past_key_values[i]
-                if (past_key_values is not None and i < len(past_key_values))
-                else None
-            )
+            past_kv = past_key_values[i] if (past_key_values is not None and i < len(past_key_values)) else None
             x, present_kv = block(x, mask=mask, past_kv=past_kv, use_cache=use_cache)
             if use_cache and present_kv is not None:
                 present_key_values.append(present_kv)

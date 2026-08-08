@@ -1,0 +1,58 @@
+# XRFM-MEDIUM — serious experiments (free cloud T4 / single GPU, bf16).
+project:
+  name: "XR Foundation Model"
+  package: "xrfm"
+  version: "1.0.1"
+
+paths:
+  data_dir: "data/"
+  checkpoint_dir: "checkpoints/medium/"
+  tokenizer_path: "tokenizer/"
+  log_dir: "logs/"
+  manifest_dir: "data/manifests/"
+
+datasets:
+  default: "medium_corpus"
+  path: "data/datasets/"
+  train_ratio: 0.9
+  val_ratio: 0.05
+  test_ratio: 0.05
+  shuffle: true
+  streaming: false
+  seed: 42
+
+model:
+  vocab_size: 8192
+  d_model: 384
+  n_layers: 8
+  n_heads: 6
+  d_ff: 1536
+  max_seq_len: 1024
+  dropout: 0.1
+  use_rope: true
+  use_rmsnorm: true
+  use_swiglu: true
+
+training:
+  batch_size: 16
+  max_steps: 50000
+  warmup_steps: 2000
+  learning_rate: 0.0003
+  weight_decay: 0.1
+  gradient_clip: 1.0
+  mixed_precision: true    # real bf16 autocast on GPU; no-op on CPU
+  checkpoint_every: 1000
+  resume_from: null
+  grad_accum_steps: 2
+  use_ddp: false
+  use_fsdp: false
+  seed: 42
+  error_if_nonfinite: false
+  ignore_index: -100
+  eval_every: 0
+  num_workers: 0           # dataloader workers (0 = main process)
+  pin_memory: false        # pin loader buffers for non-blocking GPU transfers
+  prefetch_factor: null    # loader prefetch (workers > 0 required)
+  persistent_workers: false
+  device: null             # null = auto (cuda if available else cpu)
+  deterministic: false     # torch.use_deterministic_algorithms (warn-only)

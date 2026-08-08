@@ -56,8 +56,7 @@ class RMSNorm(nn.Module):
         super().__init__()
         if dim <= 0:
             raise ValueError(
-                f"Normalization dimension must be positive, got {dim}. "
-                f"Check ConfigLoader model settings (d_model)."
+                f"Normalization dimension must be positive, got {dim}. Check ConfigLoader model settings (d_model)."
             )
         if eps <= 0:
             raise ValueError(f"Epsilon must be positive, got {eps}. Check RMSNorm initialization.")

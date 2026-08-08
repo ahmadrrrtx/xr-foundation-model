@@ -73,6 +73,7 @@ class CheckpointLoader:
         loss: float = float("inf"),
         best_loss: float = float("inf"),
         filename: str | None = None,
+        extra: dict[str, Any] | None = None,
     ) -> str:
         """Save a checkpoint (`.pt` file) with full training state.
 
@@ -85,6 +86,7 @@ class CheckpointLoader:
             best_loss: Best loss observed so far (for early stopping or comparison).
             filename: Custom checkpoint filename; if `None`, generates
                 `checkpoint_step_{step}.pt`.
+            extra: Optional reproducibility metadata (config, seed, versions).
 
         Returns:
             Full checkpoint file path (`str`).
@@ -105,11 +107,9 @@ class CheckpointLoader:
             "step": step,
             "loss": loss,
             "best_loss": best_loss,
-            # Note: `ConfigLoader` settings (`config_path` or serialized config)
-            # should be saved for full reproducibility (`DECISIONS.md` confirms this as `CORE`).
-            # The `training/loop.py` is responsible for passing `config_path` or `raw_config`
-            # when calling `save_checkpoint` (`RESEARCH-ONLY` extension: add config serialization here).
         }
+        if extra:
+            checkpoint["extra"] = extra
         if scheduler is not None and hasattr(scheduler, "state_dict"):
             checkpoint["scheduler_state_dict"] = scheduler.state_dict()
 
@@ -152,7 +152,10 @@ class CheckpointLoader:
             )
 
         # Load (`torch.load` — standard `PyTorch` function).
-        checkpoint = torch.load(checkpoint_path, weights_only=True)
+        # map_location="cpu" keeps checkpoints portable across devices
+        # (forensic-audit fix, F-32: a GPU-saved checkpoint would otherwise
+        # fail to load on a CPU-only host).
+        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
 
         # Restore model state (`GPTModel.load_state_dict()`).
         model.load_state_dict(checkpoint["model_state_dict"])

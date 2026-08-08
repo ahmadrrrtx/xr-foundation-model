@@ -28,7 +28,7 @@ from model.gpt import GPTModel
 def benchmark_forward_pass(
     batch_size: int = 4,
     seq_len: int = 32,
-    vocab_size: int = 50304,
+    vocab_size: int | None = None,
     repetitions: int = 10,
 ) -> dict:
     """Run basic forward pass timing benchmark.
@@ -54,6 +54,8 @@ def benchmark_forward_pass(
 
     model = GPTModel()
     model.eval()
+    if vocab_size is None:
+        vocab_size = model.embedding.vocab_size
     input_ids = torch.randint(0, vocab_size, (batch_size, seq_len))
 
     # Warm-up (ensure any lazy initialization is complete).
@@ -90,9 +92,9 @@ def benchmark_forward_pass(
 def verify_parameter_count(expected_approx: int = 10_000_000, tolerance: float = 0.3) -> None:
     """Verify parameter count matches expected approximate value.
 
-    The `XRFM-10M` preset (`v0.4.0`) uses `vocab_size=50304`, `d_model=256`,
-    `n_layers=6`, `d_ff=1024`. The actual parameter count is approximately
-    19.2M due to vocabulary scaling (embedding + weight-tied output projection).
+    The legacy preset used `vocab_size=50304`, `d_model=256`, `n_layers=6`,
+    `d_ff=1024` (~19.2M params, embedding-dominated). The default config now
+    uses a coherent tokenizer-sized vocabulary.
     This benchmark documents the actual count rather than enforcing an
     approximate approximation.
 

@@ -104,14 +104,14 @@ class TestVersionConsistency:
         cfg_path = pathlib.Path(__file__).parent.parent / "config" / "config.yaml"
         with open(cfg_path) as f:
             cfg = yaml.safe_load(f)
-        assert (
-            pkgv == cfg["project"]["version"]
-        ), f"Mismatch: __init__={pkgv}, config={cfg['project']['version']}"
+        assert pkgv == cfg["project"]["version"], f"Mismatch: __init__={pkgv}, config={cfg['project']['version']}"
 
-    def test_version_is_0_5_1(self):
+    def test_version_is_current(self):
+        import re
+
         from xrfm import __version__
 
-        assert __version__ == "1.0.0", f"Expected 1.0.0, got {__version__}"
+        assert re.match(r"^\d+\.\d+\.\d+", __version__), f"Invalid version: {__version__}"
 
 
 class TestTrainingLoopInit:

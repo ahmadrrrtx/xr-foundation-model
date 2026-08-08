@@ -1,0 +1,69 @@
+# XRFM v1.1 — MEDIUM configuration (Phase 35)
+#
+# Target: 15-20M parameters, designed for the first serious GPU training run.
+# Dimensions chosen by computing exact parameter counts (see
+# docs/training/V1_1_GPU_MEMORY.md) — vocab 8192, d_model 384, 7 layers,
+# 6 heads (d_head=64), d_ff=1536 (4x), no biases (modern LLM practice).
+# Expected: ~19.4M parameters (verified programmatically by GPTModel).
+#
+# Fully reproducible: every field below is read by ConfigLoader and stored in
+# the checkpoint `extra` at save time.
+
+project:
+  name: "XR Foundation Model"
+  package: "xrfm"
+  version: "1.0.1"
+
+paths:
+  data_dir: "data/"
+  checkpoint_dir: "checkpoints/v1.1-medium/"
+  tokenizer_path: "tokenizer/"
+  log_dir: "logs/"
+  manifest_dir: "data/manifests/"
+
+datasets:
+  default: "fineweb-edu-sample-10BT-slice"
+  path: "data/datasets/"
+  train_ratio: 0.95
+  val_ratio: 0.025
+  test_ratio: 0.025
+  shuffle: true
+  streaming: false
+  seed: 42
+
+model:
+  vocab_size: 8192        # overridden at runtime by tokenizer.vocab_size()
+  d_model: 384
+  n_layers: 7
+  n_heads: 6
+  d_ff: 1536
+  max_seq_len: 1024
+  dropout: 0.0            # pretraining typically uses no dropout (Llama 3, Pythia)
+  use_rope: true
+  use_rmsnorm: true
+  use_swiglu: true
+  use_bias: false         # no biases in attention/FFN (matches Llama/Mistral/Qwen)
+
+training:
+  batch_size: 16          # per-device micro-batch; effective = batch*grad_accum*world
+  max_steps: 60000
+  warmup_steps: 1000
+  learning_rate: 0.0003
+  weight_decay: 0.1
+  gradient_clip: 1.0
+  mixed_precision: true   # bf16 autocast on GPU; fp32 no-op on CPU
+  checkpoint_every: 2000
+  resume_from: null
+  grad_accum_steps: 4     # effective batch 64 (16*4) at seq 1024 = 65,536 tokens/step
+  use_ddp: false
+  use_fsdp: false
+  seed: 42
+  error_if_nonfinite: false
+  ignore_index: -100
+  eval_every: 1000
+  num_workers: 2          # dataloader workers (GPU host)
+  pin_memory: true        # pinned buffers + non-blocking H2D
+  prefetch_factor: 2
+  persistent_workers: true
+  device: null            # auto: cuda if available
+  deterministic: false

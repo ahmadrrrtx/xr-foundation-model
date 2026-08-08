@@ -5,13 +5,12 @@ Unit tests for XRFM Search Engine & RAG module.
 import os
 import tempfile
 
-from xrfm.search.agent import LocalSearchAgent
-from xrfm.search.indexer import SearchIndexer
-from xrfm.search.retriever import SearchRetriever
-
 from inference.engine import GenerationEngine
 from model.gpt import GPTModel
 from tokenizer.bpe import BytePairEncoder
+from xrfm.search.agent import LocalSearchAgent
+from xrfm.search.indexer import SearchIndexer
+from xrfm.search.retriever import SearchRetriever
 
 
 class TestSearchIndexer:
@@ -29,9 +28,7 @@ class TestSearchIndexer:
 
     def test_save_and_load_index(self):
         indexer = SearchIndexer()
-        indexer.add_document(
-            "doc1", "Artificial intelligence and local language models.", title="AI Doc"
-        )
+        indexer.add_document("doc1", "Artificial intelligence and local language models.", title="AI Doc")
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as f:
             save_path = f.name
@@ -50,9 +47,7 @@ class TestSearchIndexer:
 class TestSearchRetrieverAndAgent:
     def test_retriever_prompt_formatting(self):
         indexer = SearchIndexer()
-        indexer.add_document(
-            "doc1", "DeepSeek and Llama 3 are open-source LLM families.", title="LLM Models"
-        )
+        indexer.add_document("doc1", "DeepSeek and Llama 3 are open-source LLM families.", title="LLM Models")
         retriever = SearchRetriever(indexer)
 
         prompt = retriever.format_context_prompt("What are DeepSeek and Llama 3?")

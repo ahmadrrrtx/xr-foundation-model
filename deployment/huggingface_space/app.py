@@ -31,9 +31,7 @@ def generate_text(prompt: str, max_tokens: int = 256, temperature: float = 0.7):
     import torch
 
     input_ids = torch.tensor([tokenizer.encode(prompt)], dtype=torch.long)
-    output_ids = engine.generate(
-        input_ids, max_new_tokens=int(max_tokens), temperature=float(temperature)
-    )
+    output_ids = engine.generate(input_ids, max_new_tokens=int(max_tokens), temperature=float(temperature))
     prompt_len = input_ids.shape[1]
     new_ids = output_ids[prompt_len:]
     return tokenizer.decode(new_ids.tolist())
@@ -43,9 +41,7 @@ def generate_text(prompt: str, max_tokens: int = 256, temperature: float = 0.7):
 demo = gr.Interface(
     fn=generate_text,
     inputs=[
-        gr.Textbox(
-            lines=3, placeholder="Ask XRFM custom language model anything...", label="Prompt"
-        ),
+        gr.Textbox(lines=3, placeholder="Ask XRFM custom language model anything...", label="Prompt"),
         gr.Slider(minimum=16, maximum=1024, value=256, step=16, label="Max Tokens"),
         gr.Slider(minimum=0.1, maximum=2.0, value=0.7, step=0.1, label="Temperature"),
     ],

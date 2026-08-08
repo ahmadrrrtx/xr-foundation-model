@@ -94,7 +94,7 @@ def init_distributed(
 
     torch.distributed.init_process_group(
         backend=backend,
-        timeout=torch.distributed.Timedelta(seconds=timeout_seconds),
+        timeout=torch.distributed.timedelta(seconds=timeout_seconds),
     )
 
     # Set the default CUDA device for this process
@@ -203,7 +203,7 @@ def wrap_model_fsdp(
 
         strategy = strategy_map.get(sharding_strategy, ShardingStrategy.FULL_SHARD)
 
-        fsdp_kwargs = {"sharding_strategy": strategy}
+        fsdp_kwargs: dict[str, Any] = {"sharding_strategy": strategy}
 
         if cpu_offload:
             fsdp_kwargs["cpu_offload"] = CPUOffload(offload_params=True)
@@ -226,11 +226,15 @@ def get_raw_model(model: nn.Module) -> nn.Module:
     """
     # Check for FSDP
     if hasattr(model, "_fsdp_wrapped_module"):
-        return model._fsdp_wrapped_module
+        wrapped = getattr(model, "_fsdp_wrapped_module")
+        if isinstance(wrapped, nn.Module):
+            return wrapped
 
     # Check for DDP
     if hasattr(model, "module"):
-        return model.module
+        wrapped = getattr(model, "module")
+        if isinstance(wrapped, nn.Module):
+            return wrapped
 
     return model
 
@@ -257,7 +261,10 @@ class GradientAccumulator:
             accum.backward(loss)
             if accum.should_step(step_idx):
                 accum.step(optimizer)
-    """
+
+
+    EXPERIMENTAL (v1.1): not used by the production training/inference
+    paths. See docs/architecture/DEAD_OR_EXPERIMENTAL.md."""
 
     def __init__(
         self,
@@ -334,14 +341,18 @@ class GradientAccumulator:
 
 
 def xrfm_collate_fn(batch: list) -> tuple[torch.Tensor, torch.Tensor]:
-    """Custom collate function that guarantees equal length padding for all batch tensors."""
+    """Custom collate function that guarantees equal length padding for all batch tensors.
+
+    Forensic-audit fix (F-15): input padding uses token 0 (the dataset already
+    pads with its configured pad id, so this only triggers for datasets that
+    return variable-length items); target padding uses -100 so that padded
+    positions never contribute to cross_entropy loss.
+    """
     inputs = [item[0] for item in batch]
     targets = [item[1] for item in batch]
     max_len = max(x.size(0) for x in inputs)
     padded_inputs = [torch.nn.functional.pad(x, (0, max_len - x.size(0)), value=0) for x in inputs]
-    padded_targets = [
-        torch.nn.functional.pad(y, (0, max_len - y.size(0)), value=0) for y in targets
-    ]
+    padded_targets = [torch.nn.functional.pad(y, (0, max_len - y.size(0)), value=-100) for y in targets]
     return torch.stack(padded_inputs, dim=0), torch.stack(padded_targets, dim=0)
 
 
@@ -374,7 +385,7 @@ def create_distributed_dataloader(
     if "collate_fn" not in dataloader_kwargs:
         dataloader_kwargs["collate_fn"] = xrfm_collate_fn
     if is_distributed():
-        sampler = DistributedSampler(
+        sampler: DistributedSampler = DistributedSampler(
             dataset,
             num_replicas=get_world_size(),
             rank=get_rank(),
@@ -488,6 +499,4 @@ def load_fsdp_checkpoint(
             logger.info("FSDP checkpoint loaded: %s", path)
     except ImportError:
         logger.warning("FSDP not available; falling back to standard load")
-        get_raw_model(model).load_state_dict(
-            torch.load(path, map_location="cpu", weights_only=True)
-        )
+        get_raw_model(model).load_state_dict(torch.load(path, map_location="cpu", weights_only=True))

@@ -139,25 +139,67 @@ def sample_top_p(
     return torch.multinomial(probs, num_samples=1)
 
 
+def apply_repetition_penalty(
+    logits: torch.Tensor,
+    penalty: float,
+    seen_ids: torch.Tensor,
+) -> torch.Tensor:
+    """Apply a repetition penalty to logits of previously generated tokens.
+
+    Standard CTRL-style penalty (Keskar et al., 2019): for each token id
+    already present in the sequence, its logit is divided by ``penalty``
+    (penalty > 1 suppresses repetition) — equivalently, logits are pushed
+    away from 0 for repeated tokens.
+
+    Args:
+        logits: Raw logits (batch, vocab_size).
+        penalty: Penalty factor (> 1.0 suppresses repeats; 1.0 = no-op).
+        seen_ids: Token ids already generated, shape (batch, seen_len).
+
+    Returns:
+        Modified logits (same shape).
+    """
+    if penalty <= 1.0:
+        return logits
+    if seen_ids.numel() == 0:
+        return logits
+    for b in range(logits.shape[0]):
+        unique = torch.unique(seen_ids[b])
+        row = logits[b]
+        row[unique] = torch.where(row[unique] > 0, row[unique] / penalty, row[unique] * penalty)
+    return logits
+
+
 def sample_token(
     logits: torch.Tensor,
     temperature: float = 1.0,
     top_k: int | None = None,
     top_p: float | None = None,
+    repetition_penalty: float = 1.0,
+    seen_ids: torch.Tensor | None = None,
 ) -> torch.Tensor:
     """Sample next token with combined strategies.
 
-    Priority: temperature=0 (greedy) > top_k > top_p > temperature.
+    Priority: repetition penalty > temperature=0 (greedy) > top_k > top_p > temperature.
 
     Args:
         logits: Raw logits (batch, vocab_size).
         temperature: 0 for greedy, > 0 for sampling temperature.
         top_k: If set, apply top-k filtering.
         top_p: If set, apply top-p (nucleus) filtering.
+        repetition_penalty: Penalty > 1.0 for previously generated tokens
+            (Phase 31 hardening). 1.0 = disabled.
+        seen_ids: Token ids generated so far (batch, seen_len); required
+            when repetition_penalty > 1.0.
 
     Returns:
         Token IDs (batch, 1).
     """
+    if repetition_penalty > 1.0:
+        if seen_ids is None:
+            raise ValueError("seen_ids required when repetition_penalty > 1.0")
+        logits = apply_repetition_penalty(logits, repetition_penalty, seen_ids)
+
     # Greedy when temperature is 0
     if temperature == 0:
         return sample_greedy(logits)

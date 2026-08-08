@@ -22,7 +22,7 @@ def benchmark_full_vs_cached(
     model = GPTModel()
     model.eval()
     engine = GenerationEngine(model)
-    prompt = torch.randint(0, 50304, (prompt_len,))
+    prompt = torch.randint(0, model.embedding.vocab_size, (prompt_len,))
 
     # Warm-up
     _ = engine.generate(prompt, max_new_tokens=3, temperature=0)

@@ -23,8 +23,8 @@ class TestEmbeddingShape:
         assert out.shape == (1, 64)
 
     def test_batch_sequence(self) -> None:
-        emb = XRFMEmbedding(vocab_size=50304, d_model=256)
-        input_ids = torch.randint(0, 50304, (4, 12))
+        emb = XRFMEmbedding(vocab_size=2048, d_model=256)
+        input_ids = torch.randint(0, 2048, (4, 12))
         out = emb(input_ids)
         assert out.shape == (4, 12, 256)
 
@@ -77,9 +77,9 @@ class TestEmbeddingConfigIntegration:
     """Integration with ConfigLoader settings."""
 
     def test_config_driven_vocabulary_size(self) -> None:
-        # The embedding layer must work with standard config vocab_size (50304).
-        emb = XRFMEmbedding(vocab_size=50304, d_model=256)
-        input_ids = torch.randint(0, 50304, (2, 8))
+        # Embedding works with a config-scale vocab size.
+        emb = XRFMEmbedding(vocab_size=2048, d_model=256)
+        input_ids = torch.randint(0, 2048, (2, 8))
         out = emb(input_ids)
         assert out.shape == (2, 8, 256)
 

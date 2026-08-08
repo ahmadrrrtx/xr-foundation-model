@@ -23,6 +23,9 @@ Design principles (Phase 5 architecture freeze):
 - No placeholders; no `"fix later"` comments.
 """
 
+from contextlib import nullcontext
+from typing import Any
+
 import torch
 
 
@@ -59,6 +62,8 @@ class MixedPrecisionLoader:
                 f"Check ConfigLoader settings (training.mixed_precision)."
             )
         self.enabled = enabled
+        # The scaler is either torch's GradScaler (GPU) or the local NoOpScaler.
+        self.scaler: Any = NoOpScaler()
 
         # Initialize `GradScaler` (`torch.cuda.amp.GradScaler`) when `enabled` is `True`
         # and `torch.cuda` is available (`GPU` environment). Otherwise, use `NoOpScaler`.
@@ -70,11 +75,30 @@ class MixedPrecisionLoader:
                 self.scaler = torch.amp.GradScaler("cuda")
             else:
                 self.scaler = torch.cuda.amp.GradScaler()
+            # Autocast dtype: prefer bfloat16 (stable, no scaling needed for
+            # forward), fall back to float16 (requires GradScaler).
+            self._autocast_dtype = torch.bfloat16
+            self._autocast_device = "cuda"
         else:
             # `NoOpScaler` — no-op scaler for `CPU` or `mixed_precision: False`.
             # This ensures `grad_scaler.scale(loss)`, `.step(optimizer)`, `.update()`
             # work identically regardless of `enabled`, simplifying `training/loop.py`.
             self.scaler = NoOpScaler()
+            self._autocast_dtype = torch.float32
+            self._autocast_device = "cpu"
+
+    def autocast_ctx(self):
+        """Context manager wrapping the forward pass in `torch.autocast`.
+
+        Forensic-audit fix (F-23): the previous implementation created a
+        GradScaler but never converted the model/activations to a reduced
+        precision, so "mixed precision" did nothing. With autocast, forward
+        matmuls run in bf16 (or fp16) on GPU. On CPU (or when disabled) this
+        is a no-op context and training stays in fp32.
+        """
+        if self.enabled and torch.cuda.is_available():
+            return torch.autocast(device_type=self._autocast_device, dtype=self._autocast_dtype)
+        return nullcontext()
 
     def scale(self, loss: torch.Tensor) -> torch.Tensor:
         """Scale loss for gradient computation (`GradScaler.scale(loss)`).
@@ -117,7 +141,9 @@ class MixedPrecisionLoader:
             `GradScaler` updates the `scale_factor` (`backoff_factor` applied, reducing scale for stability).
         """
         if hasattr(self.scaler, "step"):
-            return self.scaler.step(optimizer)
+            result = self.scaler.step(optimizer)
+            # GradScaler.step returns Optional[float]; treat any non-None as performed.
+            return result is not None
         # `NoOpScaler` — always perform step (`True` indicates step performed).
         optimizer.step()
         return True

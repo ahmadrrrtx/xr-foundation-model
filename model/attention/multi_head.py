@@ -39,6 +39,7 @@ class MultiHeadAttention(nn.Module):
         n_heads: int,
         dropout: float = 0.1,
         use_rope: bool = True,
+        bias: bool = True,
     ) -> None:
         super().__init__()
 
@@ -57,11 +58,12 @@ class MultiHeadAttention(nn.Module):
         self.dropout_p = dropout
         self.use_rope = use_rope
 
-        # Q/K/V/O projections
-        self.W_q = nn.Linear(d_model, d_model, bias=True)
-        self.W_k = nn.Linear(d_model, d_model, bias=True)
-        self.W_v = nn.Linear(d_model, d_model, bias=True)
-        self.W_o = nn.Linear(d_model, d_model, bias=True)
+        # Q/K/V/O projections (bias configurable; modern LLMs use bias=False)
+        self.W_q = nn.Linear(d_model, d_model, bias=bias)
+        self.W_k = nn.Linear(d_model, d_model, bias=bias)
+        self.W_v = nn.Linear(d_model, d_model, bias=bias)
+        self.W_o = nn.Linear(d_model, d_model, bias=bias)
+        self.bias = bias
         self.dropout = nn.Dropout(p=dropout)
 
         self._init_weights()
@@ -135,31 +137,63 @@ class MultiHeadAttention(nn.Module):
         if use_cache:
             present_kv = (K_full, V_full)
 
-        # Scaled dot-product attention (FlashAttention when available)
-        # Try FlashAttention for the full (no explicit mask) or initial case
-        use_flash = False
-        if mask is None and cache_len == 0:
-            try:
-                from optimization.flash_attention import flash_attention_forward
+        # ------------------------------------------------------------------
+        # Attention mask resolution (forensic-audit fix, F-01/F-02):
+        # Causality must NOT depend on the flash-attention import succeeding.
+        #  - If an explicit 0/1 mask is supplied, it is honored (1=attend).
+        #  - If no mask is supplied, a causal mask is ALWAYS applied so the
+        #    manual (fallback) path is causal by construction.
+        #  - The optimized SDPA path is kept, but only as an accelerator:
+        #    if it fails, the manual path below is still causal.
+        # ------------------------------------------------------------------
+        q_len = Q.shape[2]
+        kv_len = K_full.shape[2]
 
-                out = flash_attention_forward(
-                    Q,
-                    K_full,
-                    V_full,
-                    dropout_p=self.dropout_p,
-                    training=self.training,
-                )
-                use_flash = True
-            except ImportError:
-                pass
+        use_flash = False
+        if mask is not None:
+            # Normalize user mask (0/1 semantics, broadcastable to (B,H,q,kv)).
+            if mask.dtype not in (torch.float32, torch.float64, torch.float16, torch.bfloat16):
+                mask = mask.to(dtype=Q.dtype)
+            if mask.dim() not in (2, 3, 4):
+                raise ValueError(f"Mask must have 2-4 dims, got {mask.dim()}")
+            additive_mask = torch.zeros_like(mask, dtype=Q.dtype)
+            additive_mask = additive_mask.masked_fill(mask == 0, float("-inf"))
+        else:
+            # Causal mask (additive): query position i may attend to kv
+            # positions 0 .. cache_len + i.
+            # M[i, j] = -inf  iff  j - i > cache_len  (future positions blocked)
+            additive_mask = torch.triu(
+                torch.full((q_len, kv_len), float("-inf"), dtype=Q.dtype, device=Q.device),
+                diagonal=cache_len + 1,
+            )
+
+        # Optimized path (drop-in accelerator; correctness guaranteed by the
+        # additive mask above even if this path fails).
+        try:
+            from optimization.flash_attention import flash_attention_forward
+
+            use_dropout = self.dropout_p if self.training else 0.0
+            out = flash_attention_forward(
+                Q,
+                K_full,
+                V_full,
+                mask=additive_mask,
+                dropout_p=use_dropout,
+                training=self.training,
+            )
+            use_flash = True
+        except ImportError:
+            use_flash = False
 
         if not use_flash:
             scores = torch.matmul(Q, K_full.transpose(-2, -1)) / math.sqrt(self.d_head)
 
-            if mask is not None:
-                if mask.dim() not in (2, 3, 4):
-                    raise ValueError(f"Mask must have 2-4 dims, got {mask.dim()}")
-                scores = scores.masked_fill(mask == 0, float("-inf"))
+            # Broadcast additive mask to (B, H, q, kv) as needed.
+            if additive_mask.dim() == 2:
+                additive_mask = additive_mask.unsqueeze(0).unsqueeze(0)
+            elif additive_mask.dim() == 3:
+                additive_mask = additive_mask.unsqueeze(1)
+            scores = scores + additive_mask
 
             attn_weights = F.softmax(scores, dim=-1)
             attn_weights = self.dropout(attn_weights)

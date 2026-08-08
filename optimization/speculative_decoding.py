@@ -38,6 +38,9 @@ logger = logging.getLogger("xrfm.speculative")
 class SpeculativeDecoder:
     """Speculative decoding with draft model acceleration.
 
+    EXPERIMENTAL (v1.1): not used by the production inference engine.
+    See docs/architecture/DEAD_OR_EXPERIMENTAL.md.
+
     Uses a smaller "draft" model to rapidly predict candidate tokens,
     then verifies them in parallel with the larger "target" model.
 
@@ -107,9 +110,7 @@ class SpeculativeDecoder:
                 break
 
             # --- Phase 2: Target model verifies in parallel ---
-            verify_input = torch.cat(
-                [current, torch.tensor([draft_tokens], device=current.device)], dim=1
-            )
+            verify_input = torch.cat([current, torch.tensor([draft_tokens], device=current.device)], dim=1)
 
             logits, _ = self.target_model(verify_input, use_cache=False)
             # logits: (1, seq+gamma, vocab_size)
@@ -121,9 +122,7 @@ class SpeculativeDecoder:
                 target_logits = target_logits / temperature
 
             # --- Phase 3: Accept/reject ---
-            accepted = self._verify_and_accept(
-                target_logits, draft_tokens, draft_probs, temperature, top_k, top_p
-            )
+            accepted = self._verify_and_accept(target_logits, draft_tokens, draft_probs, temperature, top_k, top_p)
 
             # Append accepted tokens
             new_tokens = torch.tensor([accepted], device=current.device)
@@ -168,22 +167,20 @@ class SpeculativeDecoder:
             if temperature == 0:
                 # Greedy
                 probs = F.softmax(next_logits, dim=-1)
-                next_token = probs.argmax(dim=-1).item()
-                prob = probs[0, next_token].item()
+                next_token = int(probs.argmax(dim=-1).item())
+                prob = float(probs[0, next_token].item())
             else:
                 # Apply filtering
                 filtered = self._apply_filters(next_logits, top_k, top_p)
                 probs = F.softmax(filtered, dim=-1)
-                next_token = torch.multinomial(probs, num_samples=1).item()
-                prob = probs[0, next_token].item()
+                next_token = int(torch.multinomial(probs, num_samples=1).item())
+                prob = float(probs[0, next_token].item())
 
             draft_tokens.append(next_token)
             draft_probs.append(prob)
 
             # Append token for next iteration
-            current = torch.cat(
-                [current, torch.tensor([[next_token]], device=current.device)], dim=1
-            )
+            current = torch.cat([current, torch.tensor([[next_token]], device=current.device)], dim=1)
 
         return draft_tokens, draft_probs
 
@@ -244,10 +241,10 @@ class SpeculativeDecoder:
 
                 if adjusted.sum() > 0:
                     adjusted = adjusted / adjusted.sum()
-                    resampled = torch.multinomial(adjusted, num_samples=1).item()
+                    resampled = int(torch.multinomial(adjusted, num_samples=1).item())
                 else:
                     # Fallback: sample from target distribution
-                    resampled = torch.multinomial(t_probs, num_samples=1).item()
+                    resampled = int(torch.multinomial(t_probs, num_samples=1).item())
 
                 accepted.append(resampled)
                 break  # Stop verifying remaining draft tokens
@@ -256,11 +253,11 @@ class SpeculativeDecoder:
         if len(accepted) == len(draft_tokens) and len(draft_tokens) == self.gamma:
             bonus_logits = target_logits[0, -1, :]
             if temperature == 0:
-                bonus_token = bonus_logits.argmax().item()
+                bonus_token = int(bonus_logits.argmax().item())
             else:
                 filtered = self._apply_filters(bonus_logits, top_k, top_p)
                 probs = F.softmax(filtered, dim=-1)
-                bonus_token = torch.multinomial(probs, num_samples=1).item()
+                bonus_token = int(torch.multinomial(probs, num_samples=1).item())
             accepted.append(bonus_token)
 
         return accepted

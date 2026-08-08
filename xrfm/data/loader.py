@@ -56,12 +56,62 @@ def verify_text_file(file_path: str) -> None:
 
 
 def normalize_text(text: str) -> str:
-    """Normalize whitespace in text."""
+    """Normalize whitespace in text (kept for backward compatibility).
+
+    NOTE (forensic-audit fix, F-19): the dataset no longer calls this — it
+    destroys newline/paragraph structure which a language model needs to
+    learn. This function is retained for callers that explicitly want
+    collapsed text.
+    """
     import re
 
-    text = text.replace("\n", " ").replace("\t", " ")
-    text = re.sub(r"\s+", " ", text)
+    text = text.replace("\r\n", "\n").replace("\t", " ")
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)
     return text.strip()
+
+
+def split_dataset_lines(
+    lines: list[str],
+    train_ratio: float = 0.9,
+    val_ratio: float = 0.05,
+    test_ratio: float = 0.05,
+    seed: int = 42,
+    dedup: bool = True,
+) -> tuple[list[str], list[str], list[str]]:
+    """Split text by LINE BOUNDARIES into train/val/test.
+
+    Forensic-audit fix (F-17/F-18): the previous implementation split a single
+    string by character index — arbitrary mid-sentence cuts that also leaked
+    identical repeated text into every split. Splitting by line keeps
+    documents/sentences intact and, with optional exact-line dedup, prevents
+    identical lines from appearing in more than one split.
+    """
+    total = train_ratio + val_ratio + test_ratio
+    if abs(total - 1.0) > 0.01:
+        raise ValueError(f"Split ratios must sum to ~1.0, got {total}")
+
+    if dedup:
+        seen: set[str] = set()
+        unique: list[str] = []
+        for ln in lines:
+            if ln not in seen:
+                seen.add(ln)
+                unique.append(ln)
+        lines = unique
+
+    n = len(lines)
+    if n == 0:
+        return [], [], []
+
+    # Guarantee at least one training line for tiny corpora (a single-line
+    # file would otherwise produce train_end == 0).
+    train_end = min(n, max(1, int(n * train_ratio)))
+    val_end = min(n, train_end + int(n * val_ratio))
+    train_lines = lines[:train_end]
+    val_lines = lines[train_end:val_end]
+    test_lines = lines[val_end:]
+    return train_lines, val_lines, test_lines
 
 
 def split_dataset(
@@ -71,24 +121,12 @@ def split_dataset(
     test_ratio: float = 0.05,
     seed: int = 42,
 ) -> tuple[str, str, str]:
-    """Split text into train/val/test sets."""
-    total = train_ratio + val_ratio + test_ratio
-    if abs(total - 1.0) > 0.01:
-        raise ValueError(f"Split ratios must sum to ~1.0, got {total}")
-
-    import random
-
-    random.seed(seed)
-
-    text_len = len(text)
-    train_end = int(text_len * train_ratio)
-    val_end = train_end + int(text_len * val_ratio)
-
-    train_text = text[:train_end]
-    val_text = text[train_end:val_end]
-    test_text = text[val_end:]
-
-    return train_text, val_text, test_text
+    """Split text into train/val/test sets by line boundaries (see above)."""
+    lines = text.splitlines()
+    tr, va, te = split_dataset_lines(
+        lines, train_ratio=train_ratio, val_ratio=val_ratio, test_ratio=test_ratio, seed=seed
+    )
+    return "\n".join(tr), "\n".join(va), "\n".join(te)
 
 
 def chunk_text(
@@ -115,7 +153,14 @@ def chunk_text(
 
 
 class XRFMTextDataset(Dataset):
-    """Dataset for XRFM training."""
+    """Dataset for XRFM training.
+
+    Forensic-audit fixes:
+    - F-18/F-19: splits by line boundaries and preserves newlines/paragraphs.
+    - F-15/F-20: pads with a dedicated ``pad_id`` and emits ``-100`` targets
+      for padded positions so cross_entropy(ignore_index=-100) never trains on
+      padding; also pads short chunks up to ``max_seq_len`` (uniform batches).
+    """
 
     def __init__(
         self,
@@ -125,6 +170,8 @@ class XRFMTextDataset(Dataset):
         split: str = "train",
         split_ratio: float = 0.9,
         seed: int = 42,
+        pad_id: int = 0,
+        dedup: bool = True,
     ) -> None:
         if split not in ("train", "val", "test"):
             raise ValueError(f"Invalid split: '{split}'. Must be train, val, or test")
@@ -133,27 +180,35 @@ class XRFMTextDataset(Dataset):
         self.tokenizer = tokenizer
         self.max_seq_len = max_seq_len
         self.split = split
+        self.pad_id = pad_id
+        self._ignore: int = -100
 
         # Load and process dataset
         verify_text_file(dataset_path)
         with open(dataset_path, encoding="utf-8") as f:
             text = f.read()
 
-        text = normalize_text(text)
-        train_text, val_text, test_text = split_dataset(
-            text,
+        # Keep the raw text structure: split by lines, dedup exact duplicates,
+        # then rejoin so newlines survive into the token stream.
+        lines = text.splitlines()
+        train_lines, val_lines, test_lines = split_dataset_lines(
+            lines,
             train_ratio=split_ratio,
             val_ratio=(1 - split_ratio) / 2,
             test_ratio=(1 - split_ratio) / 2,
             seed=seed,
+            dedup=dedup,
         )
-
         if split == "train":
-            self.chunks = chunk_text(train_text, max_seq_len, tokenizer)
+            split_text = "\n".join(train_lines)
         elif split == "val":
-            self.chunks = chunk_text(val_text, max_seq_len, tokenizer)
+            split_text = "\n".join(val_lines)
         else:
-            self.chunks = chunk_text(test_text, max_seq_len, tokenizer)
+            split_text = "\n".join(test_lines)
+
+        self.chunks = chunk_text(split_text, max_seq_len, tokenizer)
+        # NOTE: an empty split is allowed (tiny corpora may have no val/test
+        # lines). Callers must guard against empty dataloaders.
 
     def __len__(self) -> int:
         return len(self.chunks)
@@ -162,17 +217,23 @@ class XRFMTextDataset(Dataset):
         if idx < 0 or idx >= len(self.chunks):
             raise IndexError(f"Index {idx} out of range for dataset of size {len(self.chunks)}")
 
-        chunk = self.chunks[idx]
+        seq = self.chunks[idx][: self.max_seq_len]
 
-        # Ensure chunk has at least 2 tokens (input and target)
-        if len(chunk) < 2:
-            chunk = chunk + [0] * (2 - len(chunk))
+        # Pad the input with pad_id up to max_seq_len.
+        padded = seq + [self.pad_id] * (self.max_seq_len - len(seq))
 
-        # Input: all tokens except last, Target: all tokens except first
-        input_ids = torch.tensor(chunk[:-1], dtype=torch.long)
-        target_ids = torch.tensor(chunk[1:], dtype=torch.long)
+        # Targets: next-token. Padded input positions get -100 (ignored by CE).
+        # The last real token predicts pad_id (sequence end).
+        targets: list[int] = []
+        for i in range(self.max_seq_len):
+            if padded[i] == self.pad_id:
+                targets.append(self._ignore)
+            elif i + 1 < len(seq):
+                targets.append(seq[i + 1])
+            else:
+                targets.append(self.pad_id)
 
-        return input_ids, target_ids
+        return torch.tensor(padded, dtype=torch.long), torch.tensor(targets, dtype=torch.long)
 
 
 def build_manifest(

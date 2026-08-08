@@ -20,7 +20,7 @@ from training.scheduler import SchedulerLoader
 class DummyDataset:
     """Minimal dataset for benchmark — provides (input_ids, target_ids) tuples."""
 
-    def __init__(self, vocab_size: int = 50304, seq_len: int = 32, size: int = 100):
+    def __init__(self, vocab_size: int = 2048, seq_len: int = 32, size: int = 100):
         self.vocab_size = vocab_size
         self.seq_len = seq_len
         self.size = size
@@ -37,12 +37,14 @@ def benchmark_training_step(
     repetitions: int = 5,
     batch_size: int = 4,
     seq_len: int = 32,
-    vocab_size: int = 50304,
+    vocab_size: int | None = None,
 ) -> dict:
     if repetitions <= 0 or batch_size <= 0 or seq_len <= 0:
         raise ValueError("all parameters must be positive")
 
     model = GPTModel()
+    if vocab_size is None:
+        vocab_size = model.embedding.vocab_size
     optimizer = OptimizerLoader(model.parameters(), lr=0.001, weight_decay=0.01)
     scheduler = SchedulerLoader(optimizer.optimizer, base_lr=0.001, warmup_steps=100, max_steps=500)
     dataset = DummyDataset(vocab_size=vocab_size, seq_len=seq_len)

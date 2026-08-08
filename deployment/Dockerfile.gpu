@@ -6,7 +6,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3.11 pyth
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu121 && pip install --no-cache-dir -r requirements.txt
+# Forensic-audit fix (F-44): installing requirements.txt AFTER the cu121 wheel
+# previously reinstalled the CPU torch from PyPI, silently losing CUDA support.
+# Install runtime deps first (torch excluded), then the pinned CUDA torch.
+RUN grep -vE '^torch' requirements.txt > /tmp/requirements-notorch.txt && \
+    pip install --no-cache-dir -r /tmp/requirements-notorch.txt && \
+    pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu121
 
 COPY . .
 RUN useradd -m xrfm && chown -R xrfm:xrfm /app

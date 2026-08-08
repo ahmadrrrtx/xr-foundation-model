@@ -1,5 +1,14 @@
 # XRFM Distributed Training Guide — v0.8.0
 
+> **AUDIT REMEDIATION NOTE (2026-08-08):** this document describes the original
+> design. A forensic audit found and fixed several issues (implicit causal
+> masking, character-level tokenizer, padding-loss, resume/scheduler state,
+> API import, version chaos). See `docs/audit/FORENSIC_AUDIT.md`,
+> `docs/audit/GAP_ANALYSIS.md`, and `docs/implementation/REMEDIATION_PLAN.md`
+> for the authoritative current state. Historical claims below are preserved
+> as evidence, not as current truth.
+
+
 ## Overview
 
 XRFM supports distributed training across multiple GPUs using PyTorch's
@@ -36,6 +45,7 @@ torchrun
 
 ```python
 from training.loop import TrainingLoop
+
 loop = TrainingLoop(model=model, dataset=dataset)
 loop.training_loop()
 ```

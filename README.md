@@ -1,36 +1,32 @@
 # XR Foundation Model (XRFM)
 
-**Version:** v1.0.0  
-**License:** MIT  
-**Status:** ✅ Production Ready — All Phases Complete
-
----
+**Version:** 1.0.1
+**License:** MIT
+**Status:** Research / experimental. A from-scratch decoder-only language
+model in pure PyTorch. After the 2026-08 forensic audit (`docs/audit/`), the
+codebase is *trainable, reproducible, and measurable at small scale* — it is
+**not** a production foundation model and makes no capability claims beyond
+what its training runs demonstrate (see `docs/audit/FINAL_AUDIT.md` and
+`XRFM_FINAL_REPORT.md`).
 
 ## What This Is
 
-XRFM is an open-source foundation model built from scratch in pure PyTorch. It is not a tutorial, not a wrapper around an API, and not a renamed fork. Every module is original and designed to scale from 10M parameters to billion-parameter models without rewrites.
+XRFM is an original decoder-only transformer (RoPE, RMSNorm, SwiGLU,
+pre-norm residuals, weight tying) with a byte-level BPE tokenizer, a
+line-boundary data pipeline, a training loop with checkpoints/resume/validation,
+KV-cached inference, perplexity evaluation, and an API server.
 
 ## Architecture
 
-- **Config-driven:** All hyperparameters flow through `ConfigLoader`. Changing model scale requires only YAML updates.
-- **Modern:** Decoder-only transformer with RoPE, RMSNorm, SwiGLU, pre-norm residuals, weight tying.
-- **Manual attention:** Full control for future GQA, FlashAttention, sliding window extensions.
-- **Original:** No code copied from nanoGPT, litGPT, OLMo, or any tutorial.
-
-## Module Status (v1.0.0)
-
-| Module | Path | Status |
-|---|---|---|
-| Config System | `xrfm/config/loader.py` | ✅ v1.0.0 |
-| BPE Tokenizer | `tokenizer/bpe.py` | ✅ v1.0.0 |
-| Dataset Pipeline | `xrfm/data/loader.py` | ✅ v1.0.0 |
-| Transformer Model | `model/gpt.py` | ✅ v1.0.0 |
-| Training Engine | `training/loop.py` | ✅ v1.0.0 |
-| Inference Engine | `inference/` | ✅ v1.0.0 |
-| Evaluation | `evaluation/` | ✅ v1.0.0 |
-| Distributed Training | `training/distributed.py` | ✅ v1.0.0 |
-| API Server | `api/` | ✅ v1.0.0 |
-| Optimization | `optimization/` | ✅ v1.0.0 |
+- **Config-driven:** all hyperparameters flow through `ConfigLoader`
+  (`config/config.yaml`; per-size presets in `config/tiny.yaml`,
+  `config/medium.yaml`).
+- **Modern:** decoder-only transformer with RoPE, RMSNorm, SwiGLU, pre-norm
+  residuals, weight tying, explicit causal masking.
+- **Honest precision:** fp32 on CPU; real bf16 autocast only when a GPU is
+  present (config `training.mixed_precision`).
+- **Reproducible:** every checkpoint stores config, seed, and versions;
+  training is seeded end-to-end (config `training.seed`).
 
 ## Quick Start
 
@@ -38,63 +34,62 @@ XRFM is an open-source foundation model built from scratch in pure PyTorch. It i
 git clone https://github.com/ahmadrrrtx/xr-foundation-model.git
 cd xr-foundation-model
 pip install -e .
-python -c "from xrfm.config.loader import ConfigLoader; c = ConfigLoader(); print(c.get('project.name'))"
+python -c "from xrfm.config.loader import ConfigLoader; print(ConfigLoader().get('project.name'))"
 ```
+
+## Training your own model
+
+```bash
+python scripts/train_custom_model.py --dataset_path data/datasets/corpus.txt --max_steps 2000
+```
+
+This trains a byte-level BPE tokenizer on the train split, builds a model whose
+vocabulary matches the tokenizer exactly, trains with periodic validation, and
+saves checkpoints + a JSONL metrics log. See `docs/training/TRAINING_GUIDE.md`.
 
 ## Running Tests
 
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[dev]" httpx
 python -m pytest tests/ -v
 ```
+
+The suite includes ground-truth verification tests (causality, reference math,
+tokenizer fidelity, reproducibility, resume) beyond the original shape tests.
 
 ## Running the API
 
 ```bash
 pip install fastapi uvicorn
-uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
 
-Then visit: `http://localhost:8000/docs` for the API documentation.
+`/health`, `/v1/completions` (+ streaming), `/v1/tokenize`, `/v1/models`,
+`/v1/search` are available. The API loads the latest checkpoint from
+`checkpoints/` when present.
 
-## Training Validation
+## Documentation
 
-To validate the training pipeline works:
+- Audit: `docs/audit/BASELINE.md`, `docs/audit/FORENSIC_AUDIT.md`,
+  `docs/audit/GAP_ANALYSIS.md`, `docs/audit/FINAL_AUDIT.md`
+- Research: `docs/research/MODEL_COMPARISON.md`
+- Architecture: `docs/architecture/XRFM_TARGET_SPEC.md`
+- Training & compute: `docs/training/COMPUTE_PLAN.md`, `docs/training/TRAINING_GUIDE.md`
+- Implementation plan: `docs/implementation/REMEDIATION_PLAN.md`
+- Final report: `XRFM_FINAL_REPORT.md`
 
-```bash
-python scripts/validate_training.py
-```
+## Honest Limitations (as of 2026-08-08)
 
-This trains a tiny model on a small dataset and confirms loss convergence.
-
-## Features
-
-- ✅ Config-driven architecture (change `config/config.yaml` to scale model)
-- ✅ Modern transformer (RoPE, RMSNorm, SwiGLU)
-- ✅ KV cache for efficient inference
-- ✅ FlashAttention integration (2-4× speedup)
-- ✅ Quantization (INT8/INT4)
-- ✅ Distributed training (DDP/FSDP)
-- ✅ FastAPI server with streaming
-- ✅ Docker deployment (CPU + GPU)
-- ✅ GitHub Actions CI/CD
+- Trained at most on ~2 M tokens of public-domain prose+code on a CPU-only
+  sandbox. This demonstrates the pipeline, not a foundation model.
+- The legacy `checkpoints/checkpoint_step_500.pt` (vocab 50304) is **not**
+  compatible with the current tokenizer (2048) and is kept only as evidence;
+  see `docs/audit/BASELINE.md` §5 and §7.
+- `training/distributed.py` (DDP/FSDP) is scaffolding validated only in
+  single-process mode; multi-GPU training has not been exercised.
 
 ## References
 
-- Vaswani et al. (2017) — Attention mechanism
-- Su et al. (2023) — RoPE (RoFormer)
-- Shazeer (2020) — SwiGLU
-- Zhang & Sennrich (2019) — RMSNorm
-- Loshchilov & Hutter (2019) — AdamW
-- Meta AI (2024) — Llama 3 architecture concepts
-- DeepSeek-AI (2024) — DeepSeek-V3 architecture concepts
-
-All source code is original. Concepts only — no line-for-line copying.
-
-## Roadmap
-
-See `ROADMAP.md`. Current version: **v1.0.0 — Production Release**
-
-## Contributing
-
-See `CONTRIBUTING.md`. All contributions must include type hints, docstrings, and tests.
+- Vaswani et al. (2017), Su et al. (2023) RoPE, Shazeer (2020) SwiGLU,
+  Zhang & Sennrich (2019) RMSNorm, Loshchilov & Hutter (2019) AdamW.
+- Conceptual references only; implementation is original.

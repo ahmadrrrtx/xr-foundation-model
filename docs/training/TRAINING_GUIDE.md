@@ -1,5 +1,14 @@
 # XR Foundation Model (`XRFM`) — Training Guide
 
+> **AUDIT REMEDIATION NOTE (2026-08-08):** this document describes the original
+> design. A forensic audit found and fixed several issues (implicit causal
+> masking, character-level tokenizer, padding-loss, resume/scheduler state,
+> API import, version chaos). See `docs/audit/FORENSIC_AUDIT.md`,
+> `docs/audit/GAP_ANALYSIS.md`, and `docs/implementation/REMEDIATION_PLAN.md`
+> for the authoritative current state. Historical claims below are preserved
+> as evidence, not as current truth.
+
+
 **Version:** `v0.5.0` (Phase 5 — Training Engine)  
 **Status:** Design complete (`DECISIONS.md` Phase 5 entries added); implementation (`training/loop.py`, `optimizer.py`, `scheduler.py`, `checkpoint.py`, `mixed_precision.py`) original, production-quality, fully documented; tests (`tests/test_training.py`: `15` passing) complete; benchmark framework (`benchmark/training_forward.py`) reserved (`Phase 7` full evaluation); self-review checklist (`Step 8`) confirmed (`all 8` categories); ready for `v0.5.0` commit proposal.
 
@@ -53,10 +62,15 @@ from training.loop import TrainingLoop
 # Initialize model (`GPTModel` — `v0.4.0`).
 model = GPTModel(config_path="config/config.yaml")
 
+
 # Initialize dataset (`RESEARCH-ONLY`: `XRFMTextDataset` for production; `DummyDataset` for `Phase 5` demo).
 class DummyDataset:
-    def __len__(self): return 10
-    def __getitem__(self, idx): return torch.randint(0, 50304, (32,))
+    def __len__(self):
+        return 10
+
+    def __getitem__(self, idx):
+        return torch.randint(0, 50304, (32,))
+
 
 dataset = DummyDataset()
 

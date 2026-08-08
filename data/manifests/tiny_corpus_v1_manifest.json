@@ -1,0 +1,21 @@
+{
+  "manifest_version": "xrfm-dataset-manifest-v1",
+  "name": "tiny_corpus_v1",
+  "version": "1.0.0",
+  "path": "/tmp/xrfm-git/data/datasets/corpus.txt",
+  "source": "Project Gutenberg (11 books) + PSF stdlib slice",
+  "license": "public-domain + PSF",
+  "sha256": "7043f7f8cb42717b1171d520206c2cfd72456b9687f3b47fe2b0265368f27a93",
+  "preprocessing_version": "xrfm-preprocess-v1",
+  "tokenizer_version": "xrfm-bpe-v2",
+  "tokenizer_vocab_size": 2048,
+  "num_documents": 108319,
+  "total_tokens": 1777644,
+  "train_tokens": 1539815,
+  "val_tokens": 92072,
+  "test_tokens": 96278,
+  "dedup_method": "exact-line-dedup",
+  "filtering_method": "gutenberg-header/footer-strip; none otherwise",
+  "language": "en",
+  "extra": {}
+}

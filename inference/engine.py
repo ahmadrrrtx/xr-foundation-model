@@ -13,6 +13,7 @@ Implementation is original.
 """
 
 import logging
+from typing import cast
 
 import torch
 
@@ -42,10 +43,11 @@ class GenerationEngine:
         self.compiled = False
         if compile_model and hasattr(torch, "compile"):
             try:
-                self.model = torch.compile(model, mode="reduce-overhead")
+                compiled = cast(GPTModel, torch.compile(model, mode="reduce-overhead"))
+                self.model = compiled
                 self.compiled = True
                 logger.info("Compiled model with torch.compile(mode='reduce-overhead')")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"torch.compile failed: {e}. Falling back to eager model.")
 
     @torch.no_grad()
@@ -57,6 +59,9 @@ class GenerationEngine:
         top_k: int | None = None,
         top_p: float | None = None,
         stop_token_id: int | None = None,
+        repetition_penalty: float = 1.0,
+        stop_sequences: list[str] | None = None,
+        decode_fn=None,
     ) -> torch.Tensor:
         """Generate tokens autoregressively with KV cache.
 
@@ -70,7 +75,15 @@ class GenerationEngine:
             temperature: 0 = greedy; > 0 = sampling temperature.
             top_k: If set, restrict to top-k tokens.
             top_p: If set, use nucleus (top-p) sampling.
-            stop_token_id: Optional token ID to stop generation.
+            stop_token_id: Optional token ID to stop generation (EOS).
+            repetition_penalty: Penalty > 1.0 applied to previously generated
+                tokens (Phase 31 hardening). 1.0 = disabled.
+            stop_sequences: Optional list of strings; generation stops as soon
+                as any appears in the decoded output (Phase 31 hardening).
+            decode_fn: Optional callable(token_ids: list[int]) -> str used to
+                detect stop sequences. Defaults to `self._default_decode` which
+                requires a `tokenizer` attribute on the engine; pass a
+                tokenizer's decode method explicitly otherwise.
 
         Returns:
             Full token sequence including prompt: (total_seq_len,).
@@ -82,6 +95,10 @@ class GenerationEngine:
             raise ValueError(f"max_new_tokens must be > 0, got {max_new_tokens}")
         if temperature < 0:
             raise ValueError(f"temperature must be >= 0, got {temperature}")
+        if repetition_penalty < 1.0:
+            raise ValueError(f"repetition_penalty must be >= 1.0, got {repetition_penalty}")
+        if stop_sequences and decode_fn is None:
+            raise ValueError("decode_fn (e.g. tokenizer.decode) is required when stop_sequences is set")
 
         self.model.eval()
 
@@ -106,6 +123,13 @@ class GenerationEngine:
         generated = input_ids.clone()
         past_key_values: list | None = None
 
+        # Stop-sequence detection helper.
+        def _has_stop_sequence() -> bool:
+            if not stop_sequences:
+                return False
+            dec = decode_fn(generated[0].tolist())
+            return any(s in dec for s in stop_sequences)
+
         # Process prompt: full forward pass with caching
         logits, past_key_values = self.model(input_ids, use_cache=True, past_key_values=None)
         # logits: (1, prompt_len, vocab_size)
@@ -117,6 +141,8 @@ class GenerationEngine:
             temperature=temperature,
             top_k=top_k,
             top_p=top_p,
+            repetition_penalty=repetition_penalty,
+            seen_ids=generated,
         )
         generated = torch.cat([generated, next_token], dim=1)
 
@@ -132,6 +158,10 @@ class GenerationEngine:
                     "Reached max_seq_len (%d). Stopping generation.",
                     self.max_seq_len,
                 )
+                break
+
+            # Stop on any configured stop sequence
+            if _has_stop_sequence():
                 break
 
             # Single-token forward with cache
@@ -150,6 +180,8 @@ class GenerationEngine:
                 temperature=temperature,
                 top_k=top_k,
                 top_p=top_p,
+                repetition_penalty=repetition_penalty,
+                seen_ids=generated,
             )
             generated = torch.cat([generated, next_token], dim=1)
 

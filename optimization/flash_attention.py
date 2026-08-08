@@ -31,15 +31,15 @@ import torch.nn.functional as F
 def is_flash_attention_available() -> bool:
     """Check if FlashAttention backend is available on current hardware."""
     try:
-        return torch.backends.cuda.flash_sdp_enabled()
+        return bool(torch.backends.cuda.flash_sdp_enabled())
     except (AttributeError, RuntimeError):
-        return torch.cuda.is_available()
+        return bool(torch.cuda.is_available())
 
 
 def is_mem_efficient_available() -> bool:
     """Check if MemoryEfficientAttention backend is available."""
     try:
-        return torch.backends.cuda.mem_efficient_sdp_enabled()
+        return bool(torch.backends.cuda.mem_efficient_sdp_enabled())
     except (AttributeError, RuntimeError):
         return False
 

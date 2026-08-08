@@ -1,5 +1,14 @@
 # XRFM Engineering Overhaul & A++++++ Production Blueprint
 
+> **AUDIT REMEDIATION NOTE (2026-08-08):** this document describes the original
+> design. A forensic audit found and fixed several issues (implicit causal
+> masking, character-level tokenizer, padding-loss, resume/scheduler state,
+> API import, version chaos). See `docs/audit/FORENSIC_AUDIT.md`,
+> `docs/audit/GAP_ANALYSIS.md`, and `docs/implementation/REMEDIATION_PLAN.md`
+> for the authoritative current state. Historical claims below are preserved
+> as evidence, not as current truth.
+
+
 **Target Release:** XRFM v1.1.0 Enterprise  
 **Status:** ✅ Audit Applied & All Tests Passing (188/188)
 

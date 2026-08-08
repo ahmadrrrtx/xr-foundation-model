@@ -61,7 +61,7 @@ class ConfigLoader:
         """Return a ModelConfig dataclass from the config."""
         m = self._config.get("model", {})
         return ModelConfig(
-            vocab_size=m.get("vocab_size", 50304),
+            vocab_size=m.get("vocab_size", 2048),
             d_model=m.get("d_model", 256),
             n_layers=m.get("n_layers", 6),
             n_heads=m.get("n_heads", 8),
@@ -71,6 +71,7 @@ class ConfigLoader:
             use_rope=m.get("use_rope", True),
             use_rmsnorm=m.get("use_rmsnorm", True),
             use_swiglu=m.get("use_swiglu", True),
+            use_bias=m.get("use_bias", True),
         )
 
     def training_config(self) -> "TrainingConfig":
@@ -93,7 +94,8 @@ class ConfigLoader:
 
     def dataset_config(self) -> dict[str, Any]:
         """Return the dataset config dictionary."""
-        return self._config.get("datasets", {})
+        raw = self._config.get("datasets", {})
+        return dict(raw) if isinstance(raw, dict) else {}
 
 
 @dataclass
@@ -110,6 +112,7 @@ class ModelConfig:
     use_rope: bool
     use_rmsnorm: bool
     use_swiglu: bool
+    use_bias: bool
 
 
 @dataclass

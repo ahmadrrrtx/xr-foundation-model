@@ -55,7 +55,7 @@ def make_dataloader(vocab_size=100, seq_len=16, size=20, batch_size=4):
 class TestComputePerplexity:
     def test_basic(self):
         model = GPTModel()
-        dl = make_dataloader(vocab_size=50304, seq_len=12, batch_size=2, size=10)
+        dl = make_dataloader(vocab_size=model.embedding.vocab_size, seq_len=12, batch_size=2, size=10)
         result = compute_perplexity(model, dl, max_batches=2)
         assert "perplexity" in result
         assert "loss" in result
@@ -64,7 +64,7 @@ class TestComputePerplexity:
 
     def test_ppl_equals_exp_loss(self):
         model = GPTModel()
-        dl = make_dataloader(vocab_size=50304, seq_len=8, batch_size=2, size=8)
+        dl = make_dataloader(vocab_size=model.embedding.vocab_size, seq_len=8, batch_size=2, size=8)
         result = compute_perplexity(model, dl, max_batches=2)
         expected_ppl = math.exp(result["loss"])
         assert abs(result["perplexity"] - expected_ppl) < 1e-6
@@ -77,7 +77,7 @@ class TestComputePerplexity:
 
     def test_max_batches_respected(self):
         model = GPTModel()
-        dl = make_dataloader(vocab_size=50304, seq_len=8, batch_size=2, size=20)
+        dl = make_dataloader(vocab_size=model.embedding.vocab_size, seq_len=8, batch_size=2, size=20)
         result = compute_perplexity(model, dl, max_batches=1)
         assert result["total_batches"] == 1
 
@@ -98,7 +98,7 @@ class TestComputePerplexity:
 class TestStridedPerplexity:
     def test_basic(self):
         model = GPTModel()
-        token_ids = torch.randint(0, 50304, (50,))
+        token_ids = torch.randint(0, model.embedding.vocab_size, (50,))
         result = compute_perplexity_strided(model, token_ids, stride=16, max_seq_len=32)
         assert "perplexity" in result
         assert result["total_windows"] > 0

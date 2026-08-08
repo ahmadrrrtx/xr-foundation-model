@@ -17,7 +17,7 @@ logger = logging.getLogger("xrfm.api.completions")
 
 @router.post("/v1/completions", response_model=CompletionResponse)
 async def completions(req: CompletionRequest):
-    if not _model_loaded or _engine is None:
+    if not _model_loaded or _engine is None or _tokenizer is None:
         raise HTTPException(503, "Model not loaded")
 
     # Tokenize prompt
@@ -28,7 +28,7 @@ async def completions(req: CompletionRequest):
 
     prompt_tokens = input_ids.shape[1]
 
-    # Generate
+    # Generate (Phase 31: repetition penalty, EOS, stop sequences)
     try:
         output_ids = _engine.generate(
             input_ids,
@@ -36,6 +36,10 @@ async def completions(req: CompletionRequest):
             temperature=req.temperature,
             top_k=req.top_k,
             top_p=req.top_p,
+            repetition_penalty=req.repetition_penalty,
+            stop_token_id=_tokenizer.eos_id,
+            stop_sequences=req.stop,
+            decode_fn=_tokenizer.decode,
         )
     except Exception as e:
         raise HTTPException(500, f"Generation failed: {e}")
@@ -43,10 +47,11 @@ async def completions(req: CompletionRequest):
     # Decode only new tokens
     new_tokens = output_ids[prompt_tokens:]
     text = _tokenizer.decode(new_tokens.tolist())
+    finish_reason = "length" if len(new_tokens) >= req.max_new_tokens else "stop"
 
     return CompletionResponse(
         created=int(time.time()),
-        choices=[CompletionChoice(text=text, finish_reason="length")],
+        choices=[CompletionChoice(text=text, finish_reason=finish_reason)],
         usage=CompletionUsage(
             prompt_tokens=prompt_tokens,
             completion_tokens=len(new_tokens),
@@ -57,7 +62,7 @@ async def completions(req: CompletionRequest):
 
 @router.post("/v1/completions/stream")
 async def completions_stream(req: CompletionRequest):
-    if not _model_loaded or _engine is None:
+    if not _model_loaded or _engine is None or _tokenizer is None:
         raise HTTPException(503, "Model not loaded")
 
     input_ids = torch.tensor([_tokenizer.encode(req.prompt)], dtype=torch.long)

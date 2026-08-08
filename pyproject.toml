@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xrfm"
-version = "1.0.0"
+version = "1.0.1"
 description = "XR Foundation Model — open-source foundation model implementation in pure PyTorch"
 readme = "README.md"
 license = {text = "MIT"}
@@ -34,6 +34,7 @@ dev = [
     "black>=23.0",
     "ruff>=0.3.0",
     "mypy>=1.0",
+    "types-PyYAML>=6.0",
 ]
 train = [
     "torch>=2.0.0",
@@ -44,12 +45,18 @@ where = ["."]
 include = ["xrfm*", "model*", "training*", "tokenizer*", "inference*", "evaluation*", "optimization*", "api*"]
 
 [tool.black]
-line-length = 100
+# Aligned with ruff's line-length (120) so `black --check` and
+# `ruff format --check` agree (previously 100 vs 120 -> permanent conflict).
+line-length = 120
 target-version = ["py310"]
+exclude = "data/|notebooks/"
 
 [tool.ruff]
 line-length = 120
 target-version = "py310"
+# data/ contains training corpora (e.g. a copy of the Python stdlib used as
+# training data), not source code — excluded from linting.
+exclude = ["data/", "notebooks/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]

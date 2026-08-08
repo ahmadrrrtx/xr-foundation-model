@@ -1,3 +1,30 @@
+## [1.0.1] — 2026-08-08 — Forensic Audit Remediation
+
+### Correctness
+- Explicit causal masking in MultiHeadAttention (was implicit via SDPA import; manual fallback was non-causal). Fixes F-01/F-02.
+- Byte-level BPE tokenizer (UTF-8 bytes, whitespace-preserving, Unicode-safe, exact round-trip). Fixes F-11/F-12/F-16.
+- Real mixed precision: bf16 autocast on GPU; honest fp32 on CPU. Fixes F-23.
+- API import fixed (missing `search_routes`); API now loads the latest checkpoint. Fixes F-41/F-42.
+- Scheduler state is checkpointable; resume restores the LR schedule. Fixes F-24.
+- Checkpoints store config/seed/versions and load with `map_location="cpu"`. Fixes F-32/F-33.
+- Loss masking: padded targets use -100 and are ignored in CE and perplexity. Fixes F-15/F-39.
+- Seeded, reproducible dataloaders and training. Fixes F-25.
+- Dataset splits by line boundaries with exact-line dedup; newlines preserved. Fixes F-17/F-18/F-19.
+- Model vocab is built from the tokenizer's actual vocabulary (was 50304 vs 1024/408). Fixes F-13.
+
+### Data
+- Added `data/datasets/corpus.txt`: 11 public-domain books + PSF-licensed code slice (~1.8 M BPE tokens).
+
+### Tests
+- New ground-truth suite `tests/test_audit_verification.py` (causality, reference math, KV-cache
+  equivalence, resume, reproducibility, tokenizer fidelity, loss masking); new API tests.
+
+### Docs
+- Added `docs/audit/BASELINE.md`, `docs/audit/FORENSIC_AUDIT.md`, `docs/audit/GAP_ANALYSIS.md`,
+  `docs/research/MODEL_COMPARISON.md`, `docs/architecture/XRFM_TARGET_SPEC.md`,
+  `docs/training/COMPUTE_PLAN.md`, `docs/implementation/REMEDIATION_PLAN.md`.
+- README rewritten to match reality; legacy config preserved as `config/config.legacy-v1.yaml`.
+
 ## [v0.6.0] — 2026-07-25 — Inference Engine
 
 ## [v0.9.0] — 2026-07-25 — Optimization

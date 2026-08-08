@@ -30,7 +30,10 @@ class KVCache:
     Attributes:
         layers: List of (K_cache, V_cache) tuples per transformer block.
         max_cache_len: Maximum number of cached tokens (from model config).
-    """
+
+
+    EXPERIMENTAL (v1.1): not used by the production training/inference
+    paths. See docs/architecture/DEAD_OR_EXPERIMENTAL.md."""
 
     def __init__(self, max_cache_len: int = 2048) -> None:
         if max_cache_len <= 0:

@@ -100,7 +100,7 @@ class SearchIndexer:
 
         score = 0.0
         doc_len = len(chunk.tokens)
-        token_counts = {}
+        token_counts: dict[str, int] = {}
         for token in chunk.tokens:
             token_counts[token] = token_counts.get(token, 0) + 1
 

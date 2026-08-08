@@ -1,5 +1,14 @@
 # XR Foundation Model (`XRFM`) — Architecture Documentation
 
+> **AUDIT REMEDIATION NOTE (2026-08-08):** this document describes the original
+> design. A forensic audit found and fixed several issues (implicit causal
+> masking, character-level tokenizer, padding-loss, resume/scheduler state,
+> API import, version chaos). See `docs/audit/FORENSIC_AUDIT.md`,
+> `docs/audit/GAP_ANALYSIS.md`, and `docs/implementation/REMEDIATION_PLAN.md`
+> for the authoritative current state. Historical claims below are preserved
+> as evidence, not as current truth.
+
+
 **Version:** `v0.4.0` (Phase 4 — Core Transformer Architecture)  
 **Status:** Production-quality architecture freeze; interfaces stable for future evolution (`XRFM-MoE`, `XRFM-Multimodal`, `XRFM-Reasoning`).  
 **Author:** XR Foundation Model Engineering Team  

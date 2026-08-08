@@ -42,20 +42,51 @@ async def lifespan(app: FastAPI):
     global _model, _engine, _tokenizer, _startup_time, _model_loaded
     logger.info("Loading XRFM model...")
     _startup_time = time.time()
+    _checkpoint_loaded = False
 
     try:
+        import glob
+
         from inference.engine import GenerationEngine
         from model.gpt import GPTModel
         from tokenizer.bpe import BytePairEncoder
 
-        _model = GPTModel()
-        _engine = GenerationEngine(_model)
+        # Tokenizer from disk if present (coherent vocab), else a fresh BPE.
         _tokenizer = BytePairEncoder()
+        vocab_path = os.path.join("tokenizer", "vocab.json")
+        if os.path.exists(vocab_path):
+            _tokenizer.load(vocab_path)
+            logger.info("Loaded tokenizer from %s (vocab=%d)", vocab_path, _tokenizer.vocab_size())
+
+        # Model built with the tokenizer's actual vocabulary size (F-13).
+        _model = GPTModel(vocab_size=_tokenizer.vocab_size())
+
+        # Load the most recent checkpoint if present (F-42: previously the API
+        # served a freshly-random model and never touched the committed ckpt).
+        ckpts = sorted(glob.glob(os.path.join("checkpoints", "checkpoint_step_*.pt")))
+        if ckpts:
+            latest = ckpts[-1]
+            try:
+                import torch
+
+                sd = torch.load(latest, map_location="cpu", weights_only=True)["model_state_dict"]
+                _model.load_state_dict(sd, strict=True)
+                _checkpoint_loaded = True
+                logger.info("Loaded checkpoint weights: %s", latest)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("Could not load checkpoint %s: %s", latest, e)
+
+        _engine = GenerationEngine(_model)
         _model_loaded = True
 
         elapsed = time.time() - _startup_time
-        logger.info("Model loaded in %.2fs (params=%d)", elapsed, _model.parameter_count())
-    except Exception as e:
+        logger.info(
+            "Model loaded in %.2fs (params=%d, checkpoint_loaded=%s)",
+            elapsed,
+            _model.parameter_count(),
+            _checkpoint_loaded,
+        )
+    except Exception as e:  # noqa: BLE001
         logger.error("Failed to load model: %s", e)
         _model_loaded = False
 
@@ -99,20 +130,23 @@ async def request_timing(request: Request, call_next):
     response = await call_next(request)
     elapsed = time.perf_counter() - start
     response.headers["X-Process-Time-Ms"] = str(round(elapsed * 1000, 2))
-    logger.info(
-        "%s %s %d %.2fms", request.method, request.url.path, response.status_code, elapsed * 1000
-    )
+    logger.info("%s %s %d %.2fms", request.method, request.url.path, response.status_code, elapsed * 1000)
     return response
 
 
 # Import and register routes
-from api.routes import completions, health, metrics, search_routes, tokenize_endpoints  # noqa: E402
+# Forensic-audit fix (F-41): `search_routes` never existed; the API could not
+# import. The search routes now live in `api/routes/search.py`.
+from api.routes import completions, health, metrics, search, tokenize_endpoints  # noqa: E402
 
-app.include_router(health.router, tags=["Health"])
-app.include_router(completions.router, tags=["Completions"])
-app.include_router(tokenize_endpoints.router, tags=["Tokenize"])
-app.include_router(metrics.router, tags=["Metrics"])
-app.include_router(search_routes.router, tags=["Search Engine"])
+# The routes import globals from api.main, creating a module cycle; mypy
+# cannot resolve `router` types through it, so the cycle is documented and
+# the includes are typed as Any (justified exclusion, Phase 29).
+app.include_router(health.router, tags=["Health"])  # type: ignore[has-type]
+app.include_router(completions.router, tags=["Completions"])  # type: ignore[has-type]
+app.include_router(tokenize_endpoints.router, tags=["Tokenize"])  # type: ignore[has-type]
+app.include_router(metrics.router, tags=["Metrics"])  # type: ignore[has-type]
+app.include_router(search.router, tags=["Search Engine"])  # type: ignore[has-type]
 
 # Mount web UI
 try:

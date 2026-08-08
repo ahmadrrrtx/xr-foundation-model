@@ -89,11 +89,12 @@ class TextCompletionAccuracy(Benchmark):
             description="Top-1 next-token prediction accuracy on held-out text",
         )
 
-    def compute(
+    def compute(  # type: ignore[override]  # justified: Benchmark ABC dispatches via **kwargs; concrete classes narrow to explicit params (Phase 29)
         self,
         model: GPTModel,
         dataloader: DataLoader,
         max_batches: int | None = None,
+        **kwargs,
     ) -> dict[str, float]:
         """Compute next-token prediction accuracy.
 
@@ -164,11 +165,12 @@ class TopKAccuracy(Benchmark):
         )
         self.k = k
 
-    def compute(
+    def compute(  # type: ignore[override]  # justified: Benchmark ABC dispatches via **kwargs; concrete classes narrow to explicit params (Phase 29)
         self,
         model: GPTModel,
         dataloader: DataLoader,
         max_batches: int | None = None,
+        **kwargs,
     ) -> dict[str, float]:
         """Compute top-k accuracy.
 

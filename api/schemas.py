@@ -11,6 +11,7 @@ class CompletionRequest(BaseModel):
     top_p: float | None = Field(default=None, gt=0.0, le=1.0)
     stop: list[str] | None = Field(default=None)
     stream: bool = Field(default=False)
+    repetition_penalty: float = Field(default=1.0, ge=1.0, le=5.0)
 
 
 class CompletionChoice(BaseModel):
@@ -65,3 +66,26 @@ class HealthResponse(BaseModel):
     version: str
     model_loaded: bool
     gpu_available: bool
+
+
+# --- Search schemas (forensic-audit fix, F-41) ---
+
+
+class SearchRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=1024)
+    top_k: int = Field(default=5, ge=1, le=50)
+
+
+class SearchResult(BaseModel):
+    chunk_id: str
+    doc_id: str
+    title: str = ""
+    text: str
+    score: float = 0.0
+    source_url: str | None = None
+
+
+class SearchResponse(BaseModel):
+    query: str
+    results: list[SearchResult]
+    total: int = 0

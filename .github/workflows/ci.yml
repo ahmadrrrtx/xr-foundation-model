@@ -35,7 +35,8 @@ jobs:
         run: |
           pip install -e ".[dev]"
       - name: Run mypy
-        run: mypy model/ training/ tokenizer/ inference/ evaluation/ optimization/ api/ || true
+        # Forensic-audit fix (F-43): `|| true` previously masked type errors.
+        run: mypy model/ training/ tokenizer/ inference/ evaluation/ optimization/ api/
 
   test:
     name: Run Tests
@@ -62,3 +63,21 @@ jobs:
           path: |
             .pytest_cache/
             test-results.xml
+
+  training-smoke:
+    name: Training Pipeline Smoke Test
+    # Phase 28: CI previously never trained anything. This fast CPU run fails
+    # the build if the training pipeline regresses (loss must decrease,
+    # checkpoint must save/load, resume must restore state).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[dev]"
+      - name: Run training smoke test
+        run: python scripts/ci_smoke_test.py

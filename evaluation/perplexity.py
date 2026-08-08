@@ -32,6 +32,7 @@ def compute_perplexity(
     model: GPTModel,
     dataloader: DataLoader,
     max_batches: int | None = None,
+    ignore_index: int = -100,
 ) -> dict[str, float]:
     """Compute perplexity over a dataset using next-token prediction.
 
@@ -50,12 +51,15 @@ def compute_perplexity(
         dataloader: DataLoader yielding (input_ids, target_ids) batches
             where target_ids are shifted by 1 for next-token prediction.
         max_batches: If set, only evaluate this many batches (for quick checks).
+        ignore_index: Target value to exclude from the loss (padding).
+            Forensic-audit fix (F-39): padded positions are no longer counted
+            in perplexity.
 
     Returns:
         Dict with:
             "perplexity": float — perplexity score
             "loss": float — average cross-entropy loss per token
-            "total_tokens": int — number of tokens evaluated
+            "total_tokens": int — number of non-ignored tokens evaluated
             "total_batches": int — number of batches processed
 
     Raises:
@@ -79,8 +83,10 @@ def compute_perplexity(
                     f"Target shape {batch_target_ids.shape} must match input shape {batch_input_ids.shape}"
                 )
 
-            batch_size, seq_len = batch_input_ids.shape
-            num_tokens = batch_size * seq_len
+            # Count only non-ignored positions (padding excluded, F-39).
+            valid = (batch_target_ids != ignore_index).sum().item()
+            if valid == 0:
+                continue
 
             # Forward pass
             logits, _ = model(batch_input_ids)
@@ -98,19 +104,18 @@ def compute_perplexity(
                 logits.view(-1, logits.shape[-1]),
                 batch_target_ids.view(-1),
                 reduction="sum",  # Accumulate total NLL across all tokens
+                ignore_index=ignore_index,
             )
 
             total_loss += loss.item()
-            total_tokens += num_tokens
+            total_tokens += valid
             batch_count += 1
 
             if max_batches is not None and batch_count >= max_batches:
                 break
 
     if total_tokens == 0:
-        raise ValueError(
-            "No tokens evaluated. Dataloader may be empty. Check dataset and batch configuration."
-        )
+        raise ValueError("No tokens evaluated. Dataloader may be empty. Check dataset and batch configuration.")
 
     # Average negative log-likelihood per token
     avg_loss = total_loss / total_tokens
@@ -164,9 +169,7 @@ def compute_perplexity_strided(
     if max_seq_len <= 0:
         raise ValueError(f"max_seq_len must be positive, got {max_seq_len}")
     if max_seq_len > model.max_seq_len:
-        raise ValueError(
-            f"max_seq_len ({max_seq_len}) exceeds model.max_seq_len ({model.max_seq_len})"
-        )
+        raise ValueError(f"max_seq_len ({max_seq_len}) exceeds model.max_seq_len ({model.max_seq_len})")
 
     model.eval()
     total_nll: float = 0.0

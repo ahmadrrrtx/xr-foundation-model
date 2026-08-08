@@ -31,6 +31,9 @@ Thumbs.db
 
 # Testing
 .pytest_cache/
+# Tool caches (mypy/ruff)
+.mypy_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 
