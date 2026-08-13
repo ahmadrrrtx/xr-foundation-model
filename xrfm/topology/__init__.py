@@ -1,0 +1,10 @@
+"""XRFM-NeuroTopo topology: static graph (Phase 4) and dynamic generator (Phase 5)."""
+from xrfm.topology.dynamic import DynamicTopology, TopoDiagnostics
+from xrfm.topology.static_graph import StaticMessagePassing, StaticNeuralGraph
+
+__all__ = [
+    "StaticNeuralGraph",
+    "StaticMessagePassing",
+    "DynamicTopology",
+    "TopoDiagnostics",
+]
