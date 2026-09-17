@@ -41,6 +41,11 @@ htmlcov/
 logs/
 *.log
 
+# Processed datasets (generated corpora, shards, reports) — not committed to Git
+processed/
+reports/dataset_report.json
+reports/dataset_report.md
+
 # Config with secrets
 .env.local
 .env.production

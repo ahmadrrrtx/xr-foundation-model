@@ -1,0 +1,169 @@
+# XRFM Source Registry — authoritative description of training data sources
+# Phase 1: official development corpus is small, license-clean, reproducible
+# Large-scale sources are listed as candidates with clear licensing status
+
+sources:
+  # --- Official development / golden sources (license-clean, tiny, redistributable) ---
+  - name: golden
+    uri: tests/data/golden/
+    type: jsonl
+    license: MIT
+    license_url: https://opensource.org/licenses/MIT
+    language: en
+    description: Tiny deterministic golden dataset for CI and pipeline testing
+    expected_size: 50KB
+    enabled: true
+    version: v0.1.0
+    snapshot_date: 2026-09-18
+    redistribution: allowed
+    citation: XRFM internal golden dataset
+
+  - name: tiny_shakespeare
+    uri: data/datasets/sample.txt
+    type: text
+    license: MIT
+    license_url: https://opensource.org/licenses/MIT
+    language: en
+    description: Small public domain text sample for development
+    expected_size: 100KB
+    enabled: true
+    version: v1
+    redistribution: allowed
+
+  - name: python_stdlib_slice
+    uri: data/datasets/code_slice.py
+    type: code
+    license: PSF-2.0
+    license_url: https://docs.python.org/3/license.html
+    language: en
+    description: Slice of Python stdlib for code testing
+    expected_size: 50KB
+    enabled: true
+    version: v1
+    redistribution: allowed
+
+  # --- Candidate large sources (not yet included in official corpus) ---
+  # These are documented for future evaluation, not automatically ingested
+
+  - name: wikipedia_en
+    uri: https://dumps.wikimedia.org/enwiki/latest/
+    type: wiki_dump
+    license: CC-BY-SA-4.0
+    license_url: https://creativecommons.org/licenses/by-sa/4.0/
+    language: en
+    description: English Wikipedia dump, encyclopedic knowledge
+    expected_size: 20GB raw, ~5B tokens
+    enabled: false
+    version: 2026-09-01
+    snapshot_date: 2026-09-01
+    dataset_revision: latest
+    citation: Wikipedia contributors
+    redistribution: allowed
+    processing_complexity: medium
+    quality: high
+    known_limitations: Requires wikitext cleaning, template removal
+
+  - name: openwebtext
+    uri: https://huggingface.co/datasets/openwebtext
+    type: hf_dataset
+    license: unknown
+    license_url: ""
+    language: en
+    description: OpenWebText - open reproduction of WebText
+    expected_size: 40GB, ~10B tokens
+    enabled: false
+    version: v1
+    redistribution: recipe-only
+    processing_complexity: high
+    quality: medium
+    known_limitations: License unclear, needs careful provenance check
+
+  - name: the_stack_python
+    uri: https://huggingface.co/datasets/bigcode/the-stack
+    type: hf_dataset
+    license: varies
+    license_url: https://huggingface.co/datasets/bigcode/the-stack
+    language: code
+    description: The Stack - code dataset with license filtering
+    expected_size: 100GB Python subset
+    enabled: false
+    version: v1.2
+    redistribution: allowed-if-license-permits
+    processing_complexity: medium
+    quality: high for code
+    known_limitations: License filtering required, per-file licenses
+
+  - name: fineweb_edu_sample
+    uri: https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu
+    type: hf_dataset
+    license: ODC-By-1.0
+    license_url: https://opendatacommons.org/licenses/by/1-0/
+    language: en
+    description: FineWeb-Edu - high-quality educational web text filtered from FineWeb
+    expected_size: 1.3T tokens full, 10B sample for XRFM
+    enabled: false
+    version: 2024-06
+    redistribution: allowed
+    processing_complexity: low (already cleaned)
+    quality: very high
+    known_limitations: Still web text, needs additional PII filtering
+
+  - name: dolma_cc
+    uri: https://huggingface.co/datasets/allenai/dolma
+    type: hf_dataset
+    license: ODC-By-1.0
+    license_url: https://opendatacommons.org/licenses/by/1-0/
+    language: en
+    description: Dolma Common Crawl subset - diverse web content
+    expected_size: 3T tokens full
+    enabled: false
+    version: v1_7
+    redistribution: allowed
+    processing_complexity: low
+    quality: high
+    known_limitations: Large, needs quality filtering
+
+  - name: gutenberg_books
+    uri: https://www.gutenberg.org/
+    type: text
+    license: Public Domain
+    license_url: https://www.gutenberg.org/policy/license.html
+    language: en
+    description: Project Gutenberg books, public domain
+    expected_size: 10GB, ~2B tokens
+    enabled: false
+    version: 2026
+    redistribution: allowed
+    processing_complexity: medium
+    quality: high
+    known_limitations: Older language, OCR errors in some books
+
+  - name: pes2o
+    uri: https://huggingface.co/datasets/allenai/peS2o
+    type: hf_dataset
+    license: ODC-By-1.0
+    license_url: https://opendatacommons.org/licenses/by/1-0/
+    language: en
+    description: Semantic Scholar academic papers
+    expected_size: 35B tokens
+    enabled: false
+    version: v2
+    redistribution: allowed
+    processing_complexity: medium
+    quality: high
+    known_limitations: Academic language, LaTeX artifacts
+
+  - name: multilingual_ur
+    uri: https://huggingface.co/datasets/urdu
+    type: hf_dataset
+    license: varies
+    license_url: ""
+    language: ur
+    description: Urdu text for multilingual capability
+    expected_size: 1GB
+    enabled: false
+    version: v1
+    redistribution: recipe-only
+    processing_complexity: high
+    quality: medium
+    known_limitations: Limited resources, needs language-specific filtering

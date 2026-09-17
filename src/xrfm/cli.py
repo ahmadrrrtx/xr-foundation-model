@@ -47,6 +47,13 @@ def _cmd_validate_config(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_data(args: argparse.Namespace, rest: list[str]) -> int:
+    # Delegate to xrfm.data.cli
+    from xrfm.data.cli import main as data_main
+
+    return data_main(rest)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="xrfm", description="XR Foundation Model CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -56,11 +63,33 @@ def main(argv: list[str] | None = None) -> int:
     vc = sub.add_parser("validate-config", help="validate a YAML config file")
     vc.add_argument("path", help="path to the YAML config")
 
-    args = parser.parse_args(argv)
+    # Data pipeline CLI (Phase 1)
+    data_parser = sub.add_parser("data", help="data pipeline commands")
+    data_parser.add_argument("data_args", nargs=argparse.REMAINDER, help="args for data subcommand")
+
+    args, unknown = parser.parse_known_args(argv)
+
     if args.command == "info":
         return _cmd_info(args)
     if args.command == "validate-config":
         return _cmd_validate_config(args)
+    if args.command == "data":
+        # Pass remainder to data CLI
+        # data_args includes first token after "data"
+        # Use unknown + data_args
+        rest = []
+        if hasattr(args, "data_args"):
+            rest = args.data_args
+        # If args.data_args starts with '--', it's okay
+        # Also include unknown if any
+        if unknown:
+            rest = unknown + rest
+        # If user typed "xrfm data build ..." then data_args = ["build", ...]
+        # If they used "--" separator, handle
+        if rest and rest[0] == "--":
+            rest = rest[1:]
+        return _cmd_data(args, rest)
+
     parser.error(f"unknown command: {args.command}")
     return 2  # unreachable
 

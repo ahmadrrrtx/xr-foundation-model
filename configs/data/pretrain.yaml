@@ -1,0 +1,106 @@
+# XRFM Pretraining Data Pipeline Config
+# Phase 1: development corpus, reproducible, small but complete pipeline
+
+dataset_name: xrfm-pretrain
+dataset_version: 0.1.0
+output_dir: processed/xrfm-pretrain-v0.1
+sequence_length: 512
+seed: 42
+pipeline_version: xrfm-pipeline-v1
+
+# Source registry
+sources_registry: configs/data/sources.yaml
+
+# Language filtering
+language:
+  default_language: en
+  threshold: 0.5
+  detector: heuristic
+  allowed_languages:
+    - en
+    - code
+    - multilingual
+
+# Quality filtering
+quality:
+  min_chars: 50
+  max_chars: 100000
+  min_words: 10
+  max_symbol_ratio: 0.4
+  max_number_ratio: 0.6
+  max_repetition_ratio: 0.4
+  boilerplate_threshold: 0.6
+  overall_threshold: 0.3
+  allow_code: true
+
+# PII filtering
+pii:
+  remove_high_risk: true
+  transform_medium_risk: false
+  flag_emails: true
+  flag_phones: true
+  flag_secrets: true
+  flag_sensitive_ids: true
+  high_risk_if_secret: true
+
+# Deduplication
+exact_dedup:
+  algorithm: sha256
+  normalize_before_hash: true
+  keep_first: true
+
+near_dedup:
+  algorithm: minhash
+  threshold: 0.8
+  num_perm: 128
+  shingle_size: 5
+
+# Splitting
+split:
+  train_ratio: 0.9
+  val_ratio: 0.05
+  test_ratio: 0.05
+  seed: 42
+  method: hash  # hash = deterministic by doc_id, stable across workers
+
+# Data mixing (example, not yet active for v0.1)
+# mixture:
+#   web: 0.45
+#   books: 0.15
+#   code: 0.15
+#   educational: 0.10
+#   wikipedia: 0.05
+#   science: 0.05
+#   multilingual: 0.05
+
+# Tokenization
+tokenization:
+  add_eos: true
+  add_bos: false
+  max_length: null
+
+# Packing
+packing:
+  sequence_length: 512
+  add_eos_between_docs: true
+  allow_cross_document: true
+  leftover_handling: drop
+  preserve_boundaries: false
+
+# Sharding
+sharding:
+  num_shards: 8
+  dtype: auto
+  output_dir: processed/xrfm-pretrain-v0.1/tokens
+  shard_prefix: shard
+
+# Contamination control
+contamination:
+  ngram_size: 13
+  threshold: 0.8
+  check_exact_hash: true
+  check_ngram: true
+
+# Pipeline options
+do_near_dedup: true
+do_exact_dedup: true
