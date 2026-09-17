@@ -5,12 +5,12 @@ Unit tests for XRFM Search Engine & RAG module.
 import os
 import tempfile
 
-from inference.engine import GenerationEngine
-from model.gpt import GPTModel
-from tokenizer.bpe import BytePairEncoder
+from xrfm.inference.engine import GenerationEngine
+from xrfm.models.gpt import GPTModel
 from xrfm.search.agent import LocalSearchAgent
 from xrfm.search.indexer import SearchIndexer
 from xrfm.search.retriever import SearchRetriever
+from xrfm.tokenization.bpe import BytePairEncoder
 
 
 class TestSearchIndexer:

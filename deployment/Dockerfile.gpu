@@ -1,4 +1,4 @@
-# XRFM GPU Production Image (v1.0.0)
+# XRFM GPU Production Image
 # Uses nvidia/cuda runtime for GPU acceleration
 
 FROM nvidia/cuda:12.4-runtime-ubuntu22.04 AS runtime
@@ -14,7 +14,9 @@ RUN grep -vE '^torch' requirements.txt > /tmp/requirements-notorch.txt && \
     pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu121
 
 COPY . .
-RUN useradd -m xrfm && chown -R xrfm:xrfm /app
+# Phase 0: the API depends on the installed `xrfm` package (no sys.path hacks).
+RUN pip install --no-cache-dir --no-deps . && \
+    useradd -m xrfm && chown -R xrfm:xrfm /app
 USER xrfm
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s CMD curl -f http://localhost:8000/health || exit 1

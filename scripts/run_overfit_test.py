@@ -41,10 +41,10 @@ def make_tiny_corpus() -> str:
 
 
 def main(steps: int, loss_threshold: float, seed: int):
-    from model.gpt import GPTModel
-    from tokenizer.bpe import BytePairEncoder
-    from training.loop import TrainingLoop, _set_seed
     from xrfm.data.loader import XRFMTextDataset
+    from xrfm.models.gpt import GPTModel
+    from xrfm.tokenization.bpe import BytePairEncoder
+    from xrfm.training.loop import TrainingLoop, _set_seed
 
     corpus = make_tiny_corpus()
     corpus_path = "/tmp/xrfm_overfit_corpus.txt"
@@ -56,7 +56,7 @@ def main(steps: int, loss_threshold: float, seed: int):
     tok.train_on_text(corpus)
     logger.info("Tokenizer vocab: %d, pad_id: %s", tok.vocab_size(), tok.pad_id)
 
-    ds = XRFMTextDataset(corpus_path, tok, max_seq_len=128, split="train", pad_id=tok.pad_id or 0)
+    ds = XRFMTextDataset(corpus_path, tok, max_seq_len=128, split="train", pad_id=tok.pad_id)
     logger.info("Train chunks: %d (~%d tokens)", len(ds), len(ds) * 127)
 
     _set_seed(seed)
@@ -87,7 +87,7 @@ def main(steps: int, loss_threshold: float, seed: int):
     )
 
     # Generation check: greedy continuation should contain training vocabulary.
-    from inference.engine import GenerationEngine
+    from xrfm.inference.engine import GenerationEngine
 
     model.eval()
     engine = GenerationEngine(model)

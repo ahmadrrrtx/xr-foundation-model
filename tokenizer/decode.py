@@ -1,39 +1,17 @@
-"""
-Convenience decoding module for XRFM tokenizer.
+"""DEPRECATED (Phase 0): import from ``xrfm.tokenization`` instead.
 
-Purpose: Provide a clean API for converting token IDs back to text using
-any `TokenizerInterface` implementation.
-
-Note: This module is intentionally thin. The core decode logic lives in
-`tokenizer/bpe.py` (`BytePairEncoder.decode()`), and the stable interface
-is defined in `tokenizer/interface.py`. This design ensures that the dataset
-loader and evaluation pipeline can call decode functionality without depending
-on the specific tokenizer algorithm.
+The library moved into the ``xrfm`` package (``src/xrfm``). This shim keeps
+the historical import path working inside a repository checkout. It is NOT
+installed with the package (the wheel ships only ``xrfm``) and will be
+removed no earlier than v2.0 — see docs/adr/0001-xrfm-core-architecture.md.
 """
 
-from tokenizer.encode import decode_ids
-from tokenizer.interface import TokenizerInterface
+import warnings
 
+warnings.warn(
+    "The 'tokenizer/decode' import path is deprecated; import from 'xrfm.tokenization' instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
-def decode_text(
-    token_ids: list[int] | list[list[int]],
-    tokenizer: TokenizerInterface,
-    skip_special_tokens: bool = False,
-) -> str | list[str]:
-    """Decode token IDs using the provided tokenizer instance.
-
-    This is a thin wrapper around `tokenizer.decode()` that applies
-    optional special-token filtering and supports both single sequences
-    and batches.
-
-    Args:
-        token_ids: Integer token sequence or batch of sequences.
-        tokenizer: Instance of any class implementing `TokenizerInterface`.
-        skip_special_tokens: If True, exclude special token IDs.
-
-    Returns:
-        Reconstructed text (single string or list of strings).
-
-    Design note: See `tokenizer/encode.py` for batch decoding logic.
-    """
-    return decode_ids(token_ids, tokenizer, skip_special_tokens=skip_special_tokens)
+from xrfm.tokenization.decode import decode_text, decode_ids

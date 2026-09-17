@@ -1,3 +1,75 @@
+## [1.0.1] — 2026-09-18 — Phase 0: Architecture Freeze (no version bump)
+
+Package reorganization; the version stays 1.0.1 (one source: `xrfm.__version__`).
+
+### Architecture (breaking internally, shimmed externally)
+- All library code moved into a single src-layout package `src/xrfm/`
+  (`config/ tokenization/ data/ models/ training/ inference/ evaluation/
+  optimization/ search/ research/neurotopo/`). The wheel now ships ONLY
+  `xrfm` — previously `pip install` put 8 top-level packages (`model`,
+  `training`, `api`, ...) into site-packages.
+- Public API defined: `xrfm.XRFM/XRFMModel, XRFMConfig, Tokenizer,
+  BPETokenizer, TextDataset/Dataset, Trainer, generate, evaluate,
+  load_config, ...` (see docs/architecture.md).
+- Old import paths (`model.*`, `tokenizer.*`, ..., `xrfm.core`,
+  `xrfm.neurotopo`, ...) keep working via deprecation shims (repo-only for
+  top-level paths); removal planned ≥ v2.0.
+- Dependency direction is now one-way; `xrfm` core never imports the API,
+  UI, search, or research layers.
+
+### Configuration
+- New validated typed schema (`xrfm.config.schema`): ModelConfig /
+  TrainingConfig / DatasetConfig / XRFMConfig with cross-field checks
+  (`d_model % n_heads`, `warmup_steps < max_steps`, ratio sums, ...).
+  Invalid configs fail with field-naming messages before model build.
+- `ConfigLoader()` / `load_config()` no longer depend on the CWD: no
+  argument loads the packaged default resource; configs no longer carry a
+  `version` field (single source `xrfm.__version__`, read dynamically by
+  pyproject).
+- Removed dead config (`datasets.streaming`); `datasets.default` →
+  `datasets.name` (legacy key still accepted); every remaining field has an
+  effect.
+
+### Data
+- `seed` is now actually consumed (seeded shuffle when `datasets.shuffle`;
+  sequential split otherwise) — previously accepted and ignored.
+- Chunking validates `max_seq_len > 0` and `0 <= overlap < max_seq_len`
+  (previously `overlap >= max_seq_len` caused an INFINITE LOOP).
+- Dataset masking is position-based: content tokens that equal the pad id
+  keep their targets; the last real token of each chunk is masked (-100)
+  instead of training the model to predict the pad token.
+- `pad_id` comes from the tokenizer contract (`tokenizer.pad_token_id`),
+  never hard-coded 0; model `padding_idx` likewise (`ModelConfig.pad_token_id`).
+- Tokenizer contract accessors added: `pad_token_id`/`bos_token_id`/
+  `eos_token_id`/`unk_token_id`; `BPETokenizer.pretrained()` loads the
+  vocab.json packaged inside the wheel.
+- DatasetConfig is now real (consumed by TextDataset); API: `TextDataset`
+  (alias XRFMTextDataset), `xrfm.data.{splits,packing,manifest,dataset}`.
+
+### Training / inference / evaluation APIs
+- `Trainer(model, config=cfg).train(dataset)` public facade over
+  TrainingLoop; TrainingLoop accepts typed configs (YAML paths still
+  accepted); loop hyperparameters no longer duplicate defaults in code.
+- `xrfm.generate(model, prompt, tokenizer, ...)` functional inference API;
+  `xrfm.evaluate(model, dataloader)` package-level evaluation runner.
+- API server no longer patches sys.path; installs `xrfm`; reports
+  `xrfm.__version__` (was hard-coded 1.0.0).
+
+### Packaging / CI / tests
+- pyproject: src-layout discovery (only `xrfm*`), dynamic version,
+  package-data (vocab.json, default config, py.typed), `xrfm` CLI entry
+  point (`xrfm info`, `xrfm validate-config`).
+- CI mypy/lint/test paths updated to src layout; research bundle excluded
+  from core lint gates (documented).
+- Tests: 456 passing — new suites for public API, config validation,
+  splits/seed, packing edge cases, tokenizer contract, compat shims,
+  CWD independence, and a config→train→inference integration test; fixed a
+  marginally-flaky NeuroTopo overfit threshold; loss-masking test updated
+  to the new position-based contract.
+- Docs: `docs/architecture.md`, `docs/adr/0001-xrfm-core-architecture.md`,
+  `docs/architecture/PHASE_0_AUDIT.md`,
+  `docs/research/PHASE_0_BEST_PRACTICES.md`; README updated.
+
 ## [1.0.1] — 2026-08-08 — Forensic Audit Remediation
 
 ### Correctness

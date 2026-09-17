@@ -1,4 +1,4 @@
-"""Pydantic schemas for XRFM API (v1.0.0)."""
+"""Pydantic schemas for XRFM API."""
 
 from pydantic import BaseModel, Field
 

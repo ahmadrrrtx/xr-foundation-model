@@ -1,4 +1,4 @@
-"""XRFM FastAPI application (v1.0.0).
+"""XRFM FastAPI application.
 
 Production API server with: health checks, model info, text generation
 (sync + streaming), tokenization, structured logging, rate limiting,
@@ -11,14 +11,15 @@ import sys
 import time
 from contextlib import asynccontextmanager
 
-# Ensure repository root is on sys.path for Windows & cross-platform imports
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if REPO_ROOT not in sys.path:
-    sys.path.insert(0, REPO_ROOT)
-
+# Phase 0: the library is a real installed package (src/xrfm); no sys.path
+# manipulation. Paths below resolve from the process CWD only as *optional*
+# repo-checkpoint/vocab lookups (documented in docs/architecture.md).
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+
+# Single version source (Phase 0).
+from xrfm import __version__
 
 # Model and engine (lazy loaded in lifespan)
 _model = None
@@ -47,16 +48,22 @@ async def lifespan(app: FastAPI):
     try:
         import glob
 
-        from inference.engine import GenerationEngine
-        from model.gpt import GPTModel
-        from tokenizer.bpe import BytePairEncoder
+        from xrfm.inference.engine import GenerationEngine
+        from xrfm.models.gpt import GPTModel
 
-        # Tokenizer from disk if present (coherent vocab), else a fresh BPE.
-        _tokenizer = BytePairEncoder()
+        # Tokenizer: packaged resource (works anywhere), unless a repo
+        # checkout provides tokenizer/vocab.json (then prefer that copy).
+        from xrfm.tokenization import BPETokenizer
+
+        _tokenizer = None
         vocab_path = os.path.join("tokenizer", "vocab.json")
         if os.path.exists(vocab_path):
+            _tokenizer = BPETokenizer()
             _tokenizer.load(vocab_path)
             logger.info("Loaded tokenizer from %s (vocab=%d)", vocab_path, _tokenizer.vocab_size())
+        else:
+            _tokenizer = BPETokenizer.pretrained()
+            logger.info("Loaded packaged tokenizer (vocab=%d)", _tokenizer.vocab_size())
 
         # Model built with the tokenizer's actual vocabulary size (F-13).
         _model = GPTModel(vocab_size=_tokenizer.vocab_size())
@@ -99,7 +106,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="XR Foundation Model API",
-    version="1.0.0",
+    version=__version__,
     lifespan=lifespan,
 )
 

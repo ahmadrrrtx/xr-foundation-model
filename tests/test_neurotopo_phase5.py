@@ -1,3 +1,4 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 5 tests: dynamic topology generator.
 
 GATE: demonstrate empirically that dynamic topology != static topology on a
@@ -10,13 +11,20 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from xrfm.topology import DynamicTopology
+from xrfm.research.neurotopo.topology import DynamicTopology
 
 
 def _make_topo(**kw):
     defaults = dict(
-        n_modules=8, module_dim=8, local_degree=2, longrange_topk=3,
-        rank=4, decay_init=0.9, plasticity=True, memory_dim=0, seed=0,
+        n_modules=8,
+        module_dim=8,
+        local_degree=2,
+        longrange_topk=3,
+        rank=4,
+        decay_init=0.9,
+        plasticity=True,
+        memory_dim=0,
+        seed=0,
     )
     defaults.update(kw)
     return DynamicTopology(**defaults)
@@ -195,17 +203,19 @@ def test_gate_dynamic_outperforms_static_on_context_dependent_task():
             s_init = loss.item()
         s_fin = loss.item()
     # A constant input cannot separate the two classes -> stays near chance.
-    assert s_fin > 0.55, (
-        f"static control unexpectedly solved task: {s_init:.4f} -> {s_fin:.4f}"
-    )
+    assert s_fin > 0.55, f"static control unexpectedly solved task: {s_init:.4f} -> {s_fin:.4f}"
 
     # And explicitly: learned dynamic weights separate the two contexts.
-    H0 = torch.randn(1, N, d) * 0.1; H0[0, 1] += 1; H0[0, 5] += 1; H0[0, 0] += -1.0
-    H1 = torch.randn(1, N, d) * 0.1; H1[0, 1] += 1; H1[0, 5] += 1; H1[0, 0] += 1.0
+    H0 = torch.randn(1, N, d) * 0.1
+    H0[0, 1] += 1
+    H0[0, 5] += 1
+    H0[0, 0] += -1.0
+    H1 = torch.randn(1, N, d) * 0.1
+    H1[0, 1] += 1
+    H1[0, 5] += 1
+    H1[0, 0] += 1.0
     with torch.no_grad():
         _, w0, _ = topo(H0)
         _, w1, _ = topo(H1)
     separation = (w0 - w1).abs().mean().item()
-    assert separation > 0.05, (
-        f"dynamic topology does not separate contexts: mean |w0-w1|={separation:.4f}"
-    )
+    assert separation > 0.05, f"dynamic topology does not separate contexts: mean |w0-w1|={separation:.4f}"

@@ -1,11 +1,12 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 10 tests: LM head, causal loss, padding mask, one training step."""
 
 from __future__ import annotations
 
 import torch
 
-from xrfm.core import NeuroTopoModel
-from xrfm.neurotopo.config import MemoryConfig, NeuroTopoConfig, TopologyConfig
+from xrfm.research.neurotopo import NeuroTopoModel
+from xrfm.research.neurotopo.config import MemoryConfig, NeuroTopoConfig, TopologyConfig
 
 
 def _tiny_config(vocab=256, memory=False):
@@ -15,8 +16,9 @@ def _tiny_config(vocab=256, memory=False):
         n_layers=2,
         max_seq_len=16,
         pad_id=0,
-        topology=TopologyConfig(n_modules=4, module_dim=8, local_degree=1,
-                                longrange_topk=2, rank=4, connectivity_reg=False),
+        topology=TopologyConfig(
+            n_modules=4, module_dim=8, local_degree=1, longrange_topk=2, rank=4, connectivity_reg=False
+        ),
         memory=MemoryConfig(enabled=memory, d_k=8, d_v=8, persistent_slots=0),
     )
 

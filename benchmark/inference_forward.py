@@ -9,8 +9,8 @@ import time
 
 import torch
 
-from inference.engine import GenerationEngine
-from model.gpt import GPTModel
+from xrfm.inference.engine import GenerationEngine
+from xrfm.models.gpt import GPTModel
 
 
 def benchmark_full_vs_cached(

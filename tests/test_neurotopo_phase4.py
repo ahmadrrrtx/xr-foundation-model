@@ -1,3 +1,4 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 4 tests: static neural graph + sparse message passing.
 
 GATE: a synthetic message-passing task must train (a node must aggregate
@@ -9,7 +10,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from xrfm.topology import StaticMessagePassing, StaticNeuralGraph
+from xrfm.research.neurotopo.topology import StaticMessagePassing, StaticNeuralGraph
 
 
 def test_graph_exact_connectivity():

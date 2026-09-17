@@ -5,7 +5,7 @@ Tests for TransformerBlock (v0.6.0) — now returns (output, present_kv).
 import pytest
 import torch
 
-from model.layers.transformer_block import TransformerBlock
+from xrfm.models.layers.transformer_block import TransformerBlock
 
 
 class TestTransformerBlock:

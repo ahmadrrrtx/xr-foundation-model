@@ -1,36 +1,17 @@
-"""
-XRFM Evaluation Pipeline (v0.7.0).
+"""DEPRECATED (Phase 0): import from ``xrfm.evaluation`` instead.
 
-Provides intrinsic evaluation metrics for language models:
-- Perplexity (PPL) — exponential of average cross-entropy
-- Text completion accuracy (top-1 and top-k)
-
-Usage:
-    from evaluation import compute_perplexity, run_evaluation_suite
-    from evaluation.benchmarks import TextCompletionAccuracy, TopKAccuracy
-
-    ppl = compute_perplexity(model, val_dataloader)
-    results = run_evaluation_suite(model, val_dataloader)
+The library moved into the ``xrfm`` package (``src/xrfm``). This shim keeps
+the historical import path working inside a repository checkout. It is NOT
+installed with the package (the wheel ships only ``xrfm``) and will be
+removed no earlier than v2.0 — see docs/adr/0001-xrfm-core-architecture.md.
 """
 
-from evaluation.benchmarks import (
-    Benchmark,
-    TextCompletionAccuracy,
-    TopKAccuracy,
-    run_evaluation_suite,
-)
-from evaluation.perplexity import (
-    compute_perplexity,
-    compute_perplexity_strided,
-    evaluate_checkpoint,
+import warnings
+
+warnings.warn(
+    "The 'evaluation/__init__' import path is deprecated; import from 'xrfm.evaluation' instead",
+    DeprecationWarning,
+    stacklevel=2,
 )
 
-__all__ = [
-    "compute_perplexity",
-    "compute_perplexity_strided",
-    "evaluate_checkpoint",
-    "Benchmark",
-    "TextCompletionAccuracy",
-    "TopKAccuracy",
-    "run_evaluation_suite",
-]
+from xrfm.evaluation import Benchmark, TextCompletionAccuracy, TopKAccuracy, compute_perplexity, compute_perplexity_strided, evaluate, evaluate_checkpoint, run_evaluation_suite

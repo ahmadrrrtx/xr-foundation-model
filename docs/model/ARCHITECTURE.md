@@ -1,5 +1,11 @@
 # XR Foundation Model (`XRFM`) — Architecture Documentation
 
+> **Phase 0 note:** paths below are historical (pre-reorganization).
+> Library code now lives in `src/xrfm/` — e.g. `model/gpt.py` →
+> `src/xrfm/models/gpt.py`, `xrfm/data/loader.py` →
+> `src/xrfm/data/` (`splits/packing/dataset/manifest`). See
+> `docs/architecture.md`.
+
 > **AUDIT REMEDIATION NOTE (2026-08-08):** this document describes the original
 > design. A forensic audit found and fixed several issues (implicit causal
 > masking, character-level tokenizer, padding-loss, resume/scheduler state,

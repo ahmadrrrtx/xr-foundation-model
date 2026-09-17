@@ -1,5 +1,10 @@
 # XRFM Optimization Guide — v0.9.0
 
+> **Phase 0 note:** import paths in this guide use the canonical `xrfm.*`
+> package layout. The pre-Phase-0 paths (`model.*`, `training.*`, ...) still
+> work inside a repository checkout via deprecation shims, but new code
+> should use the paths shown here. See `docs/architecture.md`.
+
 ## Overview
 
 Three performance optimization techniques for XRFM:
@@ -16,7 +21,7 @@ Three performance optimization techniques for XRFM:
 Drop-in replacement for manual attention in `MultiHeadAttention`:
 
 ```python
-from optimization.flash_attention import flash_attention_forward
+from xrfm.optimization.flash_attention import flash_attention_forward
 
 # In MultiHeadAttention.forward():
 # Replace: scores = Q @ K.T / sqrt(d_head); attn = softmax(scores); out = attn @ V
@@ -31,7 +36,7 @@ PyTorch auto-selects the fastest backend (FlashAttention-2 on CUDA, MemoryEffici
 Compress model weights from FP32 to INT8/INT4:
 
 ```python
-from optimization.quantization import quantize_model_weights, dequantize_weight, compute_compression_ratio
+from xrfm.optimization.quantization import quantize_model_weights, dequantize_weight, compute_compression_ratio
 
 # INT8 (4x compression)
 model, q_map = quantize_model_weights(model, bits=8)
@@ -58,7 +63,7 @@ for name, qw in q_map.items():
 Use a small draft model to accelerate the large target model:
 
 ```python
-from optimization.speculative_decoding import SpeculativeDecoder
+from xrfm.optimization.speculative_decoding import SpeculativeDecoder
 
 target = GPTModel("config/config.yaml")  # large model
 draft = GPTModel("config/config.yaml")  # small model (same vocab)
@@ -91,14 +96,14 @@ All optimizations are **opt-in**: existing code continues to work without any ch
 
 ```python
 # In model/attention/multi_head.py, replace the manual attention with:
-from optimization.flash_attention import flash_attention_forward
+from xrfm.optimization.flash_attention import flash_attention_forward
 # ... use flash_attention_forward(Q, K, V, ...) instead of manual loop
 ```
 
 ### Quantize before deployment
 
 ```python
-from optimization.quantization import quantize_model_weights, compute_compression_ratio
+from xrfm.optimization.quantization import quantize_model_weights, compute_compression_ratio
 
 model, q_map = quantize_model_weights(model, bits=8)
 print(f"Compression: {compute_compression_ratio(q_map):.1f}x")

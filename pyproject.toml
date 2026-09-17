@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xrfm"
-version = "1.0.1"
+dynamic = ["version"]
 description = "XR Foundation Model — open-source foundation model implementation in pure PyTorch"
 readme = "README.md"
 license = {text = "MIT"}
@@ -35,28 +35,64 @@ dev = [
     "ruff>=0.3.0",
     "mypy>=1.0",
     "types-PyYAML>=6.0",
+    "httpx>=0.24.0",
+    # The API server is part of the tested surface (tests/test_api.py, mypy api/):
+    # dev installs must include it or CI lint/type/test jobs fail on imports.
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
 ]
-train = [
-    "torch>=2.0.0",
+api = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+    "httpx>=0.24.0",
 ]
 
+[project.scripts]
+xrfm = "xrfm.cli:main"
+
+[tool.setuptools.dynamic]
+# Single version source: xrfm/__init__.py (do not duplicate elsewhere).
+version = {attr = "xrfm.__version__"}
+
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["xrfm*", "model*", "training*", "tokenizer*", "inference*", "evaluation*", "optimization*", "api*"]
+# Only the library ships in the wheel — never api/, scripts/, or the
+# repo-root compatibility shims.
+where = ["src"]
+include = ["xrfm*"]
+
+[tool.setuptools.package-data]
+xrfm = [
+    "py.typed",
+    "tokenization/vocab.json",
+    "config/*.yaml",
+]
 
 [tool.black]
 # Aligned with ruff's line-length (120) so `black --check` and
-# `ruff format --check` agree (previously 100 vs 120 -> permanent conflict).
+# `ruff format --check` agree.
 line-length = 120
 target-version = ["py310"]
-exclude = "data/|notebooks/"
+# Root shims (model/, tokenizer/, ... deprecated compat paths) and research/
+# are deprecation/experimental artifacts excluded from core format gates.
+exclude = "data/|notebooks/|vercel_app/|webui/|(model|tokenizer|training|inference|evaluation|optimization)/"
 
 [tool.ruff]
 line-length = 120
 target-version = "py310"
 # data/ contains training corpora (e.g. a copy of the Python stdlib used as
-# training data), not source code — excluded from linting.
-exclude = ["data/", "notebooks/"]
+# training data); notebooks/ and the JS apps are not Python; research/ is the
+# experimental NeuroTopo bundle (not held to core lint rules until it
+# graduates) — excluded.
+exclude = [
+    "data/", "notebooks/", "vercel_app/", "webui/", "build/", "dist/",
+    # Docs keep human-formatted snippet style (aligned assignments in fences);
+    # ruff>=0.16 would reformat Python blocks inside Markdown.
+    "**/*.md",
+    # Deprecated root import shims (removed >= v2.0) — not part of the wheel.
+    "model/", "tokenizer/", "training/", "inference/", "evaluation/", "optimization/",
+    # Experimental NeuroTopo research bundle — not held to core lint gates.
+    "src/xrfm/research/",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
@@ -67,6 +103,7 @@ python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+exclude = ["build/", "dist/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,10 +1,11 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 15: parameter-matched controls (CONTROL-1, NT, CONTROL-2)."""
 
 from __future__ import annotations
 
 import torch
 
-from xrfm.nt_training.param_match import (
+from xrfm.research.neurotopo.training.param_match import (
     build_nt,
     build_transformer,
     count_params,
@@ -35,8 +36,13 @@ def test_match_nt_to_transformer_within_tolerance():
     assert match is not None
     # Matched within 10% (or best available)
     assert match["rel"] < 0.20, match
-    nt = build_nt(400, d_model=match["d_model"], n_layers=match["n_layers"],
-                  n_modules=match["n_modules"], module_dim=match["module_dim"])
+    nt = build_nt(
+        400,
+        d_model=match["d_model"],
+        n_layers=match["n_layers"],
+        n_modules=match["n_modules"],
+        module_dim=match["module_dim"],
+    )
     assert abs(count_params(nt) - target) / target < 0.20
 
 

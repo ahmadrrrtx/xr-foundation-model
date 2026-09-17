@@ -1,5 +1,10 @@
 # XRFM Evaluation Pipeline — v0.7.0
 
+> **Phase 0 note:** import paths in this guide use the canonical `xrfm.*`
+> package layout. The pre-Phase-0 paths (`model.*`, `training.*`, ...) still
+> work inside a repository checkout via deprecation shims, but new code
+> should use the paths shown here. See `docs/architecture.md`.
+
 > **AUDIT REMEDIATION NOTE (2026-08-08):** this document describes the original
 > design. A forensic audit found and fixed several issues (implicit causal
 > masking, character-level tokenizer, padding-loss, resume/scheduler state,
@@ -25,8 +30,8 @@ Lower perplexity = better. Higher accuracy = better.
 
 ```python
 from torch.utils.data import DataLoader
-from model.gpt import GPTModel
-from evaluation import compute_perplexity, run_evaluation_suite
+from xrfm.models import GPTModel
+from xrfm.evaluation import compute_perplexity, run_evaluation_suite
 
 model = GPTModel()
 val_dataset = XRFMTextDataset("data/datasets/val.txt", tokenizer, split="val")
@@ -82,7 +87,7 @@ The sliding window with overlap avoids double-counting while providing full cont
 Top-1 next-token prediction accuracy on held-out text:
 
 ```python
-from evaluation.benchmarks import TextCompletionAccuracy
+from xrfm.evaluation.benchmarks import TextCompletionAccuracy
 
 bench = TextCompletionAccuracy()
 result = bench.compute(model, val_loader)
@@ -94,7 +99,7 @@ print(f"Accuracy: {result['accuracy']:.4f}")
 Top-k accuracy (is the correct token in the top-k predictions?):
 
 ```python
-from evaluation.benchmarks import TopKAccuracy
+from xrfm.evaluation.benchmarks import TopKAccuracy
 
 top5 = TopKAccuracy(k=5)
 result = top5.compute(model, val_loader)
@@ -106,7 +111,7 @@ print(f"Top-5 Accuracy: {result['top5_accuracy']:.4f}")
 Extend the `Benchmark` base class:
 
 ```python
-from evaluation.benchmarks import Benchmark
+from xrfm.evaluation.benchmarks import Benchmark
 
 
 class MyBenchmark(Benchmark):

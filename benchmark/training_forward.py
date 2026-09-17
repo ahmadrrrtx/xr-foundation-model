@@ -10,11 +10,11 @@ import time
 
 import torch
 
-from model.gpt import GPTModel
-from training.checkpoint import CheckpointLoader
-from training.loop import TrainingLoop
-from training.optimizer import OptimizerLoader
-from training.scheduler import SchedulerLoader
+from xrfm.models.gpt import GPTModel
+from xrfm.training.checkpoint import CheckpointLoader
+from xrfm.training.loop import TrainingLoop
+from xrfm.training.optimizer import OptimizerLoader
+from xrfm.training.scheduler import SchedulerLoader
 
 
 class DummyDataset:

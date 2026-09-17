@@ -9,8 +9,8 @@ import pytest
 import torch
 import torch.nn as nn
 
-from model.gpt import GPTModel
-from training.distributed import (
+from xrfm.models.gpt import GPTModel
+from xrfm.training.distributed import (
     GradientAccumulator,
     barrier,
     create_distributed_dataloader,
@@ -136,7 +136,7 @@ class TestTrainingLoopGradAccum:
 
     def test_grad_accum_advances_step_correctly(self):
         """With grad_accum_steps=2, step advances every 2 micro-batches."""
-        from training.loop import TrainingLoop
+        from xrfm.training.loop import TrainingLoop
 
         model = GPTModel()
         ds = self._TinyDataset(vocab=100, seq=8, n=20)
@@ -154,7 +154,7 @@ class TestTrainingLoopGradAccum:
 
     def test_grad_accum_loss_scaling(self):
         """Loss per micro-batch is scaled by 1/accum_steps."""
-        from training.loop import TrainingLoop
+        from xrfm.training.loop import TrainingLoop
 
         model = GPTModel()
         ds = self._TinyDataset(vocab=100, seq=8, n=10)

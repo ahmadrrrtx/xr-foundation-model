@@ -5,7 +5,7 @@ Tests for GPTModel (v0.6.0) — forward returns (logits, present_key_values).
 import pytest
 import torch
 
-from model.gpt import GPTModel
+from xrfm.models.gpt import GPTModel
 
 
 class TestGPTModel:

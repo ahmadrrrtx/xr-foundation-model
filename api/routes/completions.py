@@ -82,7 +82,7 @@ async def completions_stream(req: CompletionRequest):
             if req.temperature == 0:
                 next_token = next_logits.argmax(dim=-1, keepdim=True)
             else:
-                from inference.sampling import sample_token as st
+                from xrfm.inference.sampling import sample_token as st
 
                 next_token = st(next_logits, req.temperature, req.top_k, req.top_p)
         generated = torch.cat([generated, next_token], dim=1)
@@ -96,7 +96,7 @@ async def completions_stream(req: CompletionRequest):
             if req.temperature == 0:
                 next_token = next_logits.argmax(dim=-1, keepdim=True)
             else:
-                from inference.sampling import sample_token as st
+                from xrfm.inference.sampling import sample_token as st
 
                 next_token = st(next_logits, req.temperature, req.top_k, req.top_p)
             generated = torch.cat([generated, next_token], dim=1)

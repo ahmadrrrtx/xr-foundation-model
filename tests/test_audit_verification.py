@@ -18,15 +18,15 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from model.attention.multi_head import MultiHeadAttention  # noqa: E402
-from model.attention.rope import RoPE  # noqa: E402
-from model.gpt import GPTModel  # noqa: E402
-from model.layers.rmsnorm import RMSNorm  # noqa: E402
-from model.layers.swiglu import SwiGLU  # noqa: E402
-from tokenizer.bpe import BytePairEncoder  # noqa: E402
-from training.loop import TrainingLoop, _set_seed  # noqa: E402
-from training.mixed_precision import MixedPrecisionLoader  # noqa: E402
-from training.scheduler import SchedulerLoader  # noqa: E402
+from xrfm.models.attention.multi_head import MultiHeadAttention  # noqa: E402
+from xrfm.models.attention.rope import RoPE  # noqa: E402
+from xrfm.models.gpt import GPTModel  # noqa: E402
+from xrfm.models.layers.rmsnorm import RMSNorm  # noqa: E402
+from xrfm.models.layers.swiglu import SwiGLU  # noqa: E402
+from xrfm.tokenization.bpe import BytePairEncoder  # noqa: E402
+from xrfm.training.loop import TrainingLoop, _set_seed  # noqa: E402
+from xrfm.training.mixed_precision import MixedPrecisionLoader  # noqa: E402
+from xrfm.training.scheduler import SchedulerLoader  # noqa: E402
 
 TINY = "config/tiny.yaml"
 
@@ -296,6 +296,12 @@ class TestTokenizerFidelity:
 # ----------------------------------------------------------------------
 class TestLossMasking:
     def test_padding_targets_ignored(self):
+        """Phase 0 contract: masking is POSITION-based, not token-identity based.
+
+        - Positions beyond the real chunk (true padding) get -100.
+        - The final real position is -100 (its continuation is undefined).
+        - A content token that happens to equal pad_id keeps its target.
+        """
         from xrfm.data.loader import XRFMTextDataset
 
         tok = BytePairEncoder(vocab_size_target=512)
@@ -304,14 +310,22 @@ class TestLossMasking:
             f.write("This is a short document.\nAnd another line here.\n" * 5)
             path = f.name
         try:
-            ds = XRFMTextDataset(path, tok, max_seq_len=64, split="train", pad_id=tok.pad_id or 0)
+            ds = XRFMTextDataset(path, tok, max_seq_len=64, split="train", pad_id=tok.pad_id)
             inp, tgt = ds[0]
             assert inp.shape == (64,)
             assert tgt.shape == (64,)
-            # Every padded input position must have -100 target.
-            for i in range(64):
-                if inp[i] == (tok.pad_id or 0):
-                    assert tgt[i] == -100
+            n_real = len(ds.chunks[0])
+            # True padding positions (and the last real position) are masked.
+            for i in range(n_real - 1, 64):
+                assert tgt[i] == -100, f"position {i} should be masked"
+            # Every earlier position has a real next-token target.
+            for i in range(n_real - 1):
+                assert tgt[i] == inp[i + 1], f"target at {i} must be the next real token"
+            # Content tokens equal to pad_id keep their targets (position-based mask).
+            pad_id = tok.pad_id
+            content_pad_positions = [i for i in range(n_real - 1) if int(inp[i]) == pad_id]
+            for i in content_pad_positions:
+                assert tgt[i] != -100
         finally:
             os.unlink(path)
 
@@ -346,7 +360,7 @@ class TestConfigResume:
     def test_resume_from_config_restores_step_and_scheduler(self):
         import tempfile
 
-        from training.loop import TrainingLoop, _set_seed
+        from xrfm.training.loop import TrainingLoop, _set_seed
 
         class D:
             def __len__(self):

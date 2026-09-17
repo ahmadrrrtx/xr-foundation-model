@@ -33,8 +33,8 @@ import torch  # noqa: E402
 
 
 def main(checkpoint: str | None, prompt_len: int, new_tokens: int, reps: int, device: str) -> dict:
-    from model.gpt import GPTModel
-    from tokenizer.bpe import BytePairEncoder
+    from xrfm.models.gpt import GPTModel
+    from xrfm.tokenization.bpe import BytePairEncoder
 
     dev = torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))
 
@@ -59,7 +59,7 @@ def main(checkpoint: str | None, prompt_len: int, new_tokens: int, reps: int, de
     # ---------------------------------------------------------------
     # 1. WITH KV cache (GenerationEngine)
     # ---------------------------------------------------------------
-    from inference.engine import GenerationEngine
+    from xrfm.inference.engine import GenerationEngine
 
     engine = GenerationEngine(model)
     times = []

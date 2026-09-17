@@ -36,7 +36,9 @@ jobs:
           pip install -e ".[dev]"
       - name: Run mypy
         # Forensic-audit fix (F-43): `|| true` previously masked type errors.
-        run: mypy model/ training/ tokenizer/ inference/ evaluation/ optimization/ api/
+        # Core package + API app. src/xrfm/research is the experimental
+        # NeuroTopo bundle (excluded from core lint gates until it graduates).
+        run: mypy src/xrfm/config src/xrfm/data src/xrfm/models src/xrfm/tokenization src/xrfm/training src/xrfm/inference src/xrfm/evaluation src/xrfm/optimization src/xrfm/search src/xrfm/cli.py api/
 
   test:
     name: Run Tests
@@ -63,6 +65,43 @@ jobs:
           path: |
             .pytest_cache/
             test-results.xml
+
+  package:
+    name: Package & Clean Install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build tooling + runtime deps
+        run: |
+          # torch does not depend on pyyaml/numpy; the clean-install step uses
+          # --system-site-packages + --no-deps, so the interpreter that backs
+          # the venv must already have xrfm's runtime dependencies present.
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install build pyyaml numpy
+      - name: Build sdist + wheel
+        run: python -m build
+      - name: Wheel must contain only the xrfm package
+        run: |
+          python - <<'PY'
+          import zipfile, glob
+          wheel = glob.glob("dist/*.whl")[0]
+          tops = {n.split("/")[0] for n in zipfile.ZipFile(wheel).namelist()}
+          assert tops == {"xrfm", "xrfm-1.0.1.dist-info"} or len([t for t in tops if not t.endswith(".dist-info")]) == 1, tops
+          print("wheel top-level:", sorted(tops))
+          PY
+      - name: Clean install + import outside the repo
+        run: |
+          # --system-site-packages: torch/pyyaml/numpy were installed into the
+          # runner interpreter above; the venv verifies the WHEEL, not deps.
+          python -m venv --system-site-packages /tmp/pkgvenv
+          /tmp/pkgvenv/bin/pip install --no-deps dist/*.whl
+          cd /
+          /tmp/pkgvenv/bin/python -c "import xrfm; print('clean install:', xrfm.__version__)"
+          /tmp/pkgvenv/bin/python -c "from xrfm import XRFM, XRFMConfig, Trainer, generate, evaluate, load_config, BPETokenizer; cfg = load_config(); print('config loads from /:', cfg.model.d_model)"
+          /tmp/pkgvenv/bin/xrfm info
 
   training-smoke:
     name: Training Pipeline Smoke Test

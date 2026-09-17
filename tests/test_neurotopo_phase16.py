@@ -1,11 +1,12 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 16: tiny real-corpus training smoke test."""
 
 from __future__ import annotations
 
 import torch
 
-from tokenizer.bpe import BytePairEncoder
-from xrfm.nt_training.train import train_nt_tiny
+from xrfm.research.neurotopo.training.train import train_nt_tiny
+from xrfm.tokenization.bpe import BytePairEncoder
 
 
 def test_nt_trains_on_real_corpus():
@@ -18,9 +19,7 @@ def test_nt_trains_on_real_corpus():
     ids = torch.tensor(tok.encode(text), dtype=torch.long)
     assert ids.numel() > 1000
 
-    res = train_nt_tiny(
-        tok.vocab_size(), ids, seq_len=48, steps=40, batch_size=8, lr=3e-3
-    )
+    res = train_nt_tiny(tok.vocab_size(), ids, seq_len=48, steps=40, batch_size=8, lr=3e-3)
     assert res["loss_last"] < res["loss_first"] * 0.8, res
     assert torch.isfinite(torch.tensor(res["ppl_last"]))
     assert res["tokens_per_sec"] > 0

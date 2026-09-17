@@ -28,7 +28,7 @@ if REPO_ROOT not in sys.path:
 import torch
 import torch.nn.functional as F
 
-from model.gpt import GPTModel
+from xrfm.models.gpt import GPTModel
 
 
 def bench_one(config_path: str, vocab: int, seq_len: int, batch: int, device, steps: int) -> dict:

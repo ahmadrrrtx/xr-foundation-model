@@ -11,11 +11,11 @@ import tempfile
 import pytest
 import torch
 
-from training.checkpoint import CheckpointLoader
-from training.loop import TrainingLoop
-from training.mixed_precision import MixedPrecisionLoader, NoOpScaler
-from training.optimizer import OptimizerLoader
-from training.scheduler import SchedulerLoader
+from xrfm.training.checkpoint import CheckpointLoader
+from xrfm.training.loop import TrainingLoop
+from xrfm.training.mixed_precision import MixedPrecisionLoader, NoOpScaler
+from xrfm.training.optimizer import OptimizerLoader
+from xrfm.training.scheduler import SchedulerLoader
 
 # --- Shared fixtures ---
 
@@ -152,7 +152,7 @@ class TestMixedPrecisionLoader:
 
 class TestTrainingLoop:
     def test_init_from_config(self):
-        from model.gpt import GPTModel
+        from xrfm.models.gpt import GPTModel
 
         model = GPTModel()
         dataset = MiniDataset()
@@ -168,7 +168,7 @@ class TestTrainingLoop:
         assert loop.mixed_precision_loader.enabled is loop.config_loader.get("training.mixed_precision", False)
 
     def test_train_step_with_targets(self):
-        from model.gpt import GPTModel
+        from xrfm.models.gpt import GPTModel
 
         model = GPTModel()
         dataset = MiniDataset(vocab_size=100, seq_len=16)
@@ -185,7 +185,7 @@ class TestTrainingLoop:
         assert metrics["step"] == 1
 
     def test_training_loop_runs(self):
-        from model.gpt import GPTModel
+        from xrfm.models.gpt import GPTModel
 
         model = GPTModel()
         dataset = MiniDataset(vocab_size=100, seq_len=8, size=20)
@@ -203,8 +203,9 @@ class TestTrainingLoop:
             TrainingLoop(dataset=MiniDataset())
 
     def test_requires_dataset(self):
-        from model.gpt import GPTModel
+        from xrfm.models.gpt import GPTModel
 
         model = GPTModel()
-        with pytest.raises(ValueError, match="dataset is required"):
-            TrainingLoop(model=model)
+        loop = TrainingLoop(model=model)  # allowed without dataset (Phase 0)
+        with pytest.raises(ValueError, match="dataset"):
+            loop.training_loop(max_steps=1)

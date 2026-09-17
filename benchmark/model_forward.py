@@ -22,7 +22,7 @@ sys.path.insert(0, ".")
 
 import torch
 
-from model.gpt import GPTModel
+from xrfm.models.gpt import GPTModel
 
 
 def benchmark_forward_pass(

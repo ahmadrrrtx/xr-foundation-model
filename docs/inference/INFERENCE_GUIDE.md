@@ -1,5 +1,10 @@
 # XRFM Inference Engine — v0.6.0
 
+> **Phase 0 note:** import paths in this guide use the canonical `xrfm.*`
+> package layout. The pre-Phase-0 paths (`model.*`, `training.*`, ...) still
+> work inside a repository checkout via deprecation shims, but new code
+> should use the paths shown here. See `docs/architecture.md`.
+
 ## Overview
 
 The inference engine provides autoregressive text generation with **KV cache acceleration**, reducing per-step attention from O(n²) to O(n). It supports greedy, temperature, top-k, and nucleus (top-p) sampling strategies.
@@ -33,8 +38,8 @@ Generated Sequence
 ## Quick Start
 
 ```python
-from model.gpt import GPTModel
-from inference.engine import GenerationEngine
+from xrfm.models import GPTModel
+from xrfm.inference.engine import GenerationEngine
 
 model = GPTModel()
 engine = GenerationEngine(model)

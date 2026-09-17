@@ -37,13 +37,13 @@ FIXED_PROMPTS = [
 def main(checkpoint: str, dataset: str, config: str, max_new_tokens: int, seed: int) -> dict:
     from torch.utils.data import DataLoader
 
-    from evaluation.benchmarks import TextCompletionAccuracy
-    from evaluation.perplexity import compute_perplexity
-    from inference.engine import GenerationEngine
-    from model.gpt import GPTModel
-    from tokenizer.bpe import BytePairEncoder
-    from training.distributed import xrfm_collate_fn
     from xrfm.data.loader import XRFMTextDataset
+    from xrfm.evaluation.benchmarks import TextCompletionAccuracy
+    from xrfm.evaluation.perplexity import compute_perplexity
+    from xrfm.inference.engine import GenerationEngine
+    from xrfm.models.gpt import GPTModel
+    from xrfm.tokenization.bpe import BytePairEncoder
+    from xrfm.training.distributed import xrfm_collate_fn
 
     torch.manual_seed(seed)
     tok = BytePairEncoder()
@@ -61,7 +61,7 @@ def main(checkpoint: str, dataset: str, config: str, max_new_tokens: int, seed: 
     # longer context than trained degrades numbers for non-long-context models).
     ctx = model.max_seq_len
     print(f"[eval] context (train) = {ctx}")
-    val_ds = XRFMTextDataset(dataset, tok, max_seq_len=ctx, split="val", pad_id=tok.pad_id or 0)
+    val_ds = XRFMTextDataset(dataset, tok, max_seq_len=ctx, split="val", pad_id=tok.pad_id)
     loader = DataLoader(val_ds, batch_size=8, shuffle=False, collate_fn=xrfm_collate_fn)
     ppl = compute_perplexity(model, loader)
     acc = TextCompletionAccuracy().compute(model, loader)

@@ -1,4 +1,4 @@
-"""XRFM Production API (v1.0.0).
+"""XRFM Production API.
 
 Provides FastAPI server with:
 - Health/readiness checks

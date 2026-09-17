@@ -1,3 +1,4 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 14: complete XRFM-NT model end-to-end (embedding -> blocks -> LM +
 uncertainty head)."""
 
@@ -5,10 +6,10 @@ from __future__ import annotations
 
 import torch
 
-from tokenizer.bpe import BytePairEncoder
-from xrfm.core import NeuroTopoModel
-from xrfm.neurotopo.builder import build_neurotopo_model
-from xrfm.neurotopo.config import MemoryConfig, NeuroTopoConfig, TopologyConfig
+from xrfm.research.neurotopo import NeuroTopoModel
+from xrfm.research.neurotopo.builder import build_neurotopo_model
+from xrfm.research.neurotopo.config import MemoryConfig, NeuroTopoConfig, TopologyConfig
+from xrfm.tokenization.bpe import BytePairEncoder
 
 
 def _config(vocab=512):
@@ -17,8 +18,9 @@ def _config(vocab=512):
         d_model=64,
         n_layers=2,
         max_seq_len=32,
-        topology=TopologyConfig(n_modules=8, module_dim=16, local_degree=2,
-                                 longrange_topk=4, rank=8, connectivity_reg=False),
+        topology=TopologyConfig(
+            n_modules=8, module_dim=16, local_degree=2, longrange_topk=4, rank=8, connectivity_reg=False
+        ),
         memory=MemoryConfig(enabled=True, d_k=16, d_v=16, persistent_slots=8),
         uncertainty=__import__("xrfm.neurotopo.config", fromlist=["UncertaintyConfig"]).UncertaintyConfig(enabled=True),
     )

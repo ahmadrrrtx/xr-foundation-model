@@ -15,9 +15,9 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from api.main import app as fastapi_app
-from inference.engine import GenerationEngine
-from model.gpt import GPTModel
-from tokenizer.bpe import BytePairEncoder
+from xrfm.inference.engine import GenerationEngine
+from xrfm.models.gpt import GPTModel
+from xrfm.tokenization.bpe import BytePairEncoder
 
 # Initialize model & engine
 model = GPTModel("config/config.yaml")
