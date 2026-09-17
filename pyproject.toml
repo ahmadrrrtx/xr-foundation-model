@@ -36,6 +36,10 @@ dev = [
     "mypy>=1.0",
     "types-PyYAML>=6.0",
     "httpx>=0.24.0",
+    # The API server is part of the tested surface (tests/test_api.py, mypy api/):
+    # dev installs must include it or CI lint/type/test jobs fail on imports.
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
 ]
 api = [
     "fastapi>=0.100.0",

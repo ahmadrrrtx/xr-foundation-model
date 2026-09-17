@@ -91,7 +91,9 @@ jobs:
           PY
       - name: Clean install + import outside the repo
         run: |
-          python -m venv /tmp/pkgvenv
+          # --system-site-packages: torch/pyyaml/numpy were installed into the
+          # runner interpreter above; the venv verifies the WHEEL, not deps.
+          python -m venv --system-site-packages /tmp/pkgvenv
           /tmp/pkgvenv/bin/pip install --no-deps dist/*.whl
           cd /
           /tmp/pkgvenv/bin/python -c "import xrfm; print('clean install:', xrfm.__version__)"

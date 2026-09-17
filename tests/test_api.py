@@ -15,6 +15,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 httpx = pytest.importorskip("httpx")
+pytest.importorskip("fastapi", reason="API tests need fastapi (pip install -e '.[dev]' or '.[api]')")
 from fastapi.testclient import TestClient  # noqa: E402
 
 
