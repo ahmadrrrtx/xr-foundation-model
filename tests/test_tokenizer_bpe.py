@@ -20,8 +20,8 @@ import tempfile
 
 import pytest
 
-from tokenizer.bpe import BytePairEncoder
-from tokenizer.interface import TokenizerInterface
+from xrfm.tokenization.bpe import BytePairEncoder
+from xrfm.tokenization.interface import TokenizerInterface
 
 
 class TestBytePairEncoderBasics:

@@ -27,14 +27,14 @@ logger = logging.getLogger("xrfm.scaling")
 def run_size(name: str, config_path: str, tokenizer, corpus_path: str, steps: int, seed: int):
     from torch.utils.data import DataLoader
 
-    from evaluation.perplexity import compute_perplexity
-    from model.gpt import GPTModel
-    from training.distributed import xrfm_collate_fn
-    from training.loop import TrainingLoop, _set_seed
     from xrfm.data.loader import XRFMTextDataset
+    from xrfm.evaluation.perplexity import compute_perplexity
+    from xrfm.models.gpt import GPTModel
+    from xrfm.training.distributed import xrfm_collate_fn
+    from xrfm.training.loop import TrainingLoop, _set_seed
 
-    ds = XRFMTextDataset(corpus_path, tokenizer, max_seq_len=256, split="train", pad_id=tokenizer.pad_id or 0)
-    val_ds = XRFMTextDataset(corpus_path, tokenizer, max_seq_len=256, split="val", pad_id=tokenizer.pad_id or 0)
+    ds = XRFMTextDataset(corpus_path, tokenizer, max_seq_len=256, split="train", pad_id=tokenizer.pad_id)
+    val_ds = XRFMTextDataset(corpus_path, tokenizer, max_seq_len=256, split="val", pad_id=tokenizer.pad_id)
 
     _set_seed(seed)
     model = GPTModel(config_path, vocab_size=tokenizer.vocab_size())
@@ -75,7 +75,7 @@ def run_size(name: str, config_path: str, tokenizer, corpus_path: str, steps: in
 
 
 def main(steps: int, seed: int):
-    from tokenizer.bpe import BytePairEncoder
+    from xrfm.tokenization.bpe import BytePairEncoder
 
     corpus = "data/datasets/corpus.txt"
     # ONE shared tokenizer for both sizes (isolates model size).

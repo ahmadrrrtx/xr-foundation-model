@@ -1,3 +1,4 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 6 tests: sparse dynamic message passing + end-to-end block.
 
 GATE: end-to-end synthetic graph sequence task trains using
@@ -9,8 +10,8 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from xrfm.core import DynamicMessagePassing, NeuroTopoBlock
-from xrfm.topology import DynamicTopology
+from xrfm.research.neurotopo import DynamicMessagePassing, NeuroTopoBlock
+from xrfm.research.neurotopo.topology import DynamicTopology
 
 
 def test_dynamic_mp_shapes_and_sparsity():
@@ -72,8 +73,7 @@ def test_block_forward_shapes():
 
 
 def test_block_stateful_plasticity():
-    topo = DynamicTopology(8, 8, local_degree=2, longrange_topk=3, rank=4,
-                           decay_init=0.5, plasticity=True, seed=4)
+    topo = DynamicTopology(8, 8, local_degree=2, longrange_topk=3, rank=4, decay_init=0.5, plasticity=True, seed=4)
     block = NeuroTopoBlock(d=8, topology=topo)
     H = torch.randn(1, 8, 8)
     state = topo.init_weight()

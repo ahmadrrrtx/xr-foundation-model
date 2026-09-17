@@ -1,5 +1,10 @@
 # XR Foundation Model (`XRFM`) — Training Guide
 
+> **Phase 0 note:** import paths in this guide use the canonical `xrfm.*`
+> package layout. The pre-Phase-0 paths (`model.*`, `training.*`, ...) still
+> work inside a repository checkout via deprecation shims, but new code
+> should use the paths shown here. See `docs/architecture.md`.
+
 > **AUDIT REMEDIATION NOTE (2026-08-08):** this document describes the original
 > design. A forensic audit found and fixed several issues (implicit causal
 > masking, character-level tokenizer, padding-loss, resume/scheduler state,
@@ -52,12 +57,12 @@ The `XRFM` training engine (`Phase 5` — `v0.5.0`) provides the core training l
 # Note: `RESEARCH-ONLY`: Replace `DummyDataset` with `XRFMTextDataset` (`xrfm/data/loader.py`)
 # and `dummy_batch_ids` with actual dataset batches (`DataLoader`) for production training (`Phase 6`+).
 import torch
-from model.gpt import GPTModel
-from training.optimizer import OptimizerLoader
-from training.scheduler import SchedulerLoader
-from training.checkpoint import CheckpointLoader
-from training.mixed_precision import MixedPrecisionLoader
-from training.loop import TrainingLoop
+from xrfm.models import GPTModel
+from xrfm.training.optimizer import OptimizerLoader
+from xrfm.training.scheduler import SchedulerLoader
+from xrfm.training.checkpoint import CheckpointLoader
+from xrfm.training.mixed_precision import MixedPrecisionLoader
+from xrfm.training.loop import TrainingLoop
 
 # Initialize model (`GPTModel` — `v0.4.0`).
 model = GPTModel(config_path="config/config.yaml")

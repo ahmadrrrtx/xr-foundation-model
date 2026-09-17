@@ -25,11 +25,12 @@ if REPO_ROOT not in sys.path:
 
 import torch  # noqa: E402
 
-from model.gpt import GPTModel  # noqa: E402
-from tokenizer.bpe import BytePairEncoder  # noqa: E402
-from training.loop import TrainingLoop  # noqa: E402
-from training.metrics import MetricsWriter  # noqa: E402
-from xrfm.data.loader import XRFMTextDataset, split_dataset_lines  # noqa: E402
+from xrfm import __version__
+from xrfm.data import TextDataset, split_dataset_lines  # noqa: E402
+from xrfm.models.gpt import GPTModel  # noqa: E402
+from xrfm.tokenization.bpe import BytePairEncoder  # noqa: E402
+from xrfm.training.loop import TrainingLoop  # noqa: E402
+from xrfm.training.metrics import MetricsWriter  # noqa: E402
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("xrfm.train")
@@ -80,21 +81,21 @@ def train_custom_model(
     logger.info("Tokenizer trained: vocab=%d, saved to %s", tokenizer.vocab_size(), tokenizer_path)
 
     # --- Dataset (all splits from the same file, line-boundary split) ---
-    dataset = XRFMTextDataset(
+    dataset = TextDataset(
         dataset_path=dataset_path,
         tokenizer=tokenizer,
         max_seq_len=max_seq_len,
         split="train",
         split_ratio=train_ratio,
-        pad_id=tokenizer.pad_id or 0,
+        pad_id=tokenizer.pad_id,
     )
-    val_dataset = XRFMTextDataset(
+    val_dataset = TextDataset(
         dataset_path=dataset_path,
         tokenizer=tokenizer,
         max_seq_len=max_seq_len,
         split="val",
         split_ratio=train_ratio,
-        pad_id=tokenizer.pad_id or 0,
+        pad_id=tokenizer.pad_id,
     )
     logger.info("Train chunks: %d | Val chunks: %d", len(dataset), len(val_dataset))
 
@@ -123,8 +124,8 @@ def train_custom_model(
     # Validation hook: val loss + perplexity every 100 steps.
     from torch.utils.data import DataLoader
 
-    from evaluation.perplexity import compute_perplexity
-    from training.distributed import xrfm_collate_fn
+    from xrfm.evaluation.perplexity import compute_perplexity
+    from xrfm.training.distributed import xrfm_collate_fn
 
     def _validate(loop_obj):
         val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=xrfm_collate_fn)
@@ -148,7 +149,7 @@ def train_custom_model(
         dataset_path,
         tokenizer,
         name=f"xrfm_{os.path.basename(dataset_path)}",
-        version="1.0.0",
+        version=__version__,
         source=os.getenv("XRFM_DATASET_SOURCE", "see data/datasets/README.md"),
         license=os.getenv("XRFM_DATASET_LICENSE", "see data/datasets/README.md"),
         train_ratio=0.9,

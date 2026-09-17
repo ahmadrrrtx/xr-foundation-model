@@ -1,0 +1,68 @@
+# XR Foundation Model (XRFM) — packaged default configuration.
+#
+# This is the resource returned by `xrfm.load_config(None)` /
+# `ConfigLoader()`. It is identical in spirit to the repository preset
+# `config/config.yaml` (XRFM-SMALL: local development / CPU experiments)
+# but lives inside the package so it resolves regardless of the process
+# working directory or whether the repo checkout is present.
+#
+# NOTE: there is deliberately **no version field** in XRFM configs — the
+# single version source is `xrfm.__version__`.
+
+project:
+  name: "XR Foundation Model"
+
+paths:
+  data_dir: "data/"
+  checkpoint_dir: "checkpoints/"
+  tokenizer_path: "tokenizer/"
+  log_dir: "logs/"
+  manifest_dir: "data/manifests/"
+
+datasets:
+  name: "tiny_corpus"
+  path: "data/datasets/corpus.txt"
+  train_ratio: 0.9
+  val_ratio: 0.05
+  test_ratio: 0.05
+  shuffle: true
+  seed: 42
+  dedup: true
+
+model:
+  vocab_size: 2048      # training scripts override this with the tokenizer's real vocab size
+  d_model: 128
+  n_layers: 4
+  n_heads: 4
+  d_ff: 512
+  max_seq_len: 256
+  dropout: 0.1
+  use_rope: true
+  use_rmsnorm: true
+  use_swiglu: true
+  use_bias: true
+  pad_token_id: null    # resolved from the tokenizer contract at runtime when available
+
+training:
+  batch_size: 8
+  max_steps: 5000
+  warmup_steps: 200
+  learning_rate: 0.0003
+  weight_decay: 0.1
+  gradient_clip: 1.0
+  mixed_precision: false   # honest: no reduced precision on CPU; bf16 on GPU
+  checkpoint_every: 500
+  resume_from: null
+  grad_accum_steps: 1
+  use_ddp: false
+  use_fsdp: false
+  seed: 42
+  error_if_nonfinite: false
+  ignore_index: -100
+  eval_every: 0
+  num_workers: 0
+  pin_memory: false
+  prefetch_factor: null
+  persistent_workers: false
+  device: null             # null = auto (cuda if available else cpu)
+  deterministic: false

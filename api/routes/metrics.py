@@ -6,6 +6,7 @@ import torch
 from fastapi import APIRouter
 
 from api.main import _model, _model_loaded, _startup_time
+from xrfm import __version__
 
 router = APIRouter()
 
@@ -18,5 +19,5 @@ async def metrics():
         "model_loaded": _model_loaded,
         "parameters": _model.parameter_count() if _model else 0,
         "gpu_available": torch.cuda.is_available(),
-        "version": "1.0.0",
+        "version": __version__,
     }

@@ -1,3 +1,4 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 3 tests: local GRU dynamics + overfit gate.
 
 GATE (mission): a tiny neural system using these dynamics must overfit a
@@ -9,8 +10,8 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from xrfm.dynamics import GRUDynamics
-from xrfm.neurons import NeuralModuleState
+from xrfm.research.neurotopo.dynamics import GRUDynamics
+from xrfm.research.neurotopo.neurons import NeuralModuleState
 
 
 def test_gru_shapes_and_bounds():
@@ -41,7 +42,7 @@ def test_gru_repeated_input_converges_toward_fixed_point():
     H = torch.zeros(1, 3, 8)
     x = torch.randn(1, 3, 8).expand(50, -1, -1)  # same input 50 times
     for t in range(50):
-        H = dyn(H, x[t:t+1])
+        H = dyn(H, x[t : t + 1])
     assert torch.isfinite(H).all()
     assert H.abs().max().item() < 50.0
 
@@ -106,9 +107,7 @@ def test_gate_overfit_deterministic_synthetic_sequence():
     assert initial_loss is not None and final_loss is not None
     # Strong decrease = the recurrent system can fit the deterministic sequence.
     assert final_loss < 0.05, f"failed to overfit: {initial_loss:.4f} -> {final_loss:.4f}"
-    assert final_loss < initial_loss * 0.2, (
-        f"insufficient decrease: {initial_loss:.4f} -> {final_loss:.4f}"
-    )
+    assert final_loss < initial_loss * 0.2, f"insufficient decrease: {initial_loss:.4f} -> {final_loss:.4f}"
 
 
 def test_gradient_stability_over_long_rollout():

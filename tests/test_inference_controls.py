@@ -13,9 +13,9 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from inference.engine import GenerationEngine  # noqa: E402
-from inference.sampling import apply_repetition_penalty, sample_token  # noqa: E402
-from model.gpt import GPTModel  # noqa: E402
+from xrfm.inference.engine import GenerationEngine  # noqa: E402
+from xrfm.inference.sampling import apply_repetition_penalty, sample_token  # noqa: E402
+from xrfm.models.gpt import GPTModel  # noqa: E402
 
 
 def _make_engine():

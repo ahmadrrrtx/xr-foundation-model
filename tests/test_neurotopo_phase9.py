@@ -1,11 +1,12 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 9 tests: language input path (tokenizer -> embedding -> modules)."""
 
 from __future__ import annotations
 
 import torch
 
-from tokenizer.bpe import BytePairEncoder
-from xrfm.neurotopo.input_layer import NeuroTopoInput
+from xrfm.research.neurotopo.input_layer import NeuroTopoInput
+from xrfm.tokenization.bpe import BytePairEncoder
 
 
 def _tokenizer():

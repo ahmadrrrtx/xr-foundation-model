@@ -1,5 +1,10 @@
 # XRFM Distributed Training Guide — v0.8.0
 
+> **Phase 0 note:** import paths in this guide use the canonical `xrfm.*`
+> package layout. The pre-Phase-0 paths (`model.*`, `training.*`, ...) still
+> work inside a repository checkout via deprecation shims, but new code
+> should use the paths shown here. See `docs/architecture.md`.
+
 > **AUDIT REMEDIATION NOTE (2026-08-08):** this document describes the original
 > design. A forensic audit found and fixed several issues (implicit causal
 > masking, character-level tokenizer, padding-loss, resume/scheduler state,
@@ -44,7 +49,7 @@ torchrun
 ### Single-GPU (default — no changes needed)
 
 ```python
-from training.loop import TrainingLoop
+from xrfm.training.loop import TrainingLoop
 
 loop = TrainingLoop(model=model, dataset=dataset)
 loop.training_loop()

@@ -7,16 +7,16 @@ Covers sampling strategies, KV cache, and end-to-end generation.
 import pytest
 import torch
 
-from inference.engine import GenerationEngine
-from inference.kv_cache import KVCache
-from inference.sampling import (
+from xrfm.inference.engine import GenerationEngine
+from xrfm.inference.kv_cache import KVCache
+from xrfm.inference.sampling import (
     sample_greedy,
     sample_temperature,
     sample_token,
     sample_top_k,
     sample_top_p,
 )
-from model.gpt import GPTModel
+from xrfm.models.gpt import GPTModel
 
 # --- Sampling Tests ---
 

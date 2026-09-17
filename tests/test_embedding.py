@@ -10,7 +10,7 @@ edge cases, failure modes, regression verification.
 import pytest
 import torch
 
-from model.embedding import XRFMEmbedding
+from xrfm.models.embedding import XRFMEmbedding
 
 
 class TestEmbeddingShape:

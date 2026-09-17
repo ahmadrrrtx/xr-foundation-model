@@ -1,10 +1,11 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 13 tests: calibration metrics + token-prob baseline comparison."""
 
 from __future__ import annotations
 
 import torch
 
-from xrfm.nt_evaluation import (
+from xrfm.research.neurotopo.evaluation import (
     abstention_rate,
     brier_score,
     evaluate_calibration,
@@ -62,7 +63,7 @@ def test_graph_confidence_beats_token_prob_on_synthetic():
     unknown, a graph-evidence confidence must give a better selective-AUC than
     the token-probability baseline (which is uninformative here)."""
     torch.manual_seed(0)
-    from xrfm.uncertainty import UncertaintyHead
+    from xrfm.research.neurotopo.uncertainty import UncertaintyHead
 
     head = UncertaintyHead()
     opt = torch.optim.Adam(head.parameters(), lr=3e-2)
@@ -70,9 +71,12 @@ def test_graph_confidence_beats_token_prob_on_synthetic():
     def sample(label):
         v = torch.randn(9) * 0.3
         if label == 0:
-            v[0] += 1.0; v[2] -= 1.0; v[8] += 1.0
+            v[0] += 1.0
+            v[2] -= 1.0
+            v[8] += 1.0
         else:
-            v[0] -= 1.0; v[7] += 1.0
+            v[0] -= 1.0
+            v[7] += 1.0
         return v
 
     for _ in range(400):
@@ -80,7 +84,9 @@ def test_graph_confidence_beats_token_prob_on_synthetic():
         X = torch.stack([sample(int(i)) for i in y])
         logits, _ = head(X)
         loss = torch.nn.functional.cross_entropy(logits[:, [0, 2]], y)
-        opt.zero_grad(); loss.backward(); opt.step()
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
 
     # Eval: label 0 = known/correct, label 1 = unknown/abstain (incorrect if answered)
     head.eval()
@@ -90,17 +96,17 @@ def test_graph_confidence_beats_token_prob_on_synthetic():
     with torch.no_grad():
         logits, _ = head(X)
         p = torch.softmax(logits, dim=-1)
-        graph_conf = p[:, 0]   # confidence in ANSWER
-        correct = (y == 0)
+        graph_conf = p[:, 0]  # confidence in ANSWER
+        correct = y == 0
         # token-prob baseline: uninformative random confidence
         torch.manual_seed(1)
         token_conf = torch.rand(N)
 
     g_metrics = evaluate_calibration(graph_conf, correct, p, y.clamp_max(p.shape[1] - 1))
-    t_metrics = evaluate_calibration(token_conf, correct,
-                                     torch.softmax(torch.randn(N, 5), -1), y.clamp_max(4))
+    t_metrics = evaluate_calibration(token_conf, correct, torch.softmax(torch.randn(N, 5), -1), y.clamp_max(4))
     assert g_metrics["selective_auc"] > t_metrics["selective_auc"], (
-        g_metrics["selective_auc"], t_metrics["selective_auc"]
+        g_metrics["selective_auc"],
+        t_metrics["selective_auc"],
     )
 
 
@@ -110,6 +116,5 @@ def test_evaluate_calibration_returns_all_keys():
     probs = torch.softmax(torch.randn(50, 5), -1)
     targets = torch.randint(0, 5, (50,))
     m = evaluate_calibration(conf, correct, probs, targets)
-    for k in ["ece", "brier", "abstention@0.5", "false_confidence@0.8",
-              "selective_auc", "mean_conf", "accuracy"]:
+    for k in ["ece", "brier", "abstention@0.5", "false_confidence@0.8", "selective_auc", "mean_conf", "accuracy"]:
         assert k in m

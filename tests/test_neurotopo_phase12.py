@@ -1,3 +1,4 @@
+# ruff: noqa: E702, E741, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 12 tests: 5-state uncertainty head.
 
 GATE: the head must distinguish known / unknown / ambiguous / insufficient-context
@@ -8,7 +9,7 @@ from __future__ import annotations
 
 import torch
 
-from xrfm.uncertainty import STATE_NAMES, UncertaintyHead, effective_rank, routing_entropy
+from xrfm.research.neurotopo.uncertainty import STATE_NAMES, UncertaintyHead, effective_rank, routing_entropy
 
 
 def test_state_names_and_shapes():
@@ -56,16 +57,22 @@ def test_gate_distinguishes_states_better_than_random():
     def sample(label):
         # Build a 9-dim evidence vector with class-conditional signal.
         v = torch.randn(9) * 0.3
-        if label == 0:   # ANSWER: high support, low conflict, high margin
-            v[0] += 1.0; v[2] -= 1.0; v[8] += 1.0
-        elif label == 1: # QUALIFY: moderate conflict
-            v[2] += 0.5; v[0] += 0.3
-        elif label == 2: # ABSTAIN: low support, high surprise
-            v[0] -= 1.0; v[7] += 1.0
-        elif label == 3: # REQUEST_CONTEXT: low margin, low edge mass
-            v[0] -= 0.5; v[8] -= 1.0
-        else:            # REQUEST_EVIDENCE: high conflict
-            v[2] += 1.5; v[3] -= 0.5
+        if label == 0:  # ANSWER: high support, low conflict, high margin
+            v[0] += 1.0
+            v[2] -= 1.0
+            v[8] += 1.0
+        elif label == 1:  # QUALIFY: moderate conflict
+            v[2] += 0.5
+            v[0] += 0.3
+        elif label == 2:  # ABSTAIN: low support, high surprise
+            v[0] -= 1.0
+            v[7] += 1.0
+        elif label == 3:  # REQUEST_CONTEXT: low margin, low edge mass
+            v[0] -= 0.5
+            v[8] -= 1.0
+        else:  # REQUEST_EVIDENCE: high conflict
+            v[2] += 1.5
+            v[3] -= 0.5
         return v
 
     for _ in range(400):
@@ -73,7 +80,9 @@ def test_gate_distinguishes_states_better_than_random():
         X = torch.stack([sample(int(l)) for l in labels])
         logits, _ = head(X)
         loss = torch.nn.functional.cross_entropy(logits, labels)
-        opt.zero_grad(); loss.backward(); opt.step()
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
 
     head.eval()
     with torch.no_grad():

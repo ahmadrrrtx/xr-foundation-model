@@ -11,8 +11,6 @@
 
 project:
   name: "XR Foundation Model"
-  package: "xrfm"
-  version: "1.0.1"
 
 paths:
   data_dir: "data/"
@@ -22,13 +20,12 @@ paths:
   manifest_dir: "data/manifests/"
 
 datasets:
-  default: "fineweb-edu-sample-10BT-slice"
-  path: "data/datasets/"
+  name: "fineweb-edu-sample-10BT-slice"
+  path: "data/datasets/fineweb-edu-sample-10BT-slice.txt"
   train_ratio: 0.95
   val_ratio: 0.025
   test_ratio: 0.025
   shuffle: true
-  streaming: false
   seed: 42
 
 model:

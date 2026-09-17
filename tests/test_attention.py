@@ -5,7 +5,7 @@ Tests for multi-head attention (v0.6.0) — now returns (output, present_kv).
 import pytest
 import torch
 
-from model.attention.multi_head import MultiHeadAttention
+from xrfm.models.attention.multi_head import MultiHeadAttention
 
 
 class TestAttentionShape:

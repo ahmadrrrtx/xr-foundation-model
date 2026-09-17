@@ -10,8 +10,8 @@ Bug C-5: Training loop used random dummy data, not real dataset.
 import pytest
 import torch
 
-from model.gpt import GPTModel
-from training.loop import TrainingLoop
+from xrfm.models.gpt import GPTModel
+from xrfm.training.loop import TrainingLoop
 
 
 class DummyRegressionDataset:
@@ -94,17 +94,26 @@ class TestDatasetIntegration:
 class TestVersionConsistency:
     """REGRESSION C-1: Version consistent across all indicators."""
 
-    def test_package_version_matches_config(self):
+    def test_version_single_source(self):
+        """REGRESSION C-1 (Phase 0): `xrfm.__version__` is the ONE version source.
+
+        pyproject reads it dynamically; config YAMLs must not carry a
+        duplicate version field anymore.
+        """
+        import importlib.metadata
         import pathlib
 
         import yaml
 
         from xrfm import __version__ as pkgv
 
-        cfg_path = pathlib.Path(__file__).parent.parent / "config" / "config.yaml"
-        with open(cfg_path) as f:
-            cfg = yaml.safe_load(f)
-        assert pkgv == cfg["project"]["version"], f"Mismatch: __init__={pkgv}, config={cfg['project']['version']}"
+        installed = importlib.metadata.version("xrfm")
+        assert installed == pkgv, f"installed metadata {installed} != xrfm.__version__ {pkgv}"
+        for name in ("config.yaml", "tiny.yaml", "medium.yaml", "v1.1-medium.yaml"):
+            cfg_path = pathlib.Path(__file__).parent.parent / "config" / name
+            with open(cfg_path) as f:
+                cfg = yaml.safe_load(f)
+            assert "version" not in cfg.get("project", {}), f"{name} duplicates the version field"
 
     def test_version_is_current(self):
         import re
@@ -115,13 +124,15 @@ class TestVersionConsistency:
 
 
 class TestTrainingLoopInit:
-    """REGRESSION: TrainingLoop requires model + dataset at init."""
+    """REGRESSION: TrainingLoop requires model at init, dataset at train time."""
 
     def test_init_requires_model(self):
         with pytest.raises(ValueError, match="model is required"):
             TrainingLoop(dataset=DummyRegressionDataset())
 
-    def test_init_requires_dataset(self):
+    def test_dataset_required_at_train_time(self):
+        """Phase 0 contract: dataset may be omitted at init but training requires it."""
         model = GPTModel()
-        with pytest.raises(ValueError, match="dataset is required"):
-            TrainingLoop(model=model)
+        loop = TrainingLoop(model=model)  # no dataset at init — allowed
+        with pytest.raises(ValueError, match="dataset"):
+            loop.training_loop(max_steps=1)

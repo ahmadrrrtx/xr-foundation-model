@@ -20,7 +20,6 @@ import tempfile
 import pytest
 import torch
 
-from tokenizer.bpe import BytePairEncoder
 from xrfm.config.loader import ConfigLoader
 from xrfm.data.loader import (
     XRFMTextDataset,
@@ -32,6 +31,7 @@ from xrfm.data.loader import (
     split_dataset,
     verify_text_file,
 )
+from xrfm.tokenization.bpe import BytePairEncoder
 
 
 class TestDatasetConfig:
@@ -45,8 +45,8 @@ class TestDatasetConfig:
         config_path = pathlib.Path(__file__).parent.parent / "config" / "config.yaml"
         config = ConfigLoader(str(config_path))
         dataset_cfg = load_config_for_dataset(config)
-        assert dataset_cfg.dataset_name == "tiny_corpus"
-        assert dataset_cfg.dataset_path == "data/datasets/"
+        assert dataset_cfg.name == "corpus"
+        assert dataset_cfg.path == "data/datasets/corpus.txt"
         assert dataset_cfg.max_seq_len == 256
 
     def test_custom_config_values(self) -> None:

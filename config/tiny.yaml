@@ -1,8 +1,6 @@
 # XRFM-TINY — unit/integration tests (fastest possible round-trip).
 project:
   name: "XR Foundation Model"
-  package: "xrfm"
-  version: "1.0.1"
 
 paths:
   data_dir: "data/"
@@ -12,13 +10,12 @@ paths:
   manifest_dir: "data/manifests/"
 
 datasets:
-  default: "tiny_corpus"
-  path: "data/datasets/"
+  name: "corpus"
+  path: "data/datasets/corpus.txt"
   train_ratio: 0.9
   val_ratio: 0.05
   test_ratio: 0.05
   shuffle: true
-  streaming: false
   seed: 42
 
 model:

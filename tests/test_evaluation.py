@@ -11,17 +11,17 @@ import pytest
 import torch
 from torch.utils.data import DataLoader
 
-from evaluation.benchmarks import (
+from xrfm.evaluation.benchmarks import (
     TextCompletionAccuracy,
     TopKAccuracy,
     run_evaluation_suite,
 )
-from evaluation.perplexity import (
+from xrfm.evaluation.perplexity import (
     compute_perplexity,
     compute_perplexity_strided,
     evaluate_checkpoint,
 )
-from model.gpt import GPTModel
+from xrfm.models.gpt import GPTModel
 
 # --- Shared fixtures ---
 

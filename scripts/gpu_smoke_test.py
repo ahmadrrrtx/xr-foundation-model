@@ -51,13 +51,13 @@ def check(name: str, ok: bool, detail: str = "") -> None:
 
 
 def main(device_name: str, steps: int, seed: int) -> int:
-    from model.gpt import GPTModel
-    from tokenizer.bpe import BytePairEncoder
-    from training.checkpoint import CheckpointLoader
-    from training.loop import _set_seed
-    from training.mixed_precision import MixedPrecisionLoader
-    from training.optimizer import OptimizerLoader
-    from training.scheduler import SchedulerLoader
+    from xrfm.models.gpt import GPTModel
+    from xrfm.tokenization.bpe import BytePairEncoder
+    from xrfm.training.checkpoint import CheckpointLoader
+    from xrfm.training.loop import _set_seed
+    from xrfm.training.mixed_precision import MixedPrecisionLoader
+    from xrfm.training.optimizer import OptimizerLoader
+    from xrfm.training.scheduler import SchedulerLoader
 
     has_cuda = torch.cuda.is_available()
     if device_name == "cuda" and not has_cuda:
@@ -79,7 +79,7 @@ def main(device_name: str, steps: int, seed: int) -> int:
 
     with open("/tmp/xrfm_gpu_smoke.txt", "w", encoding="utf-8") as f:
         f.write("The red fox jumps over the lazy moon.\n" * 60)
-    ds = XRFMTextDataset("/tmp/xrfm_gpu_smoke.txt", tok, max_seq_len=64, split="train", pad_id=tok.pad_id or 0)
+    ds = XRFMTextDataset("/tmp/xrfm_gpu_smoke.txt", tok, max_seq_len=64, split="train", pad_id=tok.pad_id)
 
     # --------------------------------------------------------------
     # 1. Model on device

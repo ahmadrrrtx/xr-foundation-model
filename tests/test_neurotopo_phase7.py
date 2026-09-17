@@ -1,3 +1,4 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 7 tests: gated delta-rule associative memory + persistent memory.
 
 GATE: memory measurably improves synthetic retrieval vs a no-memory control.
@@ -8,7 +9,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from xrfm.memory import GatedDeltaMemory, PersistentMemory
+from xrfm.research.neurotopo.memory import GatedDeltaMemory, PersistentMemory
 
 
 def test_init_state_shapes():
@@ -181,8 +182,12 @@ def test_gate_memory_improves_synthetic_retrieval():
         keys, vals, q, tgt = make_batch()
         lw = loss_fn(withmem(keys, vals, q), tgt)
         ln = loss_fn(nomem(keys, vals, q), tgt)
-        opt_w.zero_grad(); lw.backward(); opt_w.step()
-        opt_n.zero_grad(); ln.backward(); opt_n.step()
+        opt_w.zero_grad()
+        lw.backward()
+        opt_w.step()
+        opt_n.zero_grad()
+        ln.backward()
+        opt_n.step()
         if w_init is None:
             w_init, n_init = lw.item(), ln.item()
         w_fin, n_fin = lw.item(), ln.item()
@@ -190,6 +195,4 @@ def test_gate_memory_improves_synthetic_retrieval():
     assert w_fin < 0.2, f"memory model did not retrieve: {w_init:.3f} -> {w_fin:.3f}"
     # No-memory cannot solve it: it never sees which (key,value) pair was queried.
     assert n_fin > 0.6, f"no-memory control unexpectedly solved it: {n_init:.3f} -> {n_fin:.3f}"
-    assert w_fin < n_fin * 0.4, (
-        f"memory did not improve over no-memory: w={w_fin:.3f} no-mem={n_fin:.3f}"
-    )
+    assert w_fin < n_fin * 0.4, f"memory did not improve over no-memory: w={w_fin:.3f} no-mem={n_fin:.3f}"

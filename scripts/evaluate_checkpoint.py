@@ -25,12 +25,12 @@ logger = logging.getLogger("xrfm.eval")
 def main(checkpoint_path: str, max_new_tokens: int, temperature: float, num_samples: int):
     from torch.utils.data import DataLoader
 
-    from evaluation.perplexity import compute_perplexity
-    from inference.engine import GenerationEngine
-    from model.gpt import GPTModel
-    from tokenizer.bpe import BytePairEncoder
-    from training.distributed import xrfm_collate_fn
     from xrfm.data.loader import XRFMTextDataset
+    from xrfm.evaluation.perplexity import compute_perplexity
+    from xrfm.inference.engine import GenerationEngine
+    from xrfm.models.gpt import GPTModel
+    from xrfm.tokenization.bpe import BytePairEncoder
+    from xrfm.training.distributed import xrfm_collate_fn
 
     # Tokenizer (current repo tokenizer is the one used by the run).
     tok = BytePairEncoder()
@@ -61,7 +61,7 @@ def main(checkpoint_path: str, max_new_tokens: int, temperature: float, num_samp
         )
 
     # Val perplexity
-    val_ds = XRFMTextDataset("data/datasets/corpus.txt", tok, max_seq_len=256, split="val", pad_id=tok.pad_id or 0)
+    val_ds = XRFMTextDataset("data/datasets/corpus.txt", tok, max_seq_len=256, split="val", pad_id=tok.pad_id)
     val_loader = DataLoader(val_ds, batch_size=8, shuffle=False, collate_fn=xrfm_collate_fn)
     t0 = time.time()
     eval_result = compute_perplexity(model, val_loader)

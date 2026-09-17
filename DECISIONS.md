@@ -1,5 +1,10 @@
 # Technology Decision Record (TDR) — XRFM
 
+> **Phase 0 path note (2026-09-18):** file paths below are historical —
+> they record where the code lived when each decision was made. Since
+> Phase 0, library code lives in `src/xrfm/` (e.g. `tokenizer/bpe.py` →
+> `src/xrfm/tokenization/bpe.py`). See `docs/architecture.md`.
+
 Each record: Context, Options, Trade-offs, Recommendation, Classification.
 Classification key: **CORE** (required now), **OPTIONAL** (add later), **RESEARCH-ONLY** (investigate future).
 

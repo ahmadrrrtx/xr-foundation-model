@@ -1,3 +1,4 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 1 tests: NeuroTopo package architecture and interfaces exist and import.
 
 These verify only module boundaries and contracts (no complex behavior yet).
@@ -10,8 +11,8 @@ import importlib
 
 import torch
 
-import xrfm.neurotopo as nt
-from xrfm.neurotopo import NeuroTopoConfig, NeuroTopoState
+import xrfm.research.neurotopo as nt
+from xrfm.research.neurotopo import NeuroTopoConfig, NeuroTopoState
 
 
 def test_all_component_packages_import():
@@ -77,7 +78,7 @@ def test_state_dataclass_holds_components():
 
 def test_control_transformer_still_imports_and_builds():
     """Phase 1 must not disturb CONTROL-1."""
-    from model.gpt import GPTModel
+    from xrfm.models.gpt import GPTModel
 
     model = GPTModel(config_path="config/tiny.yaml", vocab_size=1024)
     x = torch.randint(0, 1024, (1, 16))

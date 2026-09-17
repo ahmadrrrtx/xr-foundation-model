@@ -29,12 +29,12 @@ import torch  # noqa: E402
 def main() -> int:
     import tempfile
 
-    from model.gpt import GPTModel
-    from tokenizer.bpe import BytePairEncoder
-    from training.checkpoint import CheckpointLoader
-    from training.loop import TrainingLoop, _set_seed
-    from training.scheduler import SchedulerLoader
     from xrfm.data.loader import XRFMTextDataset
+    from xrfm.models.gpt import GPTModel
+    from xrfm.tokenization.bpe import BytePairEncoder
+    from xrfm.training.checkpoint import CheckpointLoader
+    from xrfm.training.loop import TrainingLoop, _set_seed
+    from xrfm.training.scheduler import SchedulerLoader
 
     STEPS = 60
     SEED = 42
@@ -51,7 +51,7 @@ def main() -> int:
     # Tokenizer fit on the train text (byte-level).
     tok = BytePairEncoder(vocab_size_target=512)
     tok.train_on_text(corpus)
-    ds = XRFMTextDataset(corpus_path, tok, max_seq_len=64, split="train", pad_id=tok.pad_id or 0)
+    ds = XRFMTextDataset(corpus_path, tok, max_seq_len=64, split="train", pad_id=tok.pad_id)
 
     _set_seed(SEED)
     model = GPTModel("config/tiny.yaml", vocab_size=tok.vocab_size())
@@ -81,7 +81,7 @@ def main() -> int:
         return 1
 
     # 3-5. load + resume
-    from training.optimizer import OptimizerLoader
+    from xrfm.training.optimizer import OptimizerLoader
 
     _set_seed(SEED + 1)
     model2 = GPTModel("config/tiny.yaml", vocab_size=tok.vocab_size())

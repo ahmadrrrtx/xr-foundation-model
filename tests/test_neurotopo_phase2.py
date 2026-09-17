@@ -1,3 +1,4 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 2 tests: neural module state H_t in R^{B x N x d}."""
 
 from __future__ import annotations
@@ -6,7 +7,7 @@ import pytest
 import torch
 import torch.nn as nn
 
-from xrfm.neurons import NeuralModuleState
+from xrfm.research.neurotopo.neurons import NeuralModuleState
 
 
 def test_init_shapes_and_determinism():

@@ -1,3 +1,4 @@
+# ruff: noqa: E702, N802, N803, F841  — research bundle tests (pre-Phase-0 style)
 """Phase 8 tests: integrate topology + memory (state H,A,M,C) and ablate."""
 
 from __future__ import annotations
@@ -5,17 +6,14 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from xrfm.core import NTState, NeuroTopoBlock
-from xrfm.dynamics import GRUDynamics
-from xrfm.memory import GatedDeltaMemory
-from xrfm.topology import DynamicTopology, StaticMessagePassing, StaticNeuralGraph
+from xrfm.research.neurotopo import NeuroTopoBlock, NTState
+from xrfm.research.neurotopo.dynamics import GRUDynamics
+from xrfm.research.neurotopo.memory import GatedDeltaMemory
+from xrfm.research.neurotopo.topology import DynamicTopology, StaticMessagePassing, StaticNeuralGraph
 
 
 def _dynamic_block(n_modules=8, d=8, with_memory=True, **kw):
-    topo = DynamicTopology(
-        n_modules, d, local_degree=2, longrange_topk=4, rank=8,
-        seed=kw.pop("seed", 0), **kw
-    )
+    topo = DynamicTopology(n_modules, d, local_degree=2, longrange_topk=4, rank=8, seed=kw.pop("seed", 0), **kw)
     mem = GatedDeltaMemory(d, d, d_hidden=d) if with_memory else None
     return NeuroTopoBlock(d=d, topology=topo, memory=mem), topo, mem
 
@@ -43,7 +41,9 @@ def test_block_without_memory_runs():
 def test_state_bundle_detach():
     s = NTState(
         H=[torch.randn(1, 4, 4, requires_grad=True)],
-        A=[torch.randn(3)], M=[torch.randn(1, 4, 4)], C=None,
+        A=[torch.randn(3)],
+        M=[torch.randn(1, 4, 4)],
+        C=None,
     )
     sd = s.detach()
     assert not sd.H[0].requires_grad
@@ -51,8 +51,7 @@ def test_state_bundle_detach():
 
 
 def test_memory_influences_topology_via_M_term():
-    topo = DynamicTopology(8, 8, local_degree=2, longrange_topk=4, rank=8,
-                           memory_dim=8, seed=1)
+    topo = DynamicTopology(8, 8, local_degree=2, longrange_topk=4, rank=8, memory_dim=8, seed=1)
     mem = GatedDeltaMemory(8, 8, d_hidden=8)
     block = NeuroTopoBlock(d=8, topology=topo, memory=mem)
     H = torch.randn(1, 8, 8)
@@ -157,8 +156,7 @@ def test_gate_ablation_dynamic_plus_memory_outperforms():
     static = _StaticAblation(N, d)
     sread = nn.Linear(d, d)
     opt = torch.optim.Adam(
-        list(wm.parameters()) + list(nm.parameters())
-        + list(static.parameters()) + list(sread.parameters()),
+        list(wm.parameters()) + list(nm.parameters()) + list(static.parameters()) + list(sread.parameters()),
         lr=2e-2,
     )
     loss_fn = nn.MSELoss()
@@ -167,11 +165,14 @@ def test_gate_ablation_dynamic_plus_memory_outperforms():
         signal = torch.randn(B, d)
         lw = loss_fn(wm(signal), signal)
         ln = loss_fn(nm(signal), signal)
-        Hs = torch.zeros(B, N, d); Hs[:, 0] = signal
+        Hs = torch.zeros(B, N, d)
+        Hs[:, 0] = signal
         for _ in range(T):
             Hs = static(Hs + torch.randn(B, N, d) * 0.3)
         ls = loss_fn(sread(Hs[:, N - 1]), signal)
-        opt.zero_grad(); (lw + ln + ls).backward(); opt.step()
+        opt.zero_grad()
+        (lw + ln + ls).backward()
+        opt.step()
         if w0 is None:
             w0, n0, s0 = lw.item(), ln.item(), ls.item()
         wf, nf, sf = lw.item(), ln.item(), ls.item()

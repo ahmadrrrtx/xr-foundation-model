@@ -1,4 +1,4 @@
-# XRFM CPU Production Image (v1.0.0)
+# XRFM CPU Production Image
 # Multi-stage build for minimal image size
 
 FROM python:3.11-slim AS builder
@@ -13,7 +13,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /install /usr/local
+# Phase 0: the API depends on the installed `xrfm` package (no sys.path hacks).
 COPY . .
+RUN pip install --no-cache-dir --no-deps .
 
 RUN useradd -m xrfm && chown -R xrfm:xrfm /app
 USER xrfm
