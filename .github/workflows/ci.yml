@@ -74,10 +74,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install build tooling
+      - name: Install build tooling + runtime deps
         run: |
+          # torch does not depend on pyyaml/numpy; the clean-install step uses
+          # --system-site-packages + --no-deps, so the interpreter that backs
+          # the venv must already have xrfm's runtime dependencies present.
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install build
+          pip install build pyyaml numpy
       - name: Build sdist + wheel
         run: python -m build
       - name: Wheel must contain only the xrfm package
