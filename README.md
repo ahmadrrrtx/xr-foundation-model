@@ -44,6 +44,42 @@ pipeline = DataPipeline(config=PipelineConfig(output_dir="processed/test", seque
 result = pipeline.run(docs)  # → shards, manifest, report
 ```
 
+## XR Intelligence Runtime (new)
+
+XRFM now also contains an additive, model-agnostic agent runtime under
+`xrfm.agent`. This is **not** a claim that the small XRFM neural checkpoint
+was trained for tool use. The runtime separates the neural model from
+structured decisions, permissions, execution, observations, and verification.
+
+```python
+from pathlib import Path
+from xrfm.agent import AgentRuntime, PermissionPolicy, SafeFilesystemTools
+from xrfm.agent import ScriptedBackend, ToolExecutor, ToolRegistry
+
+registry = ToolRegistry()
+SafeFilesystemTools(Path.cwd()).register(registry)  # read-only, root-confined
+executor = ToolExecutor(registry, PermissionPolicy(allowed_permissions={"filesystem.read"}))
+state = AgentRuntime(ScriptedBackend(), executor).run(
+    "Find the largest file in this project and summarize what it is."
+)
+print(state.final_answer)
+```
+
+The demo executes a real filesystem tool; it does not use fake outputs. For a
+capable local model, point `OpenAICompatibleBackend` at llama.cpp, Ollama, or
+vLLM. External weights are never bundled. The existing Transformer remains a
+first-class native research backend candidate, but it is currently a small
+prose LM without native tool-use training. See:
+`docs/XRFM_AGENTIC_ARCHITECTURE.md`, `docs/XRFM_AGENTIC_IMPLEMENTATION_PLAN.md`,
+`docs/research/XRFM_CURRENT_STATE_AUDIT.md`, and
+`docs/XRFM_AGENTIC_FINAL_REPORT.md`.
+
+Run the deterministic end-to-end demo:
+
+```bash
+python scripts/run_agent_demo.py
+```
+
 ## Architecture
 
 ```text
