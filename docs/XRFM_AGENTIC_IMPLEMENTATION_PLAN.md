@@ -21,11 +21,13 @@
 * Acceptance: Chat Completions response can be parsed into XR decisions; all calls still validate and authorize.
 * Next: model-specific chat templates and strict guided decoding.
 
-## Phase D — server and observability
+## Phase D — server and observability (complete in initial form)
 
 * Objective: add `/v1/agent/run` and SSE typed events without changing raw completions.
 * Dependencies: FastAPI optional extra.
-* Tests: request validation, cancellation, auth, event ordering.
+* Implemented: `api/routes/agent.py`, optional `XRFM_AGENT_API_KEY`, `XRFM_AGENT_ROOT`, OpenAI-compatible environment configuration.
+* Tests: request validation, API-key denial/acceptance, event ordering, contained tool failure. **Met: 8 API tests passed.**
+* Remaining: production authentication provider, cancellation propagation into model calls, metrics export.
 * Rollback: endpoint is additive.
 
 ## Phase E — evaluation and training data

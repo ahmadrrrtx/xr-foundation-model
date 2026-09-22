@@ -76,10 +76,16 @@ async def lifespan(app: FastAPI):
             try:
                 import torch
 
-                sd = torch.load(latest, map_location="cpu", weights_only=True)["model_state_dict"]
-                _model.load_state_dict(sd, strict=True)
-                _checkpoint_loaded = True
-                logger.info("Loaded checkpoint weights: %s", latest)
+                payload = torch.load(latest, map_location="cpu", weights_only=True)
+                sd = payload["model_state_dict"]
+                expected_shape = tuple(_model.embedding.embedding.weight.shape)
+                actual_shape = tuple(sd.get("embedding.embedding.weight", torch.empty(0)).shape)
+                if actual_shape != expected_shape:
+                    logger.warning("Skipping incompatible checkpoint %s (embedding shape %s; expected %s)", latest, actual_shape, expected_shape)
+                else:
+                    _model.load_state_dict(sd, strict=True)
+                    _checkpoint_loaded = True
+                    logger.info("Loaded checkpoint weights: %s", latest)
             except Exception as e:  # noqa: BLE001
                 logger.warning("Could not load checkpoint %s: %s", latest, e)
 
@@ -144,7 +150,7 @@ async def request_timing(request: Request, call_next):
 # Import and register routes
 # Forensic-audit fix (F-41): `search_routes` never existed; the API could not
 # import. The search routes now live in `api/routes/search.py`.
-from api.routes import completions, health, metrics, search, tokenize_endpoints  # noqa: E402
+from api.routes import agent, completions, health, metrics, search, tokenize_endpoints  # noqa: E402
 
 # The routes import globals from api.main, creating a module cycle; mypy
 # cannot resolve `router` types through it, so the cycle is documented and
@@ -154,6 +160,7 @@ app.include_router(completions.router, tags=["Completions"])  # type: ignore[has
 app.include_router(tokenize_endpoints.router, tags=["Tokenize"])  # type: ignore[has-type]
 app.include_router(metrics.router, tags=["Metrics"])  # type: ignore[has-type]
 app.include_router(search.router, tags=["Search Engine"])  # type: ignore[has-type]
+app.include_router(agent.router, tags=["Agent Runtime"])  # type: ignore[has-type]
 
 # Mount web UI
 try:

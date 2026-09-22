@@ -49,4 +49,4 @@ The adapter is runtime-enforced and still validates every call. It does not make
 
 ## Compatibility
 
-The package remains Python 3.10+ and uses only existing core dependencies for the deterministic runtime. HTTP adapter networking uses the Python standard library. Full JSON Schema libraries, MCP, SSE server endpoints, and native XRFM backend are planned extensions.
+The package remains Python 3.10+ and uses only existing core dependencies for the deterministic runtime. HTTP adapter networking uses the Python standard library. The optional FastAPI app now exposes `/v1/agent/run` and `/v1/agent/stream`; set `XRFM_AGENT_API_KEY` before exposing it beyond a trusted local environment. Full JSON Schema libraries, MCP, and native XRFM backend remain planned extensions.

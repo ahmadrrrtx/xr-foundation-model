@@ -65,9 +65,7 @@ state = AgentRuntime(ScriptedBackend(), executor).run(
 print(state.final_answer)
 ```
 
-The demo executes a real filesystem tool; it does not use fake outputs. For a
-capable local model, point `OpenAICompatibleBackend` at llama.cpp, Ollama, or
-vLLM. External weights are never bundled. The existing Transformer remains a
+The demo executes a real filesystem tool; it does not use fake outputs. The optional API exposes `/v1/agent/run` and `/v1/agent/stream` (SSE). Set `XRFM_AGENT_API_KEY` to protect the endpoints and `XRFM_AGENT_ROOT` to scope filesystem access. For a capable local model, point `OpenAICompatibleBackend` at llama.cpp, Ollama, or vLLM using `XRFM_AGENT_BASE_URL` and `XRFM_AGENT_MODEL`. External weights are never bundled. The existing Transformer remains a
 first-class native research backend candidate, but it is currently a small
 prose LM without native tool-use training. See:
 `docs/XRFM_AGENTIC_ARCHITECTURE.md`, `docs/XRFM_AGENTIC_IMPLEMENTATION_PLAN.md`,

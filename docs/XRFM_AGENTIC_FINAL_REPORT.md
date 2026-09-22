@@ -50,7 +50,8 @@ Implemented:
 * `xrfm.agent.execution`: validation → authorization → timeout-bounded execution → typed result.
 * `xrfm.agent.runtime`: bounded event-emitting state machine.
 * `xrfm.agent.evaluation`: initial benchmark case/result harness.
-* `scripts/run_agent_demo.py` and `tests/test_agent_runtime.py`.
+* `api/routes/agent.py`: `/v1/agent/run` JSON endpoint and `/v1/agent/stream` SSE endpoint with optional API-key protection.
+* `scripts/run_agent_demo.py`, `tests/test_agent_runtime.py`, and `tests/test_agent_api.py`.
 * research, architecture, implementation-plan, training-strategy, audit, and README documents.
 
 Measured in this session:

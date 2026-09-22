@@ -89,3 +89,23 @@ class SearchResponse(BaseModel):
     query: str
     results: list[SearchResult]
     total: int = 0
+
+
+class AgentRequest(BaseModel):
+    request: str = Field(..., min_length=1, max_length=16000)
+
+
+class AgentEventResponse(BaseModel):
+    phase: str
+    message: str
+    data: dict = {}
+    timestamp: float
+
+
+class AgentResponse(BaseModel):
+    request: str
+    answer: str
+    failed: bool
+    steps: int
+    events: list[dict]
+    observations: list[str]
