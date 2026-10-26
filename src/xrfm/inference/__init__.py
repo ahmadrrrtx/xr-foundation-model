@@ -2,14 +2,14 @@
 
 Public surface:
 
-    from xrfm.inference import generate, GenerationEngine, GenerationResult
+    from xrfm.inference import generate, GenerationEngine, GenerationResult, GenerationMetadata
 
 Sampling primitives (``sample_greedy``, ``sample_top_k``, ``sample_top_p``,
 ``sample_temperature``, ``sample_token``) and :class:`KVCache` are importable
 for advanced/experimental use.
 """
 
-from xrfm.inference.engine import GenerationEngine
+from xrfm.inference.engine import GenerationEngine, GenerationEvent, GenerationMetadata
 from xrfm.inference.generate import GenerationResult, generate
 from xrfm.inference.kv_cache import KVCache
 from xrfm.inference.sampling import (
@@ -22,6 +22,8 @@ from xrfm.inference.sampling import (
 
 __all__ = [
     "GenerationEngine",
+    "GenerationEvent",
+    "GenerationMetadata",
     "GenerationResult",
     "KVCache",
     "generate",

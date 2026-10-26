@@ -1,0 +1,3 @@
+torch= 2.14.1+cpu
+cuda_available= False
+cuda_device_count= 0

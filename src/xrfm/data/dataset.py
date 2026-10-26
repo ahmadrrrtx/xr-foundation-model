@@ -28,6 +28,8 @@ the dataset is constructed *from* that config object.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from pathlib import Path
 
@@ -37,7 +39,7 @@ from torch.utils.data import Dataset
 from xrfm.config.schema import DatasetConfig
 from xrfm.data.packing import chunk_token_ids
 from xrfm.data.splits import split_dataset_lines
-from xrfm.tokenization.interface import Tokenizer
+from xrfm.tokenization.interface import Tokenizer, tokenizer_fingerprint
 
 __all__ = ["TextDataset", "verify_text_file", "IGNORE_INDEX"]
 
@@ -148,6 +150,22 @@ class TextDataset(Dataset):
         verify_text_file(path)
         with open(path, encoding="utf-8") as f:
             text = f.read()
+
+        content_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        identity_payload = {
+            "content_sha256": content_hash,
+            "split": self.split,
+            "split_ratio": self.split_ratio,
+            "max_seq_len": self.max_seq_len,
+            "seed": self.seed,
+            "shuffle": self.shuffle,
+            "dedup": self.dedup,
+            "pad_id": self.pad_id,
+            "ignore_index": self.ignore_index,
+        }
+        identity_bytes = json.dumps(identity_payload, sort_keys=True).encode("utf-8")
+        self.data_manifest_hash = f"sha256:{hashlib.sha256(identity_bytes).hexdigest()}"
+        self.tokenizer_hash = tokenizer_fingerprint(tokenizer)
 
         # Split by line boundaries; val/test evenly split the remainder.
         remainder = (1.0 - self.split_ratio) / 2.0

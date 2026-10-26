@@ -35,43 +35,49 @@ Responsibilities are separated:
 """
 
 from xrfm.config.schema import DatasetConfig
+from xrfm.data.checksums import compute_dataset_id, sha256_file
+from xrfm.data.contamination import ContaminationChecker, ContaminationConfig, ContaminationRegistry
 from xrfm.data.dataset import IGNORE_INDEX, TextDataset, XRFMTextDataset, verify_text_file
+from xrfm.data.dedup import (
+    ExactDedupConfig,
+    NearDedupConfig,
+    deduplicate_documents,
+    deduplicate_exact,
+    deduplicate_near,
+)
+from xrfm.data.document_split import SplitConfig, split_documents
+from xrfm.data.language import LanguageDetector, LanguageDetectorConfig, get_detector
 from xrfm.data.manifest import (
     DatasetManifest,
     build_dataset_manifest,
     build_manifest,
     save_manifest,
 )
+from xrfm.data.manifest_v2 import DatasetManifestV2, build_manifest_v2
+from xrfm.data.mixing import MixtureComponent, MixtureConfig, mix_documents
+from xrfm.data.normalization import NormalizationResult, normalize_document
 from xrfm.data.packing import PackingError, chunk_text, chunk_token_ids
-from xrfm.data.splits import SplitRatiosError, normalize_text, split_dataset, split_dataset_lines
+from xrfm.data.packing_extended import PackedSequence, PackingConfig, pack_tokenized_documents
+from xrfm.data.pii import PIIFilter, PIIFilterConfig
+from xrfm.data.pipeline import DataPipeline, PipelineConfig
+from xrfm.data.quality import QualityFilter, QualityFilterConfig
+from xrfm.data.reporting import DatasetReport
 
 # Phase 1 new exports
 from xrfm.data.schema import (
+    DeduplicationInfo,
     Document,
     DocumentAttributes,
     LanguageScore,
-    QualityScore,
     PIIScore,
-    DeduplicationInfo,
     ProcessingDecision,
+    QualityScore,
 )
+from xrfm.data.sharding import ShardedTokenDataset, ShardInfo, ShardingConfig, assign_shards_to_rank, write_shards
 from xrfm.data.sources import SourceConfig, SourceRegistry
-from xrfm.data.normalization import normalize_document, NormalizationResult
-from xrfm.data.language import LanguageDetectorConfig, LanguageDetector, get_detector
-from xrfm.data.quality import QualityFilterConfig, QualityFilter
-from xrfm.data.pii import PIIFilterConfig, PIIFilter
-from xrfm.data.dedup import ExactDedupConfig, NearDedupConfig, deduplicate_documents, deduplicate_exact, deduplicate_near
-from xrfm.data.document_split import SplitConfig, split_documents
-from xrfm.data.contamination import ContaminationConfig, ContaminationChecker, ContaminationRegistry
-from xrfm.data.mixing import MixtureConfig, MixtureComponent, mix_documents
+from xrfm.data.splits import SplitRatiosError, normalize_text, split_dataset, split_dataset_lines
 from xrfm.data.tokenization import TokenizationConfig, TokenizerInfo, tokenize_documents
-from xrfm.data.packing_extended import PackingConfig, pack_tokenized_documents, PackedSequence
-from xrfm.data.sharding import ShardingConfig, ShardInfo, write_shards, ShardedTokenDataset, assign_shards_to_rank
-from xrfm.data.tokenized_dataset import ShardedTokenDatasetMap, ShardedTokenDatasetIterable
-from xrfm.data.manifest_v2 import DatasetManifestV2, build_manifest_v2
-from xrfm.data.checksums import compute_dataset_id, sha256_file
-from xrfm.data.reporting import DatasetReport
-from xrfm.data.pipeline import PipelineConfig, DataPipeline
+from xrfm.data.tokenized_dataset import ShardedTokenDatasetIterable, ShardedTokenDatasetMap
 
 __all__ = [
     # Phase 0 compat

@@ -1,0 +1,268 @@
+FFFFFFFFFFFF                                                             [100%]
+=================================== FAILURES ===================================
+___________________ test_real_lifespan_models_and_completion ___________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efe147b7950>
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-17/test_real_lifespan_models_and_0')
+
+    def test_real_lifespan_models_and_completion(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        tokenizer_path, checkpoint_path, _ = make_tiny_service_artifacts(tmp_path)
+        configure_service(monkeypatch, tokenizer_path, checkpoint_path)
+        from api.main import app
+    
+        with TestClient(app) as client:
+            health = client.get("/health")
+            assert health.status_code == 200
+>           assert health.json()["model_loaded"] is True
+E           assert False is True
+
+tests/test_phase0_api.py:61: AssertionError
+------------------------------ Captured log call -------------------------------
+WARNING  xrfm.api:main.py:84 Skipping incompatible checkpoint checkpoints/checkpoint_step_500.pt (embedding shape (50304, 256); expected (2048, 128))
+____ test_completion_usage_uses_original_prompt_and_actual_generated_tokens ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efdefb12fd0>
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-17/test_completion_usage_uses_ori0')
+
+    def test_completion_usage_uses_original_prompt_and_actual_generated_tokens(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        tokenizer_path, checkpoint_path, tokenizer = make_tiny_service_artifacts(tmp_path)
+        configure_service(monkeypatch, tokenizer_path, checkpoint_path)
+        from api.main import app
+    
+        prompt = "hello world " * 20
+        with TestClient(app) as client:
+            response = client.post(
+                "/v1/completions",
+                json={"prompt": prompt, "max_new_tokens": 2, "temperature": 0},
+            )
+>       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"Model not loaded"}
+E       assert 503 == 200
+E        +  where 503 = <Response [503 Service Unavailable]>.status_code
+
+tests/test_phase0_api.py:92: AssertionError
+------------------------------ Captured log call -------------------------------
+WARNING  xrfm.api:main.py:84 Skipping incompatible checkpoint checkpoints/checkpoint_step_500.pt (embedding shape (50304, 256); expected (2048, 128))
+____________ test_missing_checkpoint_is_liveness_only_not_readiness ____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efdef99a210>
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-17/test_missing_checkpoint_is_liv0')
+
+    def test_missing_checkpoint_is_liveness_only_not_readiness(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("XRFM_TOKENIZER_PATH", raising=False)
+        monkeypatch.delenv("XRFM_CHECKPOINT_PATH", raising=False)
+        monkeypatch.setenv("XRFM_AGENT_ENABLED", "false")
+        from api.main import app
+    
+        with TestClient(app) as client:
+            health = client.get("/health")
+            assert health.status_code == 200
+            assert health.json()["model_loaded"] is False
+>           assert client.get("/health/ready").status_code == 503
+E           AssertionError: assert 200 == 503
+E            +  where 200 = <Response [200 OK]>.status_code
+E            +    where <Response [200 OK]> = get('/health/ready')
+E            +      where get = <starlette.testclient.TestClient object at 0x7efe1460e490>.get
+
+/home/user/xr-foundation-model-audit/tests/test_phase0_api.py:110: AssertionError
+_____________ test_agent_public_mode_without_auth_fails_at_startup _____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efdef9ad9d0>
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-17/test_agent_public_mode_without0')
+
+    def test_agent_public_mode_without_auth_fails_at_startup(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        monkeypatch.setenv("XRFM_AGENT_ENABLED", "true")
+        monkeypatch.setenv("XRFM_AGENT_ROOT", str(tmp_path))
+        monkeypatch.delenv("XRFM_AGENT_API_KEY", raising=False)
+        monkeypatch.delenv("XRFM_AGENT_ALLOW_LOCAL_DEMO", raising=False)
+        monkeypatch.delenv("XRFM_AGENT_BASE_URL", raising=False)
+        from api.main import app
+    
+>       with pytest.raises(RuntimeError, match="agent|API key|demo"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'RuntimeError'>
+
+tests/test_phase0_agent.py:38: Failed
+------------------------------ Captured log call -------------------------------
+WARNING  xrfm.api:main.py:84 Skipping incompatible checkpoint checkpoints/checkpoint_step_500.pt (embedding shape (50304, 256); expected (2048, 128))
+___________ test_agent_runtime_factory_does_not_share_request_state ____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efdef9ae690>
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-17/test_agent_runtime_factory_doe0')
+
+    def test_agent_runtime_factory_does_not_share_request_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        monkeypatch.setenv("XRFM_AGENT_ROOT", str(tmp_path))
+        monkeypatch.setenv("XRFM_AGENT_ALLOW_LOCAL_DEMO", "true")
+        import api.routes.agent as route
+    
+        route._runtime = None
+        first = route._get_runtime()
+        second = route._get_runtime()
+>       assert first is not second
+E       assert <xrfm.agent.runtime.AgentRuntime object at 0x7efdef9c0ec0> is not <xrfm.agent.runtime.AgentRuntime object at 0x7efdef9c0ec0>
+
+tests/test_phase0_agent.py:51: AssertionError
+___________ test_agent_stream_emits_request_before_backend_finishes ____________
+
+    def test_agent_stream_emits_request_before_backend_finishes() -> None:
+        class SlowBackend(ScriptedBackend):
+            def chat(self, messages: Any, tools: Any) -> Any:
+                time.sleep(0.35)
+                return super().chat(messages, tools)
+    
+        runtime = AgentRuntime(SlowBackend(), ToolExecutor(ToolRegistry()))
+        events = runtime.stream("hello")
+        started = time.monotonic()
+        first = next(events)
+        elapsed = time.monotonic() - started
+        assert first.phase == AgentPhase.REQUEST
+>       assert elapsed < 0.2
+E       assert 0.3502792000003865 < 0.2
+
+tests/test_phase0_agent.py:67: AssertionError
+_________________ test_tool_timeout_is_a_hard_wall_clock_bound _________________
+
+    def test_tool_timeout_is_a_hard_wall_clock_bound() -> None:
+        registry = ToolRegistry()
+        registry.register(
+            ToolSpec("slow", "test", {"type": "object"}, timeout_seconds=0.05),
+            lambda _: time.sleep(0.5) or "finished",
+        )
+        started = time.monotonic()
+        result = ToolExecutor(registry).execute(ToolCall("slow", {}))
+        elapsed = time.monotonic() - started
+        assert not result.ok
+        assert "timed out" in (result.error or "")
+>       assert elapsed < 0.25
+E       assert 0.5010264630000165 < 0.25
+
+tests/test_phase0_agent.py:82: AssertionError
+_________ test_schema_validation_covers_nested_constraints_and_outputs _________
+
+    def test_schema_validation_covers_nested_constraints_and_outputs() -> None:
+        schema = {
+            "type": "object",
+            "properties": {
+                "values": {
+                    "type": "array",
+                    "items": {"type": "integer"},
+                    "minItems": 1,
+                    "maxItems": 2,
+                }
+            },
+            "required": ["values"],
+            "additionalProperties": False,
+        }
+>       with pytest.raises(ToolError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'xrfm.agent.tools.ToolError'>
+
+tests/test_phase0_agent.py:100: Failed
+______ test_redaction_covers_equals_bearer_multiline_and_negative_bounds _______
+
+    def test_redaction_covers_equals_bearer_multiline_and_negative_bounds() -> None:
+        secret = "supersecret123"
+        value = sanitize_observation(
+            {
+                "password": secret,
+                "text": f"api_key = {secret}\nAuthorization: Bearer abcdefghijklmnop",
+                "private": "-----BEGIN PRIVATE KEY-----\nabc\ndef\n-----END PRIVATE KEY-----",
+            }
+        )
+        rendered = json.dumps(value)
+>       assert secret not in rendered
+E       assert 'supersecret123' not in '{"password"...E KEY-----"}'
+E         
+E         'supersecret123' is contained here:
+E         ?               ----------------------              ^
+E           {"password": "supersecret123", "text": "api_key = supersecret123: [REDACTED]\nAuthorization: Bearer abcdefghijklmnop: [REDACTED]", "private": "-----BEGIN PRIVATE KEY-----\nabc\ndef\n-----END PRIVATE KEY-----"}
+E         ?                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_phase0_agent.py:135: AssertionError
+__________ test_filesystem_limits_and_secret_canaries_are_fail_closed __________
+
+tmp_path = PosixPath('/tmp/pytest-of-user/pytest-17/test_filesystem_limits_and_sec0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efdefa29850>
+
+    def test_filesystem_limits_and_secret_canaries_are_fail_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        (tmp_path / "large.txt").write_text("x" * 10000, encoding="utf-8")
+        (tmp_path / ".env").write_text("PASSWORD=do-not-exfiltrate", encoding="utf-8")
+        tools = SafeFilesystemTools(tmp_path)
+>       with pytest.raises((ToolError, ValueError)):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE any of (<class 'xrfm.agent.tools.ToolError'>, <class 'ValueError'>)
+
+tests/test_phase0_agent.py:149: Failed
+________ test_native_provider_tool_call_id_and_capabilities_are_honest _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7efdefa28250>
+
+    def test_native_provider_tool_call_id_and_capabilities_are_honest(monkeypatch: pytest.MonkeyPatch) -> None:
+        payload = {
+            "choices": [
+                {
+                    "message": {
+                        "content": "",
+                        "tool_calls": [
+                            {
+                                "id": "provider-call-42",
+                                "type": "function",
+                                "function": {"name": "echo", "arguments": "{\"text\":\"hello\"}"},
+                            }
+                        ],
+                    }
+                }
+            ]
+        }
+    
+        class Response:
+            def __enter__(self) -> Response:
+                return self
+    
+            def __exit__(self, *args: Any) -> None:
+                return None
+    
+            def read(self) -> bytes:
+                return json.dumps(payload).encode()
+    
+        monkeypatch.setattr("urllib.request.urlopen", lambda *args, **kwargs: Response())
+        backend = OpenAICompatibleBackend("http://provider.invalid", "test-model")
+        decision = backend.chat([], [ToolSpec("echo", "test", {"type": "object"})])
+>       assert decision.tool_calls[0].call_id == "provider-call-42"
+E       AssertionError: assert 'dfc755a6247c' == 'provider-call-42'
+E         
+E         - provider-call-42
+E         + dfc755a6247c
+
+tests/test_phase0_agent.py:200: AssertionError
+_______________________ test_audit_retention_is_bounded ________________________
+
+    def test_audit_retention_is_bounded() -> None:
+>       audit = AuditLog(max_records=2)
+                ^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: AuditLog.__init__() got an unexpected keyword argument 'max_records'
+
+tests/test_phase0_agent.py:208: TypeError
+=============================== warnings summary ===============================
+../../../usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_phase0_api.py::test_real_lifespan_models_and_completion - a...
+FAILED tests/test_phase0_api.py::test_completion_usage_uses_original_prompt_and_actual_generated_tokens
+FAILED tests/test_phase0_api.py::test_missing_checkpoint_is_liveness_only_not_readiness
+FAILED tests/test_phase0_agent.py::test_agent_public_mode_without_auth_fails_at_startup
+FAILED tests/test_phase0_agent.py::test_agent_runtime_factory_does_not_share_request_state
+FAILED tests/test_phase0_agent.py::test_agent_stream_emits_request_before_backend_finishes
+FAILED tests/test_phase0_agent.py::test_tool_timeout_is_a_hard_wall_clock_bound
+FAILED tests/test_phase0_agent.py::test_schema_validation_covers_nested_constraints_and_outputs
+FAILED tests/test_phase0_agent.py::test_redaction_covers_equals_bearer_multiline_and_negative_bounds
+FAILED tests/test_phase0_agent.py::test_filesystem_limits_and_secret_canaries_are_fail_closed
+FAILED tests/test_phase0_agent.py::test_native_provider_tool_call_id_and_capabilities_are_honest
+FAILED tests/test_phase0_agent.py::test_audit_retention_is_bounded - TypeErro...
+12 failed, 1 warning in 3.49s

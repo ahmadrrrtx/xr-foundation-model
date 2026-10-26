@@ -28,11 +28,9 @@ Memory safety: streaming write, not loading all sequences into RAM at once if po
 from __future__ import annotations
 
 import hashlib
-import json
 import os
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import List, Dict, Tuple, Optional, Iterator
+from dataclasses import dataclass
+from typing import cast
 
 import numpy as np
 
@@ -42,7 +40,7 @@ from xrfm.data.packing_extended import PackedSequence
 @dataclass
 class ShardingConfig:
     num_shards: int = 8
-    sequences_per_shard: Optional[int] = None  # if set, overrides num_shards logic
+    sequences_per_shard: int | None = None  # if set, overrides num_shards logic
     dtype: str = "auto"  # auto | uint16 | uint32 | int32
     output_dir: str = "processed/tokens"
     shard_prefix: str = "shard"
@@ -83,11 +81,11 @@ def _sha256_file(path: str) -> str:
 
 
 def write_shards(
-    sequences: List[PackedSequence],
+    sequences: list[PackedSequence],
     config: ShardingConfig,
     vocab_size: int = 50304,
     sequence_length: int = 2048,
-) -> List[ShardInfo]:
+) -> list[ShardInfo]:
     """
     Write sequences into sharded files.
 
@@ -112,7 +110,7 @@ def write_shards(
         num_shards = config.num_shards
         per_shard = (total + num_shards - 1) // num_shards
 
-    shard_infos: List[ShardInfo] = []
+    shard_infos: list[ShardInfo] = []
 
     for shard_id in range(num_shards):
         start = shard_id * per_shard
@@ -147,10 +145,10 @@ def write_shards(
 
 
 def assign_shards_to_rank(
-    shard_infos: List[ShardInfo],
+    shard_infos: list[ShardInfo],
     world_size: int,
     rank: int,
-) -> List[ShardInfo]:
+) -> list[ShardInfo]:
     """
     Deterministic shard assignment for distributed training.
     Each rank gets a disjoint subset.
@@ -170,7 +168,7 @@ def assign_samples_to_worker(
     num_samples: int,
     num_workers: int,
     worker_id: int,
-) -> List[int]:
+) -> list[int]:
     """
     Assign sample indices to DataLoader workers.
     Prevents duplicate sample consumption when using IterableDataset.
@@ -202,7 +200,7 @@ class ShardedTokenDataset:
 
     def __init__(
         self,
-        shard_infos: List[ShardInfo],
+        shard_infos: list[ShardInfo],
         rank: int = 0,
         world_size: int = 1,
         mmap: bool = True,
@@ -216,8 +214,8 @@ class ShardedTokenDataset:
         self.shards = assign_shards_to_rank(shard_infos, world_size, rank)
 
         # Precompute total sequences and offsets
-        self._shard_arrays: List[np.ndarray] = []
-        self._shard_offsets: List[int] = []
+        self._shard_arrays: list[np.ndarray] = []
+        self._shard_offsets: list[int] = []
         self._total = 0
 
         for info in self.shards:
@@ -227,7 +225,7 @@ class ShardedTokenDataset:
             self._total += info.num_sequences
 
         # For map-style, we will load arrays lazily and cache
-        self._loaded: Dict[int, np.ndarray] = {}
+        self._loaded: dict[int, np.ndarray] = {}
 
     def __len__(self) -> int:
         return self._total
@@ -237,9 +235,9 @@ class ShardedTokenDataset:
             return self._loaded[shard_idx]
         info = self.shards[shard_idx]
         if self.mmap:
-            arr = np.load(info.path, mmap_mode="r")
+            arr = cast(np.ndarray, np.load(info.path, mmap_mode="r"))
         else:
-            arr = np.load(info.path)
+            arr = cast(np.ndarray, np.load(info.path))
         self._loaded[shard_idx] = arr
         return arr
 
@@ -259,15 +257,15 @@ class ShardedTokenDataset:
 
         local_idx = idx - self._shard_offsets[shard_idx]
         arr = self._load_shard(shard_idx)
-        return arr[local_idx]
+        return cast(np.ndarray, arr[local_idx])
 
-    def get_worker_partition(self, worker_id: int, num_workers: int) -> List[int]:
+    def get_worker_partition(self, worker_id: int, num_workers: int) -> list[int]:
         """Get sample indices for a specific worker."""
         return assign_samples_to_worker(len(self), num_workers, worker_id)
 
     def verify_no_duplicate_across_ranks(self, world_size: int) -> bool:
         """Verify that shards assigned to different ranks are disjoint and cover all."""
-        all_assigned: List[int] = []
+        all_assigned: list[int] = []
         for rank in range(world_size):
             assigned = assign_shards_to_rank(self.all_shards, world_size, rank)
             all_assigned.extend([s.shard_id for s in assigned])
@@ -284,7 +282,7 @@ class ShardedTokenDataset:
 
 def verify_worker_no_duplicates(num_samples: int, num_workers: int) -> bool:
     """Test that worker partitions have no duplicates and full coverage."""
-    all_indices: List[int] = []
+    all_indices: list[int] = []
     for wid in range(num_workers):
         part = assign_samples_to_worker(num_samples, num_workers, wid)
         all_indices.extend(part)

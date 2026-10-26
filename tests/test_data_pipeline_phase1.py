@@ -19,26 +19,30 @@ Covers:
 - integration golden pipeline
 """
 
+import hashlib
 import os
 import tempfile
-import hashlib
 
 import pytest
 
-from xrfm.data.schema import Document
-from xrfm.data.normalization import normalize_document
-from xrfm.data.language import HeuristicLanguageDetector, filter_by_language, LanguageDetectorConfig
-from xrfm.data.quality import QualityFilter, QualityFilterConfig, filter_documents_quality
-from xrfm.data.pii import PIIFilter, PIIFilterConfig, filter_documents_pii
-from xrfm.data.dedup import deduplicate_exact, deduplicate_near, deduplicate_documents, ExactDedupConfig, NearDedupConfig
-from xrfm.data.document_split import split_documents, SplitConfig, verify_no_overlap, split_reproducibility_check
-from xrfm.data.mixing import MixtureConfig, mix_documents
-from xrfm.data.tokenization import tokenize_documents, TokenizationConfig
-from xrfm.data.packing_extended import pack_tokenized_documents, PackingConfig
-from xrfm.data.sharding import write_shards, ShardingConfig, verify_worker_no_duplicates, assign_shards_to_rank
+from xrfm.data.checksums import compute_dataset_id, sha256_file
+from xrfm.data.dedup import (
+    NearDedupConfig,
+    deduplicate_exact,
+    deduplicate_near,
+)
+from xrfm.data.document_split import SplitConfig, split_documents, split_reproducibility_check, verify_no_overlap
+from xrfm.data.language import HeuristicLanguageDetector, LanguageDetectorConfig, filter_by_language
 from xrfm.data.manifest_v2 import build_manifest_v2
-from xrfm.data.checksums import compute_dataset_id, sha256_text, sha256_file
-from xrfm.data.pipeline import PipelineConfig, DataPipeline
+from xrfm.data.mixing import MixtureConfig, mix_documents
+from xrfm.data.normalization import normalize_document
+from xrfm.data.packing_extended import PackingConfig, pack_tokenized_documents
+from xrfm.data.pii import PIIFilter, PIIFilterConfig, filter_documents_pii
+from xrfm.data.pipeline import DataPipeline, PipelineConfig
+from xrfm.data.quality import QualityFilter, QualityFilterConfig, filter_documents_quality
+from xrfm.data.schema import Document
+from xrfm.data.sharding import ShardingConfig, assign_shards_to_rank, verify_worker_no_duplicates, write_shards
+from xrfm.data.tokenization import tokenize_documents
 from xrfm.tokenization import BPETokenizer
 
 
@@ -88,7 +92,10 @@ class TestLanguageFiltering:
         assert len(kept) == 2
 
     def test_filter_with_allowed(self):
-        docs = [make_doc("Hello world this is English text with many common words the and is", lang="en"), make_doc("مرحبا بالعالم", lang="ar")]
+        docs = [
+            make_doc("Hello world this is English text with many common words the and is", lang="en"),
+            make_doc("مرحبا بالعالم", lang="ar"),
+        ]
         config = LanguageDetectorConfig(allowed_languages=["en"], threshold=0.3)
         kept, rejected, scores = filter_by_language(docs, config=config)
         # At least English should be kept
@@ -187,7 +194,9 @@ class TestNearDedup:
     def test_near_dedup_detects_similar(self):
         docs = [
             make_doc("The quick brown fox jumps over the lazy dog", doc_id="1"),
-            make_doc("The quick brown fox jumps over the lazy dog", doc_id="2"),  # exact duplicate will be caught by exact, but near also
+            make_doc(
+                "The quick brown fox jumps over the lazy dog", doc_id="2"
+            ),  # exact duplicate will be caught by exact, but near also
             make_doc("The quick brown fox jumps over the lazy dog with extra", doc_id="3"),
             make_doc("Completely different document about machine learning", doc_id="4"),
         ]
@@ -278,7 +287,9 @@ class TestPacking:
         tokenizer = BPETokenizer.pretrained()
         docs = [make_doc("Hello world " * 20, doc_id=f"doc-{i}") for i in range(5)]
         tokenized, _, _ = tokenize_documents(docs, tokenizer)
-        config = PackingConfig(sequence_length=32, add_eos_between_docs=False, allow_cross_document=True, leftover_handling="drop")
+        config = PackingConfig(
+            sequence_length=32, add_eos_between_docs=False, allow_cross_document=True, leftover_handling="drop"
+        )
         result = pack_tokenized_documents(tokenized, config)
         for seq in result.sequences:
             assert len(seq.input_ids) == 32
@@ -315,7 +326,18 @@ class TestSharding:
         # Simulate shard infos
         from xrfm.data.sharding import ShardInfo
 
-        shard_infos = [ShardInfo(shard_id=i, path=f"/tmp/shard-{i}.npy", num_sequences=10, num_tokens=160, sha256="abc", dtype="uint32", sequence_length=16) for i in range(8)]
+        shard_infos = [
+            ShardInfo(
+                shard_id=i,
+                path=f"/tmp/shard-{i}.npy",
+                num_sequences=10,
+                num_tokens=160,
+                sha256="abc",
+                dtype="uint32",
+                sequence_length=16,
+            )
+            for i in range(8)
+        ]
         for world_size in [1, 2, 4, 8]:
             all_ids = []
             for rank in range(world_size):
@@ -331,12 +353,35 @@ class TestManifest:
         from xrfm.data.tokenization import TokenizerInfo
 
         info = TokenizerInfo.from_tokenizer(tokenizer)
-        sources = [{"name": "test", "uri": "test://", "type": "text", "license": "MIT", "license_url": "", "version": "v1", "checksum": "", "language": "en", "document_count": 10, "token_count": 100}]
+        sources = [
+            {
+                "name": "test",
+                "uri": "test://",
+                "type": "text",
+                "license": "MIT",
+                "license_url": "",
+                "version": "v1",
+                "checksum": "",
+                "language": "en",
+                "document_count": 10,
+                "token_count": 100,
+            }
+        ]
         splits = {"train": [make_doc("a", doc_id="1")], "val": [], "test": []}
         token_counts = {"total": 100, "train": 100, "val": 0, "test": 0}
         from xrfm.data.sharding import ShardInfo
 
-        shard_infos = [ShardInfo(shard_id=0, path="/tmp/shard-0.npy", num_sequences=5, num_tokens=80, sha256="abc", dtype="uint32", sequence_length=16)]
+        shard_infos = [
+            ShardInfo(
+                shard_id=0,
+                path="/tmp/shard-0.npy",
+                num_sequences=5,
+                num_tokens=80,
+                sha256="abc",
+                dtype="uint32",
+                sequence_length=16,
+            )
+        ]
 
         manifest = build_manifest_v2(
             dataset_name="test",
@@ -391,7 +436,7 @@ class TestGoldenPipelineIntegration:
         golden_path = "tests/data/golden/documents.jsonl"
         if not os.path.isfile(golden_path):
             pytest.skip("Golden dataset not found")
-        for line in open(golden_path, "r", encoding="utf-8"):
+        for line in open(golden_path, encoding="utf-8"):
             docs.append(Document.from_jsonl(line))
 
         tokenizer = BPETokenizer.pretrained()
@@ -417,8 +462,8 @@ class TestGoldenPipelineIntegration:
             # Verify report
             assert result["report"].documents_ingested == len(docs)
             # Verify training step works
+
             from xrfm.data.tokenized_dataset import ShardedTokenDatasetMap
-            import torch
 
             ds = ShardedTokenDatasetMap(manifest_path=result["manifest_path"])
             assert len(ds) > 0

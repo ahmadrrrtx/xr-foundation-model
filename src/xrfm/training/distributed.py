@@ -23,6 +23,7 @@ from __future__ import annotations
 import logging
 import os
 from contextlib import nullcontext
+from functools import partial
 from typing import Any
 
 import torch
@@ -340,20 +341,44 @@ class GradientAccumulator:
 # ---------------------------------------------------------------------------
 
 
-def xrfm_collate_fn(batch: list) -> tuple[torch.Tensor, torch.Tensor]:
-    """Custom collate function that guarantees equal length padding for all batch tensors.
+def xrfm_collate_fn(
+    batch: list,
+    pad_id: int = 0,
+    ignore_index: int = -100,
+    return_attention_mask: bool = False,
+) -> tuple[torch.Tensor, torch.Tensor] | tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Pad variable-length examples using the tokenizer/model contract.
 
-    Forensic-audit fix (F-15): input padding uses token 0 (the dataset already
-    pads with its configured pad id, so this only triggers for datasets that
-    return variable-length items); target padding uses -100 so that padded
-    positions never contribute to cross_entropy loss.
+    Padding in *target* tensors is always ``ignore_index``; real pad tokens in
+    an input or target are not inferred from their integer value.  The optional
+    attention mask is length-based (1 for real positions, 0 for added padding),
+    so it remains correct even when a tokenizer's pad ID is nonzero.
     """
+    if not batch:
+        raise ValueError("cannot collate an empty batch")
     inputs = [item[0] for item in batch]
     targets = [item[1] for item in batch]
-    max_len = max(x.size(0) for x in inputs)
-    padded_inputs = [torch.nn.functional.pad(x, (0, max_len - x.size(0)), value=0) for x in inputs]
-    padded_targets = [torch.nn.functional.pad(y, (0, max_len - y.size(0)), value=-100) for y in targets]
-    return torch.stack(padded_inputs, dim=0), torch.stack(padded_targets, dim=0)
+    if any(x.dim() != 1 or y.dim() != 1 for x, y in zip(inputs, targets)):
+        raise ValueError("collate expects 1-D input and target tensors")
+    max_input_len = max(x.size(0) for x in inputs)
+    max_target_len = max(y.size(0) for y in targets)
+    padded_inputs = [torch.nn.functional.pad(x, (0, max_input_len - x.size(0)), value=pad_id) for x in inputs]
+    padded_targets = [torch.nn.functional.pad(y, (0, max_target_len - y.size(0)), value=ignore_index) for y in targets]
+    input_batch = torch.stack(padded_inputs, dim=0)
+    target_batch = torch.stack(padded_targets, dim=0)
+    if not return_attention_mask:
+        return input_batch, target_batch
+    attention = torch.zeros((len(batch), max_input_len), dtype=torch.long)
+    for row, example in enumerate(inputs):
+        attention[row, : example.size(0)] = 1
+    return input_batch, target_batch, attention
+
+
+def set_dataloader_epoch(dataloader: Any, epoch: int) -> None:
+    """Set sampler epoch before creating an iterator, when supported."""
+    sampler = getattr(dataloader, "sampler", None)
+    if sampler is not None and hasattr(sampler, "set_epoch"):
+        sampler.set_epoch(epoch)
 
 
 def create_distributed_dataloader(
@@ -363,6 +388,10 @@ def create_distributed_dataloader(
     num_workers: int = 0,
     pin_memory: bool = False,
     drop_last: bool = True,
+    pad_id: int = 0,
+    ignore_index: int = -100,
+    return_attention_mask: bool = False,
+    sampler_seed: int = 0,
     **dataloader_kwargs,
 ) -> DataLoader:
     """Create a DataLoader with optional DistributedSampler.
@@ -383,7 +412,12 @@ def create_distributed_dataloader(
         standard DataLoader.
     """
     if "collate_fn" not in dataloader_kwargs:
-        dataloader_kwargs["collate_fn"] = xrfm_collate_fn
+        dataloader_kwargs["collate_fn"] = partial(
+            xrfm_collate_fn,
+            pad_id=pad_id,
+            ignore_index=ignore_index,
+            return_attention_mask=return_attention_mask,
+        )
     if is_distributed():
         sampler: DistributedSampler = DistributedSampler(
             dataset,
@@ -391,6 +425,7 @@ def create_distributed_dataloader(
             rank=get_rank(),
             shuffle=shuffle,
             drop_last=drop_last,
+            seed=sampler_seed,
         )
         return DataLoader(
             dataset,

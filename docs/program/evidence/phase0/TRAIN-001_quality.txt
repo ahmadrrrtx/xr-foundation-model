@@ -1,0 +1,7 @@
+$ python -m ruff check <changed training/data files>
+All checks passed!
+$ python -m black --check <changed training/data files>
+All done! ✨ 🍰 ✨
+9 files would be left unchanged.
+$ python -m mypy <changed core files>
+Success: no issues found in 9 source files

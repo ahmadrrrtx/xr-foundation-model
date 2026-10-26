@@ -25,9 +25,12 @@ jobs:
 
             See [CHANGELOG.md](CHANGELOG.md) for details.
 
-            ### Installation
+            ### Source installation
+            The project name remains **XRFM Foundational Model**. The public PyPI
+            name `xrfm` belongs to an unrelated distribution; do not install it
+            as this project. Install this release directly from its source tag:
             ```bash
-            pip install xrfm==${{ steps.version.outputs.VERSION }}
+            python -m pip install "https://github.com/${{ github.repository }}/archive/refs/tags/${{ steps.version.outputs.VERSION }}.tar.gz"
             ```
 
             ### Docker

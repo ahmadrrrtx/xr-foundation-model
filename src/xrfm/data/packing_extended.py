@@ -20,7 +20,6 @@ with optional EOS insertion and tracking of document boundaries.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional
 
 from xrfm.data.tokenization import TokenizedDocument
 
@@ -29,7 +28,7 @@ from xrfm.data.tokenization import TokenizedDocument
 class PackingConfig:
     sequence_length: int = 2048
     add_eos_between_docs: bool = True
-    eos_token_id: Optional[int] = None
+    eos_token_id: int | None = None
     # If True, documents may cross sequence boundaries (efficient)
     # If False, each sequence contains at most one document (wasteful but preserves boundaries)
     allow_cross_document: bool = True
@@ -42,26 +41,26 @@ class PackingConfig:
 
 @dataclass
 class PackedSequence:
-    input_ids: List[int]
+    input_ids: list[int]
     # Optional: document boundaries within sequence (list of start indices)
-    doc_boundaries: List[int] = field(default_factory=list)
+    doc_boundaries: list[int] = field(default_factory=list)
     # Optional: source tracking
-    sources: List[str] = field(default_factory=list)
+    sources: list[str] = field(default_factory=list)
 
 
 @dataclass
 class PackingResult:
-    sequences: List[PackedSequence]
+    sequences: list[PackedSequence]
     total_tokens: int
     total_sequences: int
     discarded_tokens: int
     padded_tokens: int
     # For reporting
-    tokens_per_source: Dict[str, int] = field(default_factory=dict)
+    tokens_per_source: dict[str, int] = field(default_factory=dict)
 
 
 def pack_tokenized_documents(
-    tokenized_docs: List[TokenizedDocument],
+    tokenized_docs: list[TokenizedDocument],
     config: PackingConfig,
 ) -> PackingResult:
     """
@@ -79,11 +78,11 @@ def pack_tokenized_documents(
         raise ValueError(f"sequence_length must be >0, got {config.sequence_length}")
 
     # Build stream
-    stream: List[int] = []
+    stream: list[int] = []
     # Track doc boundaries in stream
-    stream_boundaries: List[Tuple[int, str]] = []  # (position, source)
+    stream_boundaries: list[tuple[int, str]] = []  # (position, source)
 
-    tokens_per_source: Dict[str, int] = {}
+    tokens_per_source: dict[str, int] = {}
 
     for doc in tokenized_docs:
         start_pos = len(stream)
@@ -100,7 +99,7 @@ def pack_tokenized_documents(
     total_tokens = len(stream)
     seq_len = config.sequence_length
 
-    sequences: List[PackedSequence] = []
+    sequences: list[PackedSequence] = []
     discarded = 0
     padded = 0
 
@@ -138,7 +137,9 @@ def pack_tokenized_documents(
                     if start <= b_pos < total_tokens:
                         boundaries.append(b_pos - start)
                         sources_in_chunk.append(src)
-                sequences.append(PackedSequence(input_ids=chunk_padded, doc_boundaries=boundaries, sources=sources_in_chunk))
+                sequences.append(
+                    PackedSequence(input_ids=chunk_padded, doc_boundaries=boundaries, sources=sources_in_chunk)
+                )
             elif config.leftover_handling == "pad":
                 # Same as keep, but always pad
                 chunk = stream[num_full * seq_len :]

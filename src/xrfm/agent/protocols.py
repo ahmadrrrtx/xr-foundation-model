@@ -1,12 +1,14 @@
 """XR-native, model-neutral protocol records for agent execution."""
+
 from __future__ import annotations
 
 import json
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 
 class DecisionType(str, Enum):

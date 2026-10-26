@@ -15,10 +15,10 @@ Must NOT hard-code source URLs throughout Python files.
 from __future__ import annotations
 
 import os
-import yaml
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
-from pathlib import Path
+from typing import Any
+
+import yaml
 
 
 @dataclass
@@ -41,10 +41,10 @@ class SourceConfig:
     citation: str = ""
     redistribution: str = ""  # e.g. "allowed", "restricted", "recipe-only"
     # Extra
-    extra: Dict[str, Any] = field(default_factory=dict)
+    extra: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> SourceConfig:
+    def from_dict(cls, data: dict[str, Any]) -> SourceConfig:
         allowed = set(cls.__dataclass_fields__.keys())
         filtered = {k: v for k, v in data.items() if k in allowed}
         # Handle extra
@@ -53,7 +53,7 @@ class SourceConfig:
             filtered["extra"] = extra
         return cls(**filtered)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         from dataclasses import asdict
 
         d = asdict(self)
@@ -66,15 +66,15 @@ class SourceConfig:
 class SourceRegistry:
     """Registry of all data sources."""
 
-    def __init__(self, sources: List[SourceConfig] | None = None):
-        self.sources: Dict[str, SourceConfig] = {}
+    def __init__(self, sources: list[SourceConfig] | None = None):
+        self.sources: dict[str, SourceConfig] = {}
         if sources:
             for s in sources:
                 self.sources[s.name] = s
 
     @classmethod
     def from_yaml(cls, path: str) -> SourceRegistry:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         sources = []
@@ -105,7 +105,7 @@ class SourceRegistry:
         return cls(sources)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> SourceRegistry:
+    def from_dict(cls, data: dict[str, Any]) -> SourceRegistry:
         sources = []
         for name, cfg in data.items():
             if isinstance(cfg, dict):
@@ -114,13 +114,13 @@ class SourceRegistry:
                 sources.append(SourceConfig.from_dict(cfg))
         return cls(sources)
 
-    def get(self, name: str) -> Optional[SourceConfig]:
+    def get(self, name: str) -> SourceConfig | None:
         return self.sources.get(name)
 
-    def list_enabled(self) -> List[SourceConfig]:
+    def list_enabled(self) -> list[SourceConfig]:
         return [s for s in self.sources.values() if s.enabled]
 
-    def list_all(self) -> List[SourceConfig]:
+    def list_all(self) -> list[SourceConfig]:
         return list(self.sources.values())
 
     def to_yaml(self, path: str):
@@ -129,7 +129,7 @@ class SourceRegistry:
         with open(path, "w", encoding="utf-8") as f:
             yaml.safe_dump(data, f, sort_keys=False)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {name: src.to_dict() for name, src in self.sources.items()}
 
 

@@ -13,6 +13,7 @@ Usage:
 """
 
 import argparse
+import hashlib
 import logging
 import os
 import sys
@@ -105,21 +106,31 @@ def train_custom_model(
     model = GPTModel(config_path, vocab_size=tokenizer.vocab_size()).to(device)
     logger.info("Model params: %d (vocab=%d)", model.parameter_count(), tokenizer.vocab_size())
 
+    from xrfm.config.loader import load_config
+
+    run_config = load_config(config_path)
+    run_config.training.resume_from = resume_from
+    run_config.training.seed = seed
+    run_config.training.batch_size = batch_size
+    run_config.training.max_steps = max_steps
+    run_config.training.checkpoint_every = checkpoint_every
+    run_config.training.eval_every = eval_every
+    run_config.training.ignore_index = -100
+    with open(dataset_path, "rb") as handle:
+        data_hash = hashlib.sha256(handle.read()).hexdigest()
+    with open(tokenizer_path, "rb") as handle:
+        tokenizer_hash = hashlib.sha256(handle.read()).hexdigest()
     loop = TrainingLoop(
-        config_path=config_path,
+        config=run_config,
         model=model,
         dataset=dataset,
         checkpoint_dir="checkpoints/",
+        data_manifest_hash=f"sha256:{data_hash}",
+        tokenizer_hash=f"sha256:{tokenizer_hash}",
     )
+    loop.config_path = config_path
     if resume_from:
-        logger.info("Resuming from checkpoint: %s", resume_from)
-        meta = loop.checkpoint_loader.load_checkpoint(resume_from, model, loop.optimizer, loop.scheduler)
-        loop.current_step = meta.get("step", 0)
-        loop.best_loss = meta.get("best_loss", float("inf"))
-        loop.resume_from = resume_from
-    loop.batch_size = batch_size
-    loop.seed = seed
-    loop.ignore_index = -100
+        logger.info("Resuming through exact checkpoint state: %s", resume_from)
 
     # Validation hook: val loss + perplexity every 100 steps.
     from torch.utils.data import DataLoader
@@ -128,7 +139,12 @@ def train_custom_model(
     from xrfm.training.distributed import xrfm_collate_fn
 
     def _validate(loop_obj):
-        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=xrfm_collate_fn)
+        val_loader = DataLoader(
+            val_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            collate_fn=lambda batch: xrfm_collate_fn(batch, pad_id=tokenizer.pad_id, ignore_index=-100),
+        )
         return compute_perplexity(
             loop_obj.model if not hasattr(loop_obj.model, "module") else loop_obj.model.module,
             val_loader,
@@ -199,7 +215,7 @@ def train_custom_model(
         batch_size=batch_size,
         grad_accum_steps=_train_cfg.grad_accum_steps,
         sequence_length=max_seq_len,
-        precision="bf16" if (torch.cuda.is_available() and _train_cfg.mixed_precision) else "fp32",
+        precision=loop.mixed_precision_loader.precision,
         device=str(device),
         gpu_name=torch.cuda.get_device_name(0) if torch.cuda.is_available() else "",
     )

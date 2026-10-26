@@ -363,6 +363,9 @@ class TestConfigResume:
         from xrfm.training.loop import TrainingLoop, _set_seed
 
         class D:
+            data_manifest_hash = "sha256:config-resume-fixture-data"
+            tokenizer_hash = "sha256:config-resume-fixture-tokenizer"
+
             def __len__(self):
                 return 32
 

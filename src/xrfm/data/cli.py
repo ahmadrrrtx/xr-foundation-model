@@ -21,20 +21,17 @@ Implemented as subcommands for `xrfm` CLI, but also usable as `xrfm-data` entry 
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
-from pathlib import Path
-from typing import List
 
+from xrfm.data.pipeline import DataPipeline, PipelineConfig
 from xrfm.data.schema import Document
-from xrfm.data.pipeline import PipelineConfig, DataPipeline
 from xrfm.data.sources import SourceRegistry
 
 
-def _load_documents_from_path(path: str) -> List[Document]:
+def _load_documents_from_path(path: str) -> list[Document]:
     """Load documents from JSONL or text file."""
-    docs: List[Document] = []
+    docs: list[Document] = []
     if not os.path.exists(path):
         raise FileNotFoundError(f"Path not found: {path}")
 
@@ -44,7 +41,7 @@ def _load_documents_from_path(path: str) -> List[Document]:
             for f in files:
                 if f.endswith(".jsonl"):
                     fp = os.path.join(root, f)
-                    with open(fp, "r", encoding="utf-8") as fh:
+                    with open(fp, encoding="utf-8") as fh:
                         for line in fh:
                             line = line.strip()
                             if not line:
@@ -56,7 +53,7 @@ def _load_documents_from_path(path: str) -> List[Document]:
                                 docs.append(Document(text=line, source="unknown"))
     else:
         if path.endswith(".jsonl"):
-            with open(path, "r", encoding="utf-8") as fh:
+            with open(path, encoding="utf-8") as fh:
                 for line in fh:
                     line = line.strip()
                     if not line:
@@ -68,10 +65,10 @@ def _load_documents_from_path(path: str) -> List[Document]:
         else:
             # Plain text file: each line is a doc? Or whole file is one doc?
             # For simplicity, treat whole file as one doc, plus also split lines as docs if many lines
-            with open(path, "r", encoding="utf-8") as fh:
+            with open(path, encoding="utf-8") as fh:
                 content = fh.read()
             # If file has many lines, treat each non-empty line as doc
-            lines = [l.strip() for l in content.splitlines() if l.strip()]
+            lines = [line.strip() for line in content.splitlines() if line.strip()]
             if len(lines) > 1 and len(content) > 1000:
                 for i, line in enumerate(lines):
                     docs.append(Document(text=line, source="file", source_uri=path, document_id=f"file-{i}"))
@@ -89,7 +86,7 @@ def cmd_build(args: argparse.Namespace) -> int:
     if config_path and os.path.isfile(config_path):
         import yaml
 
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             cfg_dict = yaml.safe_load(f)
         # Build PipelineConfig from dict (simplified)
         pipeline_cfg = PipelineConfig(
@@ -167,13 +164,19 @@ def cmd_stats(args: argparse.Namespace) -> int:
 
     manifest = DatasetManifestV2.load(manifest_path)
     print(f"Dataset: {manifest.dataset_name} v{manifest.dataset_version} id={manifest.dataset_id}")
-    print(f"Documents: {manifest.documents_total} (train={manifest.documents_train} val={manifest.documents_val} test={manifest.documents_test})")
-    print(f"Tokens: {manifest.tokens_total} (train={manifest.tokens_train} val={manifest.tokens_val} test={manifest.tokens_test})")
+    print(
+        f"Documents: {manifest.documents_total} (train={manifest.documents_train} val={manifest.documents_val} test={manifest.documents_test})"
+    )
+    print(
+        f"Tokens: {manifest.tokens_total} (train={manifest.tokens_train} val={manifest.tokens_val} test={manifest.tokens_test})"
+    )
     print(f"Shards: {manifest.num_shards}, seq_len={manifest.sequence_length}")
     print(f"Sources: {len(manifest.sources)}")
     for src in manifest.sources:
         print(f"  - {src.name}: {src.document_count} docs, {src.token_count} tokens, license={src.license}")
-    print(f"Tokenizer: {manifest.tokenizer.name} v{manifest.tokenizer.version} hash={manifest.tokenizer.hash} vocab={manifest.tokenizer.vocab_size}")
+    print(
+        f"Tokenizer: {manifest.tokenizer.name} v{manifest.tokenizer.version} hash={manifest.tokenizer.hash} vocab={manifest.tokenizer.vocab_size}"
+    )
     print(f"Created: {manifest.created_at}, commit={manifest.git_commit}")
 
     return 0
@@ -216,7 +219,7 @@ def cmd_sample(args: argparse.Namespace) -> int:
     return cmd_inspect(args)
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="xrfm data", description="XRFM data pipeline CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 

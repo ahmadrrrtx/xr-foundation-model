@@ -37,7 +37,8 @@ class GenerationResult:
         text: Decoded continuation only (prompt excluded) when the prompt
             was text; empty string for token prompts unless ``decode`` given.
         token_ids: Generated token ids (continuation only).
-        prompt_token_ids: Tokenized prompt (as used by the model).
+        prompt_token_ids: Effective tokenized prompt as used by the model;
+            this is the retained suffix when context truncation occurred.
     """
 
     text: str
@@ -102,7 +103,7 @@ def generate(
     if eos_token_id is None and tokenizer is not None:
         eos_token_id = getattr(tokenizer, "eos_token_id", None)
 
-    out_ids = engine.generate(
+    metadata = engine.generate_with_metadata(
         prompt_ids,
         max_new_tokens=max_new_tokens,
         temperature=temperature,
@@ -112,8 +113,8 @@ def generate(
         repetition_penalty=repetition_penalty,
     )
 
-    prompt_len = prompt_ids.shape[1]
-    new_ids = out_ids[prompt_len:].tolist()
+    new_ids = metadata.completion_token_ids.tolist()
+    effective_prompt_ids = metadata.token_ids[: metadata.effective_prompt_tokens].tolist()
 
     text = ""
     if decode:
@@ -122,4 +123,4 @@ def generate(
         else:
             raise ValueError("decode=True requires a tokenizer; pass tokenizer=... or decode=False")
 
-    return GenerationResult(text=text, token_ids=new_ids, prompt_token_ids=prompt_ids[0].tolist())
+    return GenerationResult(text=text, token_ids=new_ids, prompt_token_ids=effective_prompt_ids)

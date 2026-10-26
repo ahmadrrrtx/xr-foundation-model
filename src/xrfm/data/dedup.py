@@ -15,11 +15,9 @@ References: Dolma uses Bloom-filter-based dedup, supports document/paragraph-lev
 from __future__ import annotations
 
 import hashlib
-import re
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Set, Optional, Iterable
+from dataclasses import dataclass
 
-from xrfm.data.schema import Document, DeduplicationInfo
+from xrfm.data.schema import Document
 
 
 def compute_content_hash(text: str, algorithm: str = "sha256", normalize: bool = True) -> str:
@@ -51,14 +49,14 @@ class ExactDedupConfig:
 
 @dataclass
 class ExactDedupResult:
-    unique_docs: List[Document]
-    duplicate_docs: List[Tuple[Document, str]]  # (doc, canonical_id)
-    hash_to_id: Dict[str, str]
-    stats: Dict[str, int]
+    unique_docs: list[Document]
+    duplicate_docs: list[tuple[Document, str]]  # (doc, canonical_id)
+    hash_to_id: dict[str, str]
+    stats: dict[str, int]
 
 
 def deduplicate_exact(
-    docs: List[Document],
+    docs: list[Document],
     config: ExactDedupConfig | None = None,
 ) -> ExactDedupResult:
     """
@@ -69,9 +67,9 @@ def deduplicate_exact(
     - Records statistics, does not silently drop without reporting
     """
     cfg = config or ExactDedupConfig()
-    seen: Dict[str, str] = {}  # hash -> canonical doc_id
-    unique: List[Document] = []
-    duplicates: List[Tuple[Document, str]] = []
+    seen: dict[str, str] = {}  # hash -> canonical doc_id
+    unique: list[Document] = []
+    duplicates: list[tuple[Document, str]] = []
 
     for doc in docs:
         # Use doc.content_hash if already computed and normalization matches,
@@ -103,7 +101,8 @@ def deduplicate_exact(
 
 # Near-duplicate detection
 
-def _shingles(text: str, k: int = 5) -> Set[str]:
+
+def _shingles(text: str, k: int = 5) -> set[str]:
     """k-word shingles."""
     words = text.split()
     if len(words) < k:
@@ -111,7 +110,7 @@ def _shingles(text: str, k: int = 5) -> Set[str]:
     return {" ".join(words[i : i + k]) for i in range(len(words) - k + 1)}
 
 
-def _jaccard(a: Set[str], b: Set[str]) -> float:
+def _jaccard(a: set[str], b: set[str]) -> float:
     if not a and not b:
         return 1.0
     if not a or not b:
@@ -128,14 +127,14 @@ class NearDedupConfig:
     num_perm: int = 128  # for minhash
     shingle_size: int = 5
     # LSH params
-    lsh_threshold: Optional[float] = None
+    lsh_threshold: float | None = None
 
 
 @dataclass
 class NearDedupResult:
-    unique_docs: List[Document]
-    near_duplicates: List[Tuple[Document, str, float]]  # (doc, canonical_id, score)
-    stats: Dict[str, int]
+    unique_docs: list[Document]
+    near_duplicates: list[tuple[Document, str, float]]  # (doc, canonical_id, score)
+    stats: dict[str, int]
 
 
 class MinHash:
@@ -160,7 +159,7 @@ class MinHash:
         # Hash shingle to int
         return int(hashlib.sha256(shingle.encode("utf-8")).hexdigest()[:16], 16)
 
-    def compute(self, shingles: Set[str]) -> List[int]:
+    def compute(self, shingles: set[str]) -> list[int]:
         if not shingles:
             return [self.prime] * self.num_perm
         hashes = [self._hash_shingle(s) for s in shingles]
@@ -170,7 +169,7 @@ class MinHash:
             signature.append(min_hash)
         return signature
 
-    def similarity(self, sig1: List[int], sig2: List[int]) -> float:
+    def similarity(self, sig1: list[int], sig2: list[int]) -> float:
         if len(sig1) != len(sig2):
             raise ValueError("Signature length mismatch")
         matches = sum(1 for x, y in zip(sig1, sig2) if x == y)
@@ -178,7 +177,7 @@ class MinHash:
 
 
 def deduplicate_near(
-    docs: List[Document],
+    docs: list[Document],
     config: NearDedupConfig | None = None,
 ) -> NearDedupResult:
     """
@@ -194,22 +193,24 @@ def deduplicate_near(
     threshold = cfg.threshold
 
     if not docs:
-        return NearDedupResult(unique_docs=[], near_duplicates=[], stats={"input": 0, "unique": 0, "near_duplicates": 0})
+        return NearDedupResult(
+            unique_docs=[], near_duplicates=[], stats={"input": 0, "unique": 0, "near_duplicates": 0}
+        )
 
     # Precompute shingles and optionally minhash signatures
-    shingles_list: List[Set[str]] = [_shingles(d.text, k=cfg.shingle_size) for d in docs]
-    signatures: Optional[List[List[int]]] = None
+    shingles_list: list[set[str]] = [_shingles(d.text, k=cfg.shingle_size) for d in docs]
+    signatures: list[list[int]] | None = None
 
     if cfg.algorithm == "minhash":
         mh = MinHash(num_perm=cfg.num_perm)
         signatures = [mh.compute(s) for s in shingles_list]
 
-    unique: List[Document] = []
-    near_dups: List[Tuple[Document, str, float]] = []
+    unique: list[Document] = []
+    near_dups: list[tuple[Document, str, float]] = []
     # Keep track of kept shingles/signatures for comparison
-    kept_shingles: List[Set[str]] = []
-    kept_sigs: List[List[int]] = []
-    kept_ids: List[str] = []
+    kept_shingles: list[set[str]] = []
+    kept_sigs: list[list[int]] = []
+    kept_ids: list[str] = []
 
     for idx, doc in enumerate(docs):
         is_dup = False
@@ -255,19 +256,19 @@ def deduplicate_near(
 
 
 def deduplicate_documents(
-    docs: List[Document],
+    docs: list[Document],
     exact_config: ExactDedupConfig | None = None,
     near_config: NearDedupConfig | None = None,
     do_exact: bool = True,
     do_near: bool = True,
-) -> Tuple[List[Document], Dict[str, int], Dict[str, List]]:
+) -> tuple[list[Document], dict[str, int], dict[str, list]]:
     """
     Combined exact + near dedup pipeline.
     Returns (final_unique, stats, details)
     Stats includes input, exact duplicates, near duplicates, final unique.
     """
-    stats: Dict[str, int] = {"input": len(docs)}
-    details: Dict[str, List] = {}
+    stats: dict[str, int] = {"input": len(docs)}
+    details: dict[str, list] = {}
 
     current = docs
 

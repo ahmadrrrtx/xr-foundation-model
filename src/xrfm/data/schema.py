@@ -19,9 +19,8 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-import uuid
-from dataclasses import dataclass, field, asdict
-from typing import Any, Literal, Optional
+from dataclasses import asdict, dataclass, field
+from typing import Any, Literal
 
 
 def _sha256_text(text: str) -> str:
@@ -191,10 +190,10 @@ class DocumentAttributes:
     document_id: str
     content_hash: str
     source: str
-    language_score: Optional[LanguageScore] = None
-    quality_score: Optional[QualityScore] = None
-    pii_score: Optional[PIIScore] = None
-    dedup_info: Optional[DeduplicationInfo] = None
+    language_score: LanguageScore | None = None
+    quality_score: QualityScore | None = None
+    pii_score: PIIScore | None = None
+    dedup_info: DeduplicationInfo | None = None
     token_count: int = 0
     processing_version: str = "xrfm-pipeline-v1"
     created_at: str = field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))

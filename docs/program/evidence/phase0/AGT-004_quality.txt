@@ -1,0 +1,4 @@
+All checks passed!
+All done! ✨ 🍰 ✨
+5 files would be left unchanged.
+Success: no issues found in 3 source files

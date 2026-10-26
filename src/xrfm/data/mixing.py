@@ -18,8 +18,7 @@ References OLMo's public documentation treating mixture as explicit experiment.
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional
+from dataclasses import dataclass
 
 from xrfm.data.schema import Document
 
@@ -29,13 +28,13 @@ class MixtureComponent:
     source: str
     weight: float
     # Optional overrides
-    max_docs: Optional[int] = None
-    max_tokens: Optional[int] = None
+    max_docs: int | None = None
+    max_tokens: int | None = None
 
 
 @dataclass
 class MixtureConfig:
-    components: List[MixtureComponent]
+    components: list[MixtureComponent]
     seed: int = 42
     # How to sample: token-weighted or doc-weighted
     sampling_strategy: str = "token"  # token | doc | proportional
@@ -49,11 +48,11 @@ class MixtureConfig:
                 raise ValueError(f"Weight must be in [0,1], got {c.weight} for {c.source}")
 
     @classmethod
-    def from_dict(cls, data: Dict[str, float], seed: int = 42) -> MixtureConfig:
+    def from_dict(cls, data: dict[str, float], seed: int = 42) -> MixtureConfig:
         comps = [MixtureComponent(source=k, weight=v) for k, v in data.items()]
         return cls(components=comps, seed=seed)
 
-    def to_dict(self) -> Dict[str, float]:
+    def to_dict(self) -> dict[str, float]:
         return {c.source: c.weight for c in self.components}
 
 
@@ -68,12 +67,12 @@ class MixtureStats:
 
 
 def mix_documents(
-    docs_by_source: Dict[str, List[Document]],
+    docs_by_source: dict[str, list[Document]],
     config: MixtureConfig,
     tokenizer=None,
-    target_tokens: Optional[int] = None,
-    target_docs: Optional[int] = None,
-) -> Tuple[List[Document], List[MixtureStats]]:
+    target_tokens: int | None = None,
+    target_docs: int | None = None,
+) -> tuple[list[Document], list[MixtureStats]]:
     """
     Mix documents according to weights.
 
@@ -88,8 +87,8 @@ def mix_documents(
     rng = random.Random(config.seed)
 
     # Precompute token counts if needed
-    token_counts_by_source: Dict[str, List[int]] = {}
-    total_tokens_by_source: Dict[str, int] = {}
+    token_counts_by_source: dict[str, list[int]] = {}
+    total_tokens_by_source: dict[str, int] = {}
 
     for source, docs in docs_by_source.items():
         if tokenizer:
@@ -99,8 +98,8 @@ def mix_documents(
         token_counts_by_source[source] = counts
         total_tokens_by_source[source] = sum(counts)
 
-    mixed: List[Document] = []
-    stats: List[MixtureStats] = []
+    mixed: list[Document] = []
+    stats: list[MixtureStats] = []
 
     if target_tokens:
         # Sample tokens per source according to weight
@@ -125,7 +124,7 @@ def mix_documents(
             indices = list(range(len(docs)))
             rng.shuffle(indices)
 
-            sampled_docs = []
+            sampled_docs: list[Document] = []
             sampled_tokens = 0
             for idx in indices:
                 if sampled_tokens >= desired_tokens:
@@ -138,7 +137,9 @@ def mix_documents(
                 sampled_tokens += token_counts_by_source[source][idx]
 
             mixed.extend(sampled_docs)
-            actual_tokens = sum(token_counts_by_source[source][docs.index(d)] for d in sampled_docs) if sampled_docs else 0
+            actual_tokens = (
+                sum(token_counts_by_source[source][docs.index(d)] for d in sampled_docs) if sampled_docs else 0
+            )
             # Actually compute from counts
             actual_tokens = sampled_tokens
 

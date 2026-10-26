@@ -65,17 +65,17 @@ state = AgentRuntime(ScriptedBackend(), executor).run(
 print(state.final_answer)
 ```
 
-The demo executes a real filesystem tool; it does not use fake outputs. The optional API exposes `/v1/agent/run` and `/v1/agent/stream` (SSE). Set `XRFM_AGENT_API_KEY` to protect the endpoints and `XRFM_AGENT_ROOT` to scope filesystem access. For a capable local model, point `OpenAICompatibleBackend` at llama.cpp, Ollama, or vLLM using `XRFM_AGENT_BASE_URL` and `XRFM_AGENT_MODEL`. External weights are never bundled. The existing Transformer remains a
+The demo executes a real bounded filesystem tool; it does not use fake tool outputs, but its backend is scripted and proves no learned agent or Urdu capability. The optional API exposes `/v1/agent/run` and `/v1/agent/stream` (SSE). Public provider mode requires `XRFM_AGENT_ENABLED=true`, `XRFM_AGENT_API_KEY`, `XRFM_AGENT_ROOT`, `XRFM_AGENT_BASE_URL`, and at least one explicit decision capability (`XRFM_AGENT_NATIVE_TOOL_CALLING=true` or `XRFM_AGENT_STRUCTURED_OUTPUT=true`); `XRFM_AGENT_MODEL` selects the provider model. Native tool calling, structured output, and reasoning capabilities remain false unless their corresponding flags are explicitly enabled. Local scripted mode additionally requires `XRFM_AGENT_ALLOW_LOCAL_DEMO=true` and must not be exposed publicly. `AgentRuntime` executes external/custom backends in spawn-isolated processes with parent-enforced deadlines and cancellation; custom backend instances must be picklable (normally module-level classes), and only bounded JSON decisions cross the process boundary. Direct `backend.chat()` calls are adapter operations, not a substitute for that runtime boundary. External weights are never bundled. The existing Transformer remains a
 first-class native research backend candidate, but it is currently a small
 prose LM without native tool-use training. See:
 `docs/XRFM_AGENTIC_ARCHITECTURE.md`, `docs/XRFM_AGENTIC_IMPLEMENTATION_PLAN.md`,
 `docs/research/XRFM_CURRENT_STATE_AUDIT.md`, and
 `docs/XRFM_AGENTIC_FINAL_REPORT.md`.
 
-Run the deterministic end-to-end demo:
+Run the deterministic local-only end-to-end demo:
 
 ```bash
-python scripts/run_agent_demo.py
+python scripts/run_agent_demo.py --local-demo
 ```
 
 ## Architecture
@@ -105,6 +105,10 @@ data pipeline: **`docs/data-pipeline.md`**, ADR: **`docs/adr/0002-xrfm-data-pipe
 pre-refactor audit: `docs/architecture/PHASE_0_AUDIT.md`.
 
 ## Install
+
+The project name remains **XRFM Foundational Model**. The public PyPI name
+`xrfm` belongs to an unrelated distribution; use a source checkout or the
+project's Docker images rather than `pip install xrfm`.
 
 ```bash
 git clone https://github.com/ahmadrrrtx/xr-foundation-model.git

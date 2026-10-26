@@ -7,7 +7,9 @@ Covers sampling strategies, KV cache, and end-to-end generation.
 import pytest
 import torch
 
+from xrfm.config.schema import ModelConfig
 from xrfm.inference.engine import GenerationEngine
+from xrfm.inference.generate import generate
 from xrfm.inference.kv_cache import KVCache
 from xrfm.inference.sampling import (
     sample_greedy,
@@ -219,6 +221,26 @@ class TestGenerationEngine:
         long_prompt = torch.randint(0, 100, (600,))
         output = engine.generate(long_prompt, max_new_tokens=2, temperature=0)
         assert len(output) <= 512 + 2
+
+    def test_generation_budget_larger_than_context_still_respects_window(self):
+        model = GPTModel(
+            ModelConfig(vocab_size=32, d_model=16, n_layers=1, n_heads=2, d_ff=32, max_seq_len=4, dropout=0.0)
+        )
+        result = GenerationEngine(model).generate_with_metadata(
+            torch.tensor([[1, 2, 3, 4, 5, 6]]), max_new_tokens=10, temperature=0
+        )
+        assert result.effective_prompt_tokens == 3
+        assert result.completion_tokens == 1
+        assert result.token_ids.shape == (4,)
+        assert result.token_ids[:3].tolist() == [4, 5, 6]
+
+    def test_functional_generate_uses_effective_prompt_for_truncation(self):
+        model = GPTModel(
+            ModelConfig(vocab_size=32, d_model=16, n_layers=1, n_heads=2, d_ff=32, max_seq_len=4, dropout=0.0)
+        )
+        result = generate(model, [1, 2, 3, 4, 5, 6], max_new_tokens=10, temperature=0, decode=False)
+        assert result.prompt_token_ids == [4, 5, 6]
+        assert len(result.token_ids) == 1
 
     def test_kv_cache_equivalence(self):
         """Cached generation should produce same logits as full forward."""

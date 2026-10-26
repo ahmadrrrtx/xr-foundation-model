@@ -25,9 +25,9 @@
 
 * Objective: add `/v1/agent/run` and SSE typed events without changing raw completions.
 * Dependencies: FastAPI optional extra.
-* Implemented: `api/routes/agent.py`, optional `XRFM_AGENT_API_KEY`, `XRFM_AGENT_ROOT`, OpenAI-compatible environment configuration.
+* Implemented: `api/routes/agent.py`, fail-closed `XRFM_AGENT_ENABLED`/`XRFM_AGENT_API_KEY` public configuration, explicit `XRFM_AGENT_ALLOW_LOCAL_DEMO`, `XRFM_AGENT_ROOT`, and OpenAI-compatible environment configuration.
 * Tests: request validation, API-key denial/acceptance, event ordering, contained tool failure. **Met: 8 API tests passed.**
-* Remaining: production authentication provider, cancellation propagation into model calls, metrics export.
+* Remaining: production authentication provider, pinned real-provider soak/capability probes, and metrics export. Runtime-hosted backend and tool calls have local process-deadline/cancellation tests.
 * Rollback: endpoint is additive.
 
 ## Phase E — evaluation and training data

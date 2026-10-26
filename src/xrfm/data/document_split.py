@@ -22,7 +22,6 @@ from __future__ import annotations
 import hashlib
 import random
 from dataclasses import dataclass
-from typing import List, Dict, Tuple, Set
 
 from xrfm.data.schema import Document
 
@@ -54,9 +53,9 @@ def _hash_doc_id(doc_id: str) -> int:
 
 
 def split_documents(
-    docs: List[Document],
+    docs: list[Document],
     config: SplitConfig | None = None,
-) -> Dict[str, List[Document]]:
+) -> dict[str, list[Document]]:
     """
     Split documents into train/val/test.
 
@@ -82,9 +81,9 @@ def split_documents(
         train_thr = cfg.train_ratio
         val_thr = cfg.train_ratio + cfg.val_ratio
 
-        train: List[Document] = []
-        val: List[Document] = []
-        test: List[Document] = []
+        train: list[Document] = []
+        val: list[Document] = []
+        test: list[Document] = []
 
         for doc in docs:
             # Use document_id for stability; fallback to content_hash
@@ -132,7 +131,7 @@ def split_documents(
         raise ValueError(f"Unknown split method: {cfg.method}")
 
 
-def verify_no_overlap(splits: Dict[str, List[Document]]) -> bool:
+def verify_no_overlap(splits: dict[str, list[Document]]) -> bool:
     """Verify train ∩ val = ∅ etc for document IDs."""
     train_ids = set(d.document_id for d in splits.get("train", []))
     val_ids = set(d.document_id for d in splits.get("val", []))
@@ -141,12 +140,12 @@ def verify_no_overlap(splits: Dict[str, List[Document]]) -> bool:
     return len(train_ids & val_ids) == 0 and len(train_ids & test_ids) == 0 and len(val_ids & test_ids) == 0
 
 
-def split_reproducibility_check(docs: List[Document], config: SplitConfig) -> bool:
+def split_reproducibility_check(docs: list[Document], config: SplitConfig) -> bool:
     """Check that same input + same seed = same split."""
     split1 = split_documents(docs, config)
     split2 = split_documents(docs, config)
 
-    def ids(split_dict):
-        return {k: sorted([d.document_id for d in v]) for k, v in split_dict.items()}
+    def ids(split_dict: dict[str, list[Document]]) -> dict[str, list[str]]:
+        return {k: sorted(d.document_id for d in v) for k, v in split_dict.items()}
 
     return ids(split1) == ids(split2)

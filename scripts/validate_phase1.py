@@ -13,24 +13,24 @@ Executes real commands and verifies:
 import os
 import sys
 import tempfile
-import shutil
 
 # Ensure src in path
 sys.path.insert(0, "src")
 
-from xrfm.data.schema import Document
-from xrfm.data.pipeline import PipelineConfig, DataPipeline
-from xrfm.data.sharding import ShardingConfig
-from xrfm.tokenization import BPETokenizer
-from xrfm.data.tokenized_dataset import ShardedTokenDatasetMap
-from xrfm import XRFMModel, load_config
 import torch
 from torch.utils.data import DataLoader
+
+from xrfm import XRFMModel, load_config
+from xrfm.data.pipeline import DataPipeline, PipelineConfig
+from xrfm.data.schema import Document
+from xrfm.data.sharding import ShardingConfig
+from xrfm.data.tokenized_dataset import ShardedTokenDatasetMap
+from xrfm.tokenization import BPETokenizer
 
 
 def load_golden():
     docs = []
-    with open("tests/data/golden/documents.jsonl", "r", encoding="utf-8") as f:
+    with open("tests/data/golden/documents.jsonl", encoding="utf-8") as f:
         for line in f:
             docs.append(Document.from_jsonl(line))
     return docs
@@ -126,7 +126,7 @@ def main():
         with tempfile.TemporaryDirectory() as tmpdir3:
             result3 = run_pipeline(tmpdir3, sequence_length=256, num_shards=2)
             id3 = result3["manifest"].dataset_id
-            assert id1 != id3, f"Dataset ID should change when seq_len changes"
+            assert id1 != id3, "Dataset ID should change when seq_len changes"
             print(f"   ✓ Identity changes: seq_len 128 → {id1[:16]}, seq_len 256 → {id3[:16]}")
 
         # 9. Worker no duplicates
@@ -135,7 +135,7 @@ def main():
 
         for nw in [1, 2, 4, 8]:
             assert verify_worker_no_duplicates(len(ds), nw), f"Worker dup check failed for {nw} workers"
-        print(f"   ✓ Worker sharding no duplicates for 1,2,4,8 workers")
+        print("   ✓ Worker sharding no duplicates for 1,2,4,8 workers")
 
         # 10. Split no overlap
         print("\n7. Verifying split no overlap...")

@@ -1,34 +1,37 @@
-"""XRFM FastAPI application.
+"""XRFM FastAPI application with an explicit, checkpoint-backed lifespan."""
 
-Production API server with: health checks, model info, text generation
-(sync + streaming), tokenization, structured logging, rate limiting,
-security headers, and CORS.
-"""
+from __future__ import annotations
 
+import glob
 import logging
 import os
+import re
 import sys
 import time
 from contextlib import asynccontextmanager
+from typing import Any
 
-# Phase 0: the library is a real installed package (src/xrfm); no sys.path
-# manipulation. Paths below resolve from the process CWD only as *optional*
-# repo-checkpoint/vocab lookups (documented in docs/architecture.md).
+import torch
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-# Single version source (Phase 0).
+from api.agent_config import validate_agent_configuration
+from api.state import APIState
 from xrfm import __version__
+from xrfm.config.schema import ModelConfig
+from xrfm.inference.engine import GenerationEngine
+from xrfm.models.gpt import GPTModel
+from xrfm.tokenization import BPETokenizer
 
-# Model and engine (lazy loaded in lifespan)
-_model = None
-_engine = None
-_tokenizer = None
-_startup_time: float = 0.0
-_model_loaded: bool = False
+# Compatibility snapshots for older integrations. Routes never read these;
+# app.state.xrfm is the sole lifecycle authority.
+_model: GPTModel | None = None
+_engine: GenerationEngine | None = None
+_tokenizer: Any = None
+_startup_time = 0.0
+_model_loaded = False
 
-# Setup structured logging
 logging.basicConfig(
     level=logging.INFO,
     format='{"time":"%(asctime)s","level":"%(levelname)s","name":"%(name)s","message":"%(message)s"}',
@@ -37,98 +40,131 @@ logging.basicConfig(
 logger = logging.getLogger("xrfm.api")
 
 
+def _load_tokenizer() -> Any:
+    configured = os.getenv("XRFM_TOKENIZER_PATH")
+    vocab_path = configured or os.path.join("tokenizer", "vocab.json")
+    if os.path.exists(vocab_path):
+        tokenizer = BPETokenizer()
+        tokenizer.load(vocab_path)
+        logger.info("Loaded tokenizer from %s (vocab=%d)", vocab_path, tokenizer.vocab_size())
+        return tokenizer
+    if configured:
+        raise FileNotFoundError(f"configured tokenizer does not exist: {configured}")
+    tokenizer = BPETokenizer.pretrained()
+    logger.info("Loaded packaged tokenizer (vocab=%d)", tokenizer.vocab_size())
+    return tokenizer
+
+
+def _checkpoint_candidates() -> list[str]:
+    configured = os.getenv("XRFM_CHECKPOINT_PATH")
+    if configured:
+        return [configured]
+
+    def sort_key(path: str) -> tuple[int, float]:
+        match = re.search(r"checkpoint_step_(\d+)\.pt$", path)
+        return (int(match.group(1)) if match else -1, os.path.getmtime(path))
+
+    return sorted(glob.glob(os.path.join("checkpoints", "checkpoint_step_*.pt")), key=sort_key, reverse=True)
+
+
+def _load_checkpoint(tokenizer: Any, checkpoint_path: str) -> tuple[GPTModel, GenerationEngine]:
+    payload = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+    extra = payload.get("extra", {}) or {}
+    model_data = extra.get("model_config")
+    if model_data is None and isinstance(extra.get("config"), dict):
+        model_data = extra["config"].get("model")
+    if model_data is not None:
+        model_config = ModelConfig.from_dict(dict(model_data))
+        if model_config.vocab_size != tokenizer.vocab_size():
+            raise ValueError(
+                f"checkpoint vocab_size={model_config.vocab_size} != tokenizer vocab_size={tokenizer.vocab_size()}"
+            )
+        model = GPTModel(model_config)
+    else:
+        # Older checkpoints have no architecture metadata; strict state-dict
+        # loading below still prevents silently serving an incompatible model.
+        model = GPTModel(vocab_size=tokenizer.vocab_size())
+    model.load_state_dict(payload["model_state_dict"], strict=True)
+    device_name = os.getenv("XRFM_API_DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
+    model.to(torch.device(device_name))
+    model.eval()
+    return model, GenerationEngine(model)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load model on startup, cleanup on shutdown."""
+    """Own one complete model/tokenizer/engine lifecycle per application."""
     global _model, _engine, _tokenizer, _startup_time, _model_loaded
-    logger.info("Loading XRFM model...")
-    _startup_time = time.time()
-    _checkpoint_loaded = False
-
-    try:
-        import glob
-
-        from xrfm.inference.engine import GenerationEngine
-        from xrfm.models.gpt import GPTModel
-
-        # Tokenizer: packaged resource (works anywhere), unless a repo
-        # checkout provides tokenizer/vocab.json (then prefer that copy).
-        from xrfm.tokenization import BPETokenizer
-
-        _tokenizer = None
-        vocab_path = os.path.join("tokenizer", "vocab.json")
-        if os.path.exists(vocab_path):
-            _tokenizer = BPETokenizer()
-            _tokenizer.load(vocab_path)
-            logger.info("Loaded tokenizer from %s (vocab=%d)", vocab_path, _tokenizer.vocab_size())
-        else:
-            _tokenizer = BPETokenizer.pretrained()
-            logger.info("Loaded packaged tokenizer (vocab=%d)", _tokenizer.vocab_size())
-
-        # Model built with the tokenizer's actual vocabulary size (F-13).
-        _model = GPTModel(vocab_size=_tokenizer.vocab_size())
-
-        # Load the most recent checkpoint if present (F-42: previously the API
-        # served a freshly-random model and never touched the committed ckpt).
-        ckpts = sorted(glob.glob(os.path.join("checkpoints", "checkpoint_step_*.pt")))
-        if ckpts:
-            latest = ckpts[-1]
-            try:
-                import torch
-
-                payload = torch.load(latest, map_location="cpu", weights_only=True)
-                sd = payload["model_state_dict"]
-                expected_shape = tuple(_model.embedding.embedding.weight.shape)
-                actual_shape = tuple(sd.get("embedding.embedding.weight", torch.empty(0)).shape)
-                if actual_shape != expected_shape:
-                    logger.warning("Skipping incompatible checkpoint %s (embedding shape %s; expected %s)", latest, actual_shape, expected_shape)
-                else:
-                    _model.load_state_dict(sd, strict=True)
-                    _checkpoint_loaded = True
-                    logger.info("Loaded checkpoint weights: %s", latest)
-            except Exception as e:  # noqa: BLE001
-                logger.warning("Could not load checkpoint %s: %s", latest, e)
-
-        _engine = GenerationEngine(_model)
-        _model_loaded = True
-
-        elapsed = time.time() - _startup_time
-        logger.info(
-            "Model loaded in %.2fs (params=%d, checkpoint_loaded=%s)",
-            elapsed,
-            _model.parameter_count(),
-            _checkpoint_loaded,
-        )
-    except Exception as e:  # noqa: BLE001
-        logger.error("Failed to load model: %s", e)
-        _model_loaded = False
-
-    yield  # Server runs here
-
-    logger.info("Shutting down XRFM API")
+    state = APIState(started_at=time.time())
+    app.state.xrfm = state
     _model = None
     _engine = None
+    _tokenizer = None
+    _model_loaded = False
+    _startup_time = state.started_at
+    # Configuration errors are startup failures, not a public demo fallback.
+    validate_agent_configuration()
+
+    try:
+        state.tokenizer = _load_tokenizer()
+        candidates = _checkpoint_candidates()
+        if not candidates:
+            raise FileNotFoundError("no compatible checkpoint configured (set XRFM_CHECKPOINT_PATH)")
+        errors: list[str] = []
+        for candidate in candidates:
+            try:
+                state.model, state.engine = _load_checkpoint(state.tokenizer, candidate)
+                state.checkpoint_path = candidate
+                state.model_loaded = True
+                break
+            except Exception as exc:  # noqa: BLE001 - try the next local candidate
+                errors.append(f"{candidate}: {type(exc).__name__}: {exc}")
+                logger.warning("Checkpoint rejected: %s", errors[-1])
+                if os.getenv("XRFM_CHECKPOINT_PATH"):
+                    break
+        if not state.model_loaded:
+            raise RuntimeError("; ".join(errors) or "no usable checkpoint")
+        _model, _engine, _tokenizer = state.model, state.engine, state.tokenizer
+        _model_loaded = True
+        logger.info(
+            "Model ready in %.2fs (params=%d, checkpoint=%s)",
+            time.time() - state.started_at,
+            state.model.parameter_count(),
+            state.checkpoint_path,
+        )
+    except Exception as exc:  # readiness, not liveness, reports model failure
+        state.startup_error = str(exc)
+        state.model_loaded = False
+        state.model = None
+        state.engine = None
+        logger.error("XRFM model is not ready: %s", exc)
+
+    try:
+        yield
+    finally:
+        state.model = None
+        state.engine = None
+        state.tokenizer = None
+        state.model_loaded = False
+        _model = None
+        _engine = None
+        _tokenizer = None
+        _model_loaded = False
+        logger.info("XRFM API lifecycle closed")
 
 
-app = FastAPI(
-    title="XR Foundation Model API",
-    version=__version__,
-    lifespan=lifespan,
-)
-
-# CORS
+app = FastAPI(title="XR Foundation Model API", version=__version__, lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=["Content-Type", "Authorization", "X-XRFM-Agent-Key"],
 )
 
 
-# Security headers
 @app.middleware("http")
-async def security_headers(request: Request, call_next):
+async def security_headers(request: Request, call_next: Any):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -136,9 +172,8 @@ async def security_headers(request: Request, call_next):
     return response
 
 
-# Request timing
 @app.middleware("http")
-async def request_timing(request: Request, call_next):
+async def request_timing(request: Request, call_next: Any):
     start = time.perf_counter()
     response = await call_next(request)
     elapsed = time.perf_counter() - start
@@ -147,23 +182,16 @@ async def request_timing(request: Request, call_next):
     return response
 
 
-# Import and register routes
-# Forensic-audit fix (F-41): `search_routes` never existed; the API could not
-# import. The search routes now live in `api/routes/search.py`.
 from api.routes import agent, completions, health, metrics, search, tokenize_endpoints  # noqa: E402
 
-# The routes import globals from api.main, creating a module cycle; mypy
-# cannot resolve `router` types through it, so the cycle is documented and
-# the includes are typed as Any (justified exclusion, Phase 29).
-app.include_router(health.router, tags=["Health"])  # type: ignore[has-type]
-app.include_router(completions.router, tags=["Completions"])  # type: ignore[has-type]
-app.include_router(tokenize_endpoints.router, tags=["Tokenize"])  # type: ignore[has-type]
-app.include_router(metrics.router, tags=["Metrics"])  # type: ignore[has-type]
-app.include_router(search.router, tags=["Search Engine"])  # type: ignore[has-type]
-app.include_router(agent.router, tags=["Agent Runtime"])  # type: ignore[has-type]
+app.include_router(health.router, tags=["Health"])
+app.include_router(completions.router, tags=["Completions"])
+app.include_router(tokenize_endpoints.router, tags=["Tokenize"])
+app.include_router(metrics.router, tags=["Metrics"])
+app.include_router(search.router, tags=["Search Engine"])
+app.include_router(agent.router, tags=["Agent Runtime"])
 
-# Mount web UI
 try:
     app.mount("/ui", StaticFiles(directory="webui", html=True), name="webui")
-except Exception:
-    pass  # webui dir may not exist
+except Exception:  # pragma: no cover - optional repository UI
+    pass
