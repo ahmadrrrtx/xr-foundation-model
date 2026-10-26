@@ -1,0 +1,76 @@
+{
+  "id": 40287976054,
+  "run_number": 28,
+  "head_sha": "ae6185a5f339c01c87de0fed7c52c47829d49c41",
+  "status": "completed",
+  "conclusion": "success",
+  "html_url": "https://github.com/ahmadrrrtx/xr-foundation-model/actions/runs/40287976054",
+  "created_at": "2026-10-26T07:47:38Z",
+  "updated_at": "2026-10-26T07:52:30Z",
+  "jobs": [
+    {
+      "id": 121456050293,
+      "name": "Training Pipeline Smoke Test",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:47:41Z",
+      "completed_at": "2026-10-26T07:48:18Z"
+    },
+    {
+      "id": 121456050507,
+      "name": "Package & Clean Install",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:47:41Z",
+      "completed_at": "2026-10-26T07:48:26Z"
+    },
+    {
+      "id": 121456050563,
+      "name": "Type Check (mypy)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:47:41Z",
+      "completed_at": "2026-10-26T07:49:12Z"
+    },
+    {
+      "id": 121456050616,
+      "name": "Lint & Format",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:47:42Z",
+      "completed_at": "2026-10-26T07:49:28Z"
+    },
+    {
+      "id": 121456050661,
+      "name": "Dependency & Agent Security",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:47:41Z",
+      "completed_at": "2026-10-26T07:49:04Z"
+    },
+    {
+      "id": 121456050675,
+      "name": "Run Tests (3.12)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:47:42Z",
+      "completed_at": "2026-10-26T07:52:30Z"
+    },
+    {
+      "id": 121456050701,
+      "name": "Run Tests (3.10)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:47:42Z",
+      "completed_at": "2026-10-26T07:52:17Z"
+    },
+    {
+      "id": 121456050711,
+      "name": "Run Tests (3.11)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:47:42Z",
+      "completed_at": "2026-10-26T07:52:12Z"
+    }
+  ]
+}
