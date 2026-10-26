@@ -1,0 +1,42 @@
+{
+  "aggregate_runtime": {
+    "aggregate_observation_bound_bytes": 798720,
+    "current_traced_bytes": 1555726,
+    "decisions": 7,
+    "elapsed_ms": 45623.102,
+    "event_bound": 66,
+    "events": 59,
+    "peak_traced_bytes": 2477954,
+    "per_tool_output_bound_bytes": 65536,
+    "serialized_message_content_bytes": 721120,
+    "serialized_observation_bytes": 721082,
+    "tool_observations": 12
+  },
+  "generated_at": "2026-10-26T07:34:10.379547+00:00",
+  "large_tree": {
+    "bounded_listing_metrics": {
+      "current_traced_bytes": 41830,
+      "elapsed_ms": 155.648,
+      "peak_traced_bytes": 596965,
+      "serialized_output_bytes": 14443
+    },
+    "directories_including_root_at_limit": 1000,
+    "directory_1001_error": "directory scan exceeds bound (1000)",
+    "file_10001_error": "file scan exceeds bound (10000)",
+    "largest_file": {
+      "bytes": 1,
+      "relative": "root-00.txt",
+      "suffix": ".txt"
+    },
+    "largest_file_metrics": {
+      "current_traced_bytes": 4693,
+      "elapsed_ms": 1149.455,
+      "peak_traced_bytes": 583569
+    },
+    "regular_files_at_limit": 10000
+  },
+  "platform": "Linux-6.1.158+-x86_64-with-glibc2.41",
+  "python": "3.13.16",
+  "scope": "CPU parent-process tracemalloc and serialized state; not RSS, GPU, or provider evidence",
+  "status": "pass"
+}

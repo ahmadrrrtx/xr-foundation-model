@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import threading
 import time
 from collections.abc import Callable, Generator, Iterator
@@ -20,8 +21,18 @@ class RuntimeLimits:
     max_tool_calls: int = 12
 
     def __post_init__(self) -> None:
-        if self.max_steps <= 0 or self.max_tool_calls < 0 or self.max_wall_seconds <= 0:
-            raise ValueError("runtime limits must have positive steps/wall time and non-negative tool calls")
+        for name, minimum in (("max_steps", 1), ("max_tool_calls", 0)):
+            value = getattr(self, name)
+            if not isinstance(value, int) or isinstance(value, bool) or value < minimum:
+                raise ValueError(f"{name} must be an integer greater than or equal to {minimum}")
+        wall_seconds = self.max_wall_seconds
+        if (
+            not isinstance(wall_seconds, (int, float))
+            or isinstance(wall_seconds, bool)
+            or not math.isfinite(wall_seconds)
+            or wall_seconds <= 0
+        ):
+            raise ValueError("max_wall_seconds must be a finite positive number")
 
 
 class AgentRuntime:

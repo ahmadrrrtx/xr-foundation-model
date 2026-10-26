@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import multiprocessing as mp
 import threading
 import time
@@ -133,8 +134,13 @@ class BackendExecutor:
     """
 
     def __init__(self, max_decision_bytes: int = 1_000_000) -> None:
-        if max_decision_bytes <= 0 or max_decision_bytes > 1_000_000:
-            raise ValueError("max_decision_bytes must be in [1, 1000000]")
+        if (
+            not isinstance(max_decision_bytes, int)
+            or isinstance(max_decision_bytes, bool)
+            or max_decision_bytes <= 0
+            or max_decision_bytes > 1_000_000
+        ):
+            raise ValueError("max_decision_bytes must be an integer in [1, 1000000]")
         self.max_decision_bytes = max_decision_bytes
 
     @staticmethod
@@ -213,8 +219,13 @@ class BackendExecutor:
         timeout: float,
         cancel_event: threading.Event | None = None,
     ) -> Decision:
-        if timeout <= 0:
-            raise BackendTimeoutError("backend wall-clock deadline exhausted")
+        if (
+            not isinstance(timeout, (int, float))
+            or isinstance(timeout, bool)
+            or not math.isfinite(timeout)
+            or timeout <= 0
+        ):
+            raise BackendTimeoutError("backend timeout must be a finite positive number")
         if cancel_event is not None and cancel_event.is_set():
             raise BackendCancelledError("backend cancelled before execution")
         if type(backend) is ScriptedBackend:

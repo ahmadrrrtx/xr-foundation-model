@@ -1,0 +1,76 @@
+{
+  "id": 40286070942,
+  "run_number": 27,
+  "head_sha": "56b21c6bd52df548bfcd98a83b26408728c8eae3",
+  "status": "completed",
+  "conclusion": "success",
+  "html_url": "https://github.com/ahmadrrrtx/xr-foundation-model/actions/runs/40286070942",
+  "created_at": "2026-10-26T07:29:11Z",
+  "updated_at": "2026-10-26T07:33:45Z",
+  "jobs": [
+    {
+      "id": 121449924426,
+      "name": "Training Pipeline Smoke Test",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:29:15Z",
+      "completed_at": "2026-10-26T07:29:59Z"
+    },
+    {
+      "id": 121449924686,
+      "name": "Run Tests (3.11)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:29:15Z",
+      "completed_at": "2026-10-26T07:33:41Z"
+    },
+    {
+      "id": 121449924690,
+      "name": "Lint & Format",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:29:15Z",
+      "completed_at": "2026-10-26T07:30:39Z"
+    },
+    {
+      "id": 121449924711,
+      "name": "Type Check (mypy)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:29:15Z",
+      "completed_at": "2026-10-26T07:30:47Z"
+    },
+    {
+      "id": 121449924788,
+      "name": "Run Tests (3.10)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:29:15Z",
+      "completed_at": "2026-10-26T07:32:37Z"
+    },
+    {
+      "id": 121449924792,
+      "name": "Dependency & Agent Security",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:29:15Z",
+      "completed_at": "2026-10-26T07:30:36Z"
+    },
+    {
+      "id": 121449924854,
+      "name": "Run Tests (3.12)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:29:15Z",
+      "completed_at": "2026-10-26T07:33:45Z"
+    },
+    {
+      "id": 121449924902,
+      "name": "Package & Clean Install",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-26T07:29:15Z",
+      "completed_at": "2026-10-26T07:29:58Z"
+    }
+  ]
+}

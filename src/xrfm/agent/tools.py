@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -26,6 +27,18 @@ class JSONLimits:
     max_depth: int = 32
     max_string_bytes: int = 16_384
 
+    def __post_init__(self) -> None:
+        bounds = (
+            ("max_bytes", 1, 1_000_000),
+            ("max_items", 1, 10_000),
+            ("max_depth", 0, 64),
+            ("max_string_bytes", 1, 1_000_000),
+        )
+        for name, minimum, maximum in bounds:
+            value = getattr(self, name)
+            if not isinstance(value, int) or isinstance(value, bool) or not minimum <= value <= maximum:
+                raise ValueError(f"{name} must be an integer in [{minimum}, {maximum}]")
+
 
 _SCHEMA_URI = "https://json-schema.org/draft/2020-12/schema"
 _REGISTRY_LIMITS = JSONLimits(max_bytes=1_000_000, max_items=10_000, max_depth=32, max_string_bytes=100_000)
@@ -35,7 +48,7 @@ def enforce_json_bounds(value: Any, limits: JSONLimits = JSONLimits(), path: str
     """Reject oversized/deep/non-JSON values before schema or model use."""
     try:
         encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")
-    except (TypeError, ValueError) as exc:
+    except (TypeError, ValueError, RecursionError) as exc:
         raise ToolError(f"{path} must be finite JSON data") from exc
     if len(encoded) > limits.max_bytes:
         raise ToolError(f"{path} exceeds total JSON byte bound ({limits.max_bytes})")
@@ -107,8 +120,14 @@ class ToolRegistry:
         _check_schema_definition(spec.input_schema, f"tool {spec.name} input_schema")
         if spec.output_schema is not None:
             _check_schema_definition(spec.output_schema, f"tool {spec.name} output_schema")
-        if spec.timeout_seconds <= 0:
-            raise ValueError("tool timeout_seconds must be positive")
+        timeout = spec.timeout_seconds
+        if (
+            not isinstance(timeout, (int, float))
+            or isinstance(timeout, bool)
+            or not math.isfinite(timeout)
+            or timeout <= 0
+        ):
+            raise ValueError("tool timeout_seconds must be a finite positive number")
         self._tools[spec.name] = RegisteredTool(spec, function)
 
     def get(self, name: str) -> RegisteredTool:
@@ -191,14 +210,13 @@ class SafeFilesystemTools:
 
     def _walk_files(self, base: Path, max_files: int, max_directories: int) -> Iterator[Path]:
         """Stream a bounded depth-first walk; never materialize a whole tree."""
-        directories = 0
-        files = 0
         pending = [base]
+        directories = 1
+        files = 0
+        if directories > max_directories:
+            raise ToolError(f"directory scan exceeds bound ({max_directories})")
         while pending:
             directory = pending.pop()
-            directories += 1
-            if directories > max_directories:
-                raise ToolError(f"directory scan exceeds bound ({max_directories})")
             try:
                 entries = os.scandir(directory)
             except OSError as exc:
@@ -211,6 +229,9 @@ class SafeFilesystemTools:
                         continue
                     try:
                         if entry.is_dir(follow_symlinks=False):
+                            directories += 1
+                            if directories > max_directories:
+                                raise ToolError(f"directory scan exceeds bound ({max_directories})")
                             pending.append(path)
                         elif entry.is_file(follow_symlinks=False):
                             files += 1

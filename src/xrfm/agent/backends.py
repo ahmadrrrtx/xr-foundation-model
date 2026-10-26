@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import urllib.request
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -88,8 +89,13 @@ class OpenAICompatibleBackend(ModelBackend):
             raise ValueError("provider base_url must be an absolute HTTP(S) URL")
         if parsed.username is not None or parsed.password is not None or parsed.query or parsed.fragment:
             raise ValueError("provider base_url must not contain credentials, query, or fragment components")
-        if timeout <= 0:
-            raise ValueError("provider timeout must be positive")
+        if (
+            not isinstance(timeout, (int, float))
+            or isinstance(timeout, bool)
+            or not math.isfinite(timeout)
+            or timeout <= 0
+        ):
+            raise ValueError("provider timeout must be a finite positive number")
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.timeout = timeout
