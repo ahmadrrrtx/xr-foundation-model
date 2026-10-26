@@ -74,6 +74,7 @@ class AgentRuntime:
 
         yield emit(AgentPhase.REQUEST, "Request accepted")
         tool_signatures: set[str] = set()
+        tool_call_ids: set[str] = set()
         while state.step < self.limits.max_steps:
             reason = stop_reason()
             if reason is not None:
@@ -143,10 +144,18 @@ class AgentRuntime:
                 state, event = failed("The model did not produce a valid terminal decision.")
                 yield event
                 return state
+            decision_call_ids = [call.call_id for call in decision.tool_calls]
+            if len(set(decision_call_ids)) != len(decision_call_ids) or any(
+                call_id in tool_call_ids for call_id in decision_call_ids
+            ):
+                state, event = failed("The backend returned a duplicate tool-call id.")
+                yield event
+                return state
             if len(state.observations) + len(decision.tool_calls) > self.limits.max_tool_calls:
                 state, event = failed("The tool-call budget was exceeded.")
                 yield event
                 return state
+            tool_call_ids.update(decision_call_ids)
             for call in decision.tool_calls:
                 reason = stop_reason()
                 if reason is not None:

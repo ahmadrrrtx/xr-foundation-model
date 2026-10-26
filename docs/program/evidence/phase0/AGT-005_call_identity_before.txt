@@ -1,0 +1,30 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+______________ test_decision_rejects_duplicate_provider_call_ids _______________
+
+    def test_decision_rejects_duplicate_provider_call_ids() -> None:
+>       with pytest.raises(ValueError, match="duplicate tool-call id"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+tests/test_phase0_tool_call_identity.py:62: Failed
+_______ test_runtime_rejects_cross_turn_id_reuse_before_second_execution _______
+
+    def test_runtime_rejects_cross_turn_id_reuse_before_second_execution() -> None:
+        registry = ToolRegistry()
+        registry.register(_echo_spec(), _index_tool)
+        state = AgentRuntime(
+            _DuplicateAcrossTurnsBackend(),
+            ToolExecutor(registry),
+            RuntimeLimits(max_steps=3, max_wall_seconds=20, max_tool_calls=2),
+        ).run("exercise exact observation correlation")
+    
+>       assert state.failed
+E       AssertionError: assert False
+E        +  where False = AgentState(request='exercise exact observation correlation', phase=<AgentPhase.COMPLETE: 'complete'>, messages=[Messag... message='Execution complete', data={}, timestamp=1793008929.6742046)], step=3, final_answer='completed', failed=False).failed
+
+tests/test_phase0_tool_call_identity.py:75: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_phase0_tool_call_identity.py::test_decision_rejects_duplicate_provider_call_ids
+FAILED tests/test_phase0_tool_call_identity.py::test_runtime_rejects_cross_turn_id_reuse_before_second_execution
+2 failed in 16.51s

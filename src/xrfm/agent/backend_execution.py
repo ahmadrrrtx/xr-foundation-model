@@ -99,6 +99,7 @@ def _parse_decision(payload: Any, tools: list[ToolSpec]) -> Decision:
         raise ValueError("tool_call decision contains no calls")
     allowed_names = {tool.name for tool in tools}
     calls: list[ToolCall] = []
+    seen_call_ids: set[str] = set()
     for raw_call in raw_calls:
         if not isinstance(raw_call, dict) or set(raw_call) != {"id", "name", "arguments"}:
             raise ValueError("each tool call must contain exactly id, name, and arguments")
@@ -107,6 +108,9 @@ def _parse_decision(payload: Any, tools: list[ToolSpec]) -> Decision:
         arguments = raw_call["arguments"]
         if not isinstance(call_id, str) or not call_id:
             raise ValueError("tool-call id must be a non-empty string")
+        if call_id in seen_call_ids:
+            raise ValueError("duplicate tool-call id in backend decision")
+        seen_call_ids.add(call_id)
         if not isinstance(name, str) or name not in allowed_names:
             raise ValueError("backend requested an unregistered tool")
         if not isinstance(arguments, dict):
