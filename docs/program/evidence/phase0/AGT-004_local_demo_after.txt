@@ -1,0 +1,40 @@
+LOCAL-ONLY DETERMINISTIC DEMO: no trained agent or Urdu-capability claim
+EVENTS
+{"phase": "request", "message": "Request accepted", "data": {}, "timestamp": 1792670232.7365108}
+{"phase": "context", "message": "Context assembled", "data": {"step": 1, "message_count": 1}, "timestamp": 1792670232.736522}
+{"phase": "decide", "message": "Decision produced", "data": {"decision": {"type": "tool_call", "rationale": "The request requires inspecting project files.", "tool_calls": [{"id": "b03e8b6ad2a6", "name": "largest_file", "arguments": {"relative": "."}}], "answer": null, "verification_target": null}}, "timestamp": 1792670232.7367024}
+{"phase": "authorize", "message": "Authorizing tool call", "data": {"tool": "largest_file", "call_id": "b03e8b6ad2a6"}, "timestamp": 1792670232.7367175}
+{"phase": "execute", "message": "Executing tool call", "data": {"tool": "largest_file", "call_id": "b03e8b6ad2a6"}, "timestamp": 1792670232.7367218}
+{"phase": "observe", "message": "Tool observation received", "data": {"tool": "largest_file", "ok": true, "denied": false}, "timestamp": 1792670235.0768273}
+{"phase": "verify", "message": "Observation available for verification", "data": {"observation_count": 1}, "timestamp": 1792670235.0768714}
+{"phase": "context", "message": "Context assembled", "data": {"step": 2, "message_count": 3}, "timestamp": 1792670235.0768795}
+{"phase": "decide", "message": "Decision produced", "data": {"decision": {"type": "answer", "rationale": "The filesystem observation is sufficient to answer the request.", "tool_calls": [], "answer": "I inspected the project safely. The result was: {\"tool\": \"largest_file\", \"ok\": true, \"output\": {\"relative\": \"checkpoints/checkpoint_step_500.pt\", \"bytes\": \"76805341\", \"suffix\": \".pt\"}}", "verification_target": null}}, "timestamp": 1792670235.0769925}
+{"phase": "verify", "message": "Final answer accepted", "data": {"answer_length": 184}, "timestamp": 1792670235.076998}
+{"phase": "complete", "message": "Execution complete", "data": {}, "timestamp": 1792670235.0770001}
+FINAL
+I inspected the project safely. The result was: {"tool": "largest_file", "ok": true, "output": {"relative": "checkpoints/checkpoint_step_500.pt", "bytes": "76805341", "suffix": ".pt"}}
+AUDIT
+[
+  {
+    "event": "authorization",
+    "tool": "largest_file",
+    "details": {
+      "call_id": "b03e8b6ad2a6",
+      "allowed": "True",
+      "reason": "authorized"
+    },
+    "timestamp": 1792670232.7380042
+  },
+  {
+    "event": "execution_result",
+    "tool": "largest_file",
+    "details": {
+      "call_id": "b03e8b6ad2a6",
+      "ok": "True",
+      "denied": "False",
+      "duration_ms": "2340.051",
+      "error": "None"
+    },
+    "timestamp": 1792670235.0768118
+  }
+]

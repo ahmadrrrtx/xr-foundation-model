@@ -1,0 +1,94 @@
+clean checkout HEAD: 56a1c5e233b0e99fd7f6334cdcedae08b37d874c
+Obtaining file:///tmp/xrfm-clean-checkout
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: xrfm
+  Building editable for xrfm (pyproject.toml): started
+  Building editable for xrfm (pyproject.toml): finished with status 'done'
+  Created wheel for xrfm: filename=xrfm-1.0.1-0.editable-py3-none-any.whl size=8115 sha256=ecc0d899f287ba4e76ddd779afce098f26af1dd091c56721c4da1d0aa50871cc
+  Stored in directory: /tmp/pip-ephem-wheel-cache-x968_1j5/wheels/6b/31/fd/490a88742de9fd5a074d413619c58ee5fc4d2472fbd6d4708d
+Successfully built xrfm
+Installing collected packages: xrfm
+  Attempting uninstall: xrfm
+    Found existing installation: xrfm 1.0.1
+    Not uninstalling xrfm at /usr/local/lib/python3.13/site-packages, outside environment /tmp/xrfm-clean-venv
+    Can't uninstall 'xrfm'. No files were found to uninstall.
+Successfully installed xrfm-1.0.1
+
+[notice] A new release of pip is available: 26.2.1 -> 26.2.2
+[notice] To update, run: /tmp/xrfm-clean-venv/bin/python -m pip install --upgrade pip
+editable import: /tmp/xrfm-clean-checkout/src/xrfm/__init__.py
+=== Ruff lint ===
+All checks passed!
+=== Ruff format ===
+187 files already formatted
+=== Black ===
+All done! ✨ 🍰 ✨
+155 files would be left unchanged.
+=== mypy ===
+src/xrfm/data/contamination.py:143: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+Success: no issues found in 91 source files
+=== pytest ===
+..........FF............................................................ [ 13%]
+........................................................................ [ 26%]
+........................................................................ [ 39%]
+........................................................................ [ 52%]
+........................................................................ [ 66%]
+........................................................................ [ 79%]
+........................................................................ [ 92%]
+........................................                                 [100%]
+=================================== FAILURES ===================================
+_____________________________ test_ready_endpoint ______________________________
+
+client = <starlette.testclient.TestClient object at 0x7fc5c844b100>
+
+    def test_ready_endpoint(client):
+        resp = client.get("/health/ready")
+>       assert resp.status_code == 200
+E       assert 503 == 200
+E        +  where 503 = <Response [503 Service Unavailable]>.status_code
+
+tests/test_api.py:47: AssertionError
+_____________________________ test_models_endpoint _____________________________
+
+client = <starlette.testclient.TestClient object at 0x7fc5c844b100>
+
+    def test_models_endpoint(client):
+        resp = client.get("/v1/models")
+>       assert resp.status_code == 200
+E       assert 503 == 200
+E        +  where 503 = <Response [503 Service Unavailable]>.status_code
+
+tests/test_api.py:52: AssertionError
+=============================== warnings summary ===============================
+../../usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: routing is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: knowledge is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase14.py::test_builder_returns_model_and_head
+  /tmp/xrfm-clean-checkout/tests/test_neurotopo_phase14.py:25: DeprecationWarning: neurotopo is deprecated; import from xrfm.research.neurotopo instead
+    uncertainty=__import__("xrfm.neurotopo.config", fromlist=["UncertaintyConfig"]).UncertaintyConfig(enabled=True),
+
+tests/test_optimization.py::TestFlashAttention::test_force_math_backend
+  /usr/local/lib/python3.13/contextlib.py:109: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
+    self.gen = func(*args, **kwds)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_api.py::test_ready_endpoint - assert 503 == 200
+FAILED tests/test_api.py::test_models_endpoint - assert 503 == 200
+2 failed, 542 passed, 5 warnings in 200.79s (0:03:20)

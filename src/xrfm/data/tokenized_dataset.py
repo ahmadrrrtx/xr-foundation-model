@@ -12,18 +12,15 @@ Supports:
 
 from __future__ import annotations
 
-import json
-import os
-from pathlib import Path
-from typing import List, Optional, Iterator, Tuple
+from collections.abc import Iterator
+from typing import cast
 
+import numpy as np
 import torch
 from torch.utils.data import Dataset, IterableDataset, get_worker_info
 
-import numpy as np
-
-from xrfm.data.sharding import ShardInfo, assign_shards_to_rank, assign_samples_to_worker
 from xrfm.data.manifest_v2 import DatasetManifestV2
+from xrfm.data.sharding import ShardInfo, assign_samples_to_worker, assign_shards_to_rank
 
 
 class ShardedTokenDatasetMap(Dataset):
@@ -37,7 +34,7 @@ class ShardedTokenDatasetMap(Dataset):
     def __init__(
         self,
         manifest_path: str | None = None,
-        shard_infos: List[ShardInfo] | None = None,
+        shard_infos: list[ShardInfo] | None = None,
         rank: int = 0,
         world_size: int = 1,
         ignore_index: int = -100,
@@ -76,7 +73,7 @@ class ShardedTokenDatasetMap(Dataset):
 
         # Compute offsets
         self._shard_arrays: dict[int, np.ndarray] = {}
-        self._offsets: List[int] = []
+        self._offsets: list[int] = []
         self._total = 0
         for info in self.assigned_shards:
             self._offsets.append(self._total)
@@ -92,13 +89,13 @@ class ShardedTokenDatasetMap(Dataset):
             return self._shard_arrays[shard_idx]
         info = self.assigned_shards[shard_idx]
         if self.mmap:
-            arr = np.load(info.path, mmap_mode="r")
+            arr = cast(np.ndarray, np.load(info.path, mmap_mode="r"))
         else:
-            arr = np.load(info.path)
+            arr = cast(np.ndarray, np.load(info.path))
         self._shard_arrays[shard_idx] = arr
         return arr
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         if idx < 0 or idx >= self._total:
             raise IndexError(f"Index {idx} out of range {self._total}")
 
@@ -136,7 +133,7 @@ class ShardedTokenDatasetIterable(IterableDataset):
     def __init__(
         self,
         manifest_path: str | None = None,
-        shard_infos: List[ShardInfo] | None = None,
+        shard_infos: list[ShardInfo] | None = None,
         rank: int = 0,
         world_size: int = 1,
         ignore_index: int = -100,
@@ -179,7 +176,7 @@ class ShardedTokenDatasetIterable(IterableDataset):
         # For IterableDataset, __len__ not strictly required but useful
         return self._total
 
-    def __iter__(self) -> Iterator[Tuple[torch.Tensor, torch.Tensor]]:
+    def __iter__(self) -> Iterator[tuple[torch.Tensor, torch.Tensor]]:
         worker_info = get_worker_info()
         if worker_info is None:
             # Single worker: iterate over all assigned samples
@@ -208,7 +205,7 @@ class ShardedTokenDatasetIterable(IterableDataset):
 
         # Now iterate
         # Precompute offsets
-        offsets: List[int] = []
+        offsets: list[int] = []
         total = 0
         for info in self.assigned_shards:
             offsets.append(total)

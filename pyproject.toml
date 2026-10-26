@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,8 @@ name = "xrfm"
 dynamic = ["version"]
 description = "XR Foundation Model — open-source foundation model implementation in pure PyTorch"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     {name = "XR Foundation Model Contributors"}
 ]
@@ -16,11 +17,11 @@ dependencies = [
     "torch>=2.0.0",
     "pyyaml>=6.0",
     "numpy>=1.24.0",
+    "jsonschema>=4.18.0",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -35,6 +36,7 @@ dev = [
     "ruff>=0.3.0",
     "mypy>=1.0",
     "types-PyYAML>=6.0",
+    "types-jsonschema>=4.23.0",
     "httpx>=0.24.0",
     # The API server is part of the tested surface (tests/test_api.py, mypy api/):
     # dev installs must include it or CI lint/type/test jobs fail on imports.
@@ -45,6 +47,10 @@ api = [
     "fastapi>=0.100.0",
     "uvicorn>=0.20.0",
     "httpx>=0.24.0",
+]
+security = [
+    "bandit>=1.7.0",
+    "pip-audit>=2.7.0",
 ]
 
 [project.scripts]

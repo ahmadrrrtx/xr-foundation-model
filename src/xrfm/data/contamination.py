@@ -13,9 +13,9 @@ The system creates architectural boundary so future training cannot accidentally
 
 from __future__ import annotations
 
+import builtins
 import hashlib
 from dataclasses import dataclass, field
-from typing import List, Dict, Set, Tuple, Optional
 
 from xrfm.data.schema import Document
 
@@ -24,10 +24,10 @@ from xrfm.data.schema import Document
 class ProtectedDataset:
     name: str
     description: str
-    documents: List[Document] = field(default_factory=list)
+    documents: list[Document] = field(default_factory=list)
     # Precomputed hashes for fast lookup
-    content_hashes: Set[str] = field(default_factory=set)
-    ngram_hashes: Set[str] = field(default_factory=set)
+    content_hashes: set[str] = field(default_factory=set)
+    ngram_hashes: set[str] = field(default_factory=set)
     version: str = "v1"
 
     def __post_init__(self):
@@ -47,7 +47,7 @@ class ContaminationConfig:
     check_ngram: bool = True
 
 
-def _ngrams(text: str, n: int) -> Set[str]:
+def _ngrams(text: str, n: int) -> set[str]:
     words = text.split()
     if len(words) < n:
         return {text}
@@ -63,13 +63,13 @@ class ContaminationChecker:
     Checks training docs against protected eval datasets.
     """
 
-    def __init__(self, protected: List[ProtectedDataset], config: ContaminationConfig | None = None):
+    def __init__(self, protected: list[ProtectedDataset], config: ContaminationConfig | None = None):
         self.protected = protected
         self.config = config or ContaminationConfig()
         # Build global lookup
-        self._protected_hashes: Set[str] = set()
-        self._protected_ngram_hashes: Set[str] = set()
-        self._protected_by_name: Dict[str, ProtectedDataset] = {}
+        self._protected_hashes: set[str] = set()
+        self._protected_ngram_hashes: set[str] = set()
+        self._protected_by_name: dict[str, ProtectedDataset] = {}
 
         for pd in protected:
             self._protected_by_name[pd.name] = pd
@@ -83,7 +83,7 @@ class ContaminationChecker:
                     pd.ngram_hashes = {_hash_ngram(ng) for ng in ngrams}
                 self._protected_ngram_hashes.update(pd.ngram_hashes)
 
-    def check_document(self, doc: Document) -> Tuple[bool, Optional[str], float]:
+    def check_document(self, doc: Document) -> tuple[bool, str | None, float]:
         """
         Check single doc.
         Returns (is_contaminated, protected_dataset_name, score)
@@ -117,15 +117,13 @@ class ContaminationChecker:
 
         return False, None, 0.0
 
-    def check_documents(
-        self, docs: List[Document]
-    ) -> Tuple[List[Document], List[Tuple[Document, str, float]]]:
+    def check_documents(self, docs: list[Document]) -> tuple[list[Document], list[tuple[Document, str, float]]]:
         """
         Check batch.
         Returns (clean, contaminated_with_info)
         """
-        clean: List[Document] = []
-        contaminated: List[Tuple[Document, str, float]] = []
+        clean: list[Document] = []
+        contaminated: list[tuple[Document, str, float]] = []
 
         for doc in docs:
             is_contam, name, score = self.check_document(doc)
@@ -142,15 +140,15 @@ class ContaminationRegistry:
     """Maintains registry of protected evaluation datasets."""
 
     def __init__(self):
-        self.datasets: Dict[str, ProtectedDataset] = {}
+        self.datasets: dict[str, ProtectedDataset] = {}
 
     def register(self, dataset: ProtectedDataset):
         self.datasets[dataset.name] = dataset
 
-    def get(self, name: str) -> Optional[ProtectedDataset]:
+    def get(self, name: str) -> ProtectedDataset | None:
         return self.datasets.get(name)
 
-    def list(self) -> List[str]:
+    def list(self) -> builtins.list[str]:
         return list(self.datasets.keys())
 
     def checker(self, config: ContaminationConfig | None = None) -> ContaminationChecker:

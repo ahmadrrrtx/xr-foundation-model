@@ -1,0 +1,31 @@
+........................................................................ [ 13%]
+........................................................................ [ 26%]
+........................................................................ [ 39%]
+........................................................................ [ 52%]
+........................................................................ [ 66%]
+........................................................................ [ 79%]
+........................................................................ [ 92%]
+........................................                                 [100%]
+=============================== warnings summary ===============================
+../../../usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: routing is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: knowledge is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase14.py::test_builder_returns_model_and_head
+  /home/user/xr-foundation-model-audit/tests/test_neurotopo_phase14.py:25: DeprecationWarning: neurotopo is deprecated; import from xrfm.research.neurotopo instead
+    uncertainty=__import__("xrfm.neurotopo.config", fromlist=["UncertaintyConfig"]).UncertaintyConfig(enabled=True),
+
+tests/test_optimization.py::TestFlashAttention::test_force_math_backend
+  /usr/local/lib/python3.13/contextlib.py:109: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
+    self.gen = func(*args, **kwds)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+544 passed, 5 warnings in 187.99s (0:03:07)

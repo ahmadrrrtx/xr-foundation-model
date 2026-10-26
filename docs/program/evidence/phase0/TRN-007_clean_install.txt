@@ -1,0 +1,18 @@
+wheel top-level: ['xrfm', 'xrfm-1.0.1.dist-info']
+Processing ./dist/xrfm-1.0.1-py3-none-any.whl
+Installing collected packages: xrfm
+  Attempting uninstall: xrfm
+    Found existing installation: xrfm 1.0.1
+    Uninstalling xrfm-1.0.1:
+      Successfully uninstalled xrfm-1.0.1
+Successfully installed xrfm-1.0.1
+
+[notice] A new release of pip is available: 26.2.1 -> 26.2.2
+[notice] To update, run: /tmp/xrfm-trn007-venv/bin/python -m pip install --upgrade pip
+clean install: 1.0.1
+config loads from /: 128
+agent imports from /: 0
+xrfm 1.0.1
+python 3.13.16
+default preset : XR Foundation Model
+default model  : d_model=128 n_layers=4 n_heads=4 d_ff=512 max_seq_len=256 vocab=2048

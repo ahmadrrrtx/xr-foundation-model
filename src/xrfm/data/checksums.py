@@ -14,8 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
 
 
 def sha256_file(path: str, chunk_size: int = 1 << 20) -> str:
@@ -37,18 +36,18 @@ def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def hash_config(config: Dict[str, Any]) -> str:
+def hash_config(config: dict[str, Any]) -> str:
     """Stable hash of config dict (sorted keys)."""
     payload = json.dumps(config, sort_keys=True, ensure_ascii=False)
     return sha256_text(payload)
 
 
 def compute_dataset_id(
-    source_versions: Dict[str, str],
-    processing_config: Dict[str, Any],
+    source_versions: dict[str, str],
+    processing_config: dict[str, Any],
     tokenizer_version: str,
     pipeline_version: str,
-    extra: Dict[str, Any] | None = None,
+    extra: dict[str, Any] | None = None,
 ) -> str:
     """
     Compute stable dataset identity.
@@ -74,7 +73,7 @@ def verify_file_checksum(path: str, expected_sha256: str) -> bool:
     return actual == expected_sha256
 
 
-def generate_checksums_manifest(file_paths: List[str]) -> Dict[str, str]:
+def generate_checksums_manifest(file_paths: list[str]) -> dict[str, str]:
     """Generate dict of file -> sha256."""
     result = {}
     for p in file_paths:

@@ -138,6 +138,8 @@ class TrainingConfig:
     weight_decay: float = 0.1
     gradient_clip: float = 1.0
     mixed_precision: bool = False
+    precision: str = "auto"
+    max_optimizer_skips: int = 10
     checkpoint_every: int = 500
     resume_from: str | None = None
     grad_accum_steps: int = 1
@@ -155,10 +157,23 @@ class TrainingConfig:
     deterministic: bool = False
 
     def validate(self) -> None:
-        for name in ("batch_size", "max_steps", "warmup_steps", "checkpoint_every", "grad_accum_steps"):
+        for name in (
+            "batch_size",
+            "max_steps",
+            "warmup_steps",
+            "checkpoint_every",
+            "grad_accum_steps",
+            "max_optimizer_skips",
+        ):
             value = getattr(self, name)
             if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
                 raise _err("training", name, f"must be a positive int, got {value!r}")
+        if self.precision not in {"auto", "fp32", "fp16", "bf16"}:
+            raise _err("training", "precision", f"must be auto/fp32/fp16/bf16, got {self.precision!r}")
+        if not isinstance(self.mixed_precision, bool):
+            raise _err("training", "mixed_precision", f"must be a bool, got {self.mixed_precision!r}")
+        if not self.mixed_precision and self.precision not in {"auto", "fp32"}:
+            raise _err("training", "precision", "reduced precision requires mixed_precision=True")
         if not (isinstance(self.learning_rate, (int, float)) and self.learning_rate > 0):
             raise _err("training", "learning_rate", f"must be > 0, got {self.learning_rate!r}")
         if not (isinstance(self.weight_decay, (int, float)) and self.weight_decay >= 0):

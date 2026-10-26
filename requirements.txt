@@ -1,5 +1,5 @@
 # Runtime requirements for the XRFM API/server image (deployment/Dockerfile).
-# The library core itself needs only torch/pyyaml/numpy — declared in
+# The library core needs torch/pyyaml/numpy/jsonschema — declared in
 # pyproject.toml (`pip install xrfm`). gradio was previously listed but is
 # unused by any entry point; the HF Space runs the FastAPI app.
 torch>=2.0.0
@@ -8,3 +8,4 @@ uvicorn>=0.20.0
 httpx>=0.24.0
 pyyaml>=6.0
 numpy>=1.24.0
+jsonschema>=4.18.0

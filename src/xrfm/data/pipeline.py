@@ -31,28 +31,26 @@ Deterministic and traceable.
 from __future__ import annotations
 
 import os
-import json
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any
 
-from xrfm.data.schema import Document
-from xrfm.data.sources import SourceRegistry, SourceConfig
-from xrfm.data.normalization import normalize_document
-from xrfm.data.language import LanguageDetectorConfig, get_detector, filter_by_language
-from xrfm.data.quality import QualityFilterConfig, filter_documents_quality
-from xrfm.data.pii import PIIFilterConfig, filter_documents_pii
+from xrfm.data.contamination import ContaminationConfig, ContaminationRegistry
 from xrfm.data.dedup import ExactDedupConfig, NearDedupConfig, deduplicate_documents
 from xrfm.data.document_split import SplitConfig, split_documents
-from xrfm.data.contamination import ContaminationRegistry, ContaminationConfig
-from xrfm.data.mixing import MixtureConfig, mix_documents
-from xrfm.data.tokenization import TokenizationConfig, tokenize_documents
-from xrfm.data.packing_extended import PackingConfig, pack_tokenized_documents
-from xrfm.data.sharding import ShardingConfig, write_shards
+from xrfm.data.language import LanguageDetectorConfig, filter_by_language, get_detector
 from xrfm.data.manifest_v2 import build_manifest_v2
+from xrfm.data.mixing import MixtureConfig, mix_documents
+from xrfm.data.normalization import normalize_document
+from xrfm.data.packing_extended import PackingConfig, pack_tokenized_documents
+from xrfm.data.pii import PIIFilterConfig, filter_documents_pii
+from xrfm.data.quality import QualityFilterConfig, filter_documents_quality
 from xrfm.data.reporting import build_report_from_pipeline
-from xrfm.data.checksums import sha256_file
+from xrfm.data.schema import Document
+from xrfm.data.sharding import ShardingConfig, write_shards
+from xrfm.data.sources import SourceRegistry
+from xrfm.data.tokenization import TokenizationConfig, tokenize_documents
 
 
 @dataclass
@@ -69,7 +67,7 @@ class PipelineConfig:
     exact_dedup: ExactDedupConfig = field(default_factory=ExactDedupConfig)
     near_dedup: NearDedupConfig = field(default_factory=NearDedupConfig)
     split: SplitConfig = field(default_factory=SplitConfig)
-    mixture: Optional[MixtureConfig] = None
+    mixture: MixtureConfig | None = None
     tokenization: TokenizationConfig = field(default_factory=TokenizationConfig)
     packing: PackingConfig = field(default_factory=PackingConfig)
     sharding: ShardingConfig = field(default_factory=ShardingConfig)
@@ -83,7 +81,7 @@ class PipelineConfig:
     # Sequence length
     sequence_length: int = 2048
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         from dataclasses import asdict
 
         # Custom serialization for nested dataclasses
@@ -120,7 +118,7 @@ class PipelineConfig:
 class DataPipeline:
     """Orchestrates the full data pipeline."""
 
-    def __init__(self, config: PipelineConfig, tokenizer=None, source_registry: Optional[SourceRegistry] = None):
+    def __init__(self, config: PipelineConfig, tokenizer=None, source_registry: SourceRegistry | None = None):
         self.config = config
         self.tokenizer = tokenizer
         self.source_registry = source_registry or SourceRegistry()
@@ -143,7 +141,7 @@ class DataPipeline:
     def _log(self, msg: str):
         print(f"[XRFM Pipeline] {msg}")
 
-    def ingest(self, raw_docs: List[Document]) -> List[Document]:
+    def ingest(self, raw_docs: list[Document]) -> list[Document]:
         """Ingestion stage: for Phase 1, raw_docs passed directly. Future: download from registry."""
         self._log(f"Ingested {len(raw_docs)} raw documents")
         # Save raw docs for provenance
@@ -153,8 +151,8 @@ class DataPipeline:
                 f.write(doc.to_jsonl() + "\n")
         return raw_docs
 
-    def normalize(self, docs: List[Document]) -> List[Document]:
-        normalized: List[Document] = []
+    def normalize(self, docs: list[Document]) -> list[Document]:
+        normalized: list[Document] = []
         modifications = 0
         for doc in docs:
             result = normalize_document(doc)
@@ -169,23 +167,23 @@ class DataPipeline:
         self._log(f"Normalization: {len(normalized)}/{len(docs)} kept, {modifications} modified")
         return normalized
 
-    def filter_language(self, docs: List[Document]) -> Tuple[List[Document], Dict[str, Any]]:
+    def filter_language(self, docs: list[Document]) -> tuple[list[Document], dict[str, Any]]:
         detector = get_detector(self.config.language)
         kept, rejected, scores = filter_by_language(docs, detector, self.config.language)
         self._log(f"Language filtering: {len(kept)}/{len(docs)} kept, {len(rejected)} rejected")
         return kept, {"rejected": rejected, "scores": scores}
 
-    def filter_quality(self, docs: List[Document]) -> Tuple[List[Document], Dict[str, Any]]:
+    def filter_quality(self, docs: list[Document]) -> tuple[list[Document], dict[str, Any]]:
         kept, rejected, scores = filter_documents_quality(docs, self.config.quality)
         self._log(f"Quality filtering: {len(kept)}/{len(docs)} kept, {len(rejected)} rejected")
         return kept, {"rejected": rejected, "scores": scores}
 
-    def filter_pii(self, docs: List[Document]) -> Tuple[List[Document], Dict[str, Any]]:
+    def filter_pii(self, docs: list[Document]) -> tuple[list[Document], dict[str, Any]]:
         kept, rejected, scores, stats = filter_documents_pii(docs, self.config.pii)
         self._log(f"PII filtering: {len(kept)}/{len(docs)} kept, {len(rejected)} removed, stats={stats}")
         return kept, {"rejected": rejected, "scores": scores, "stats": stats}
 
-    def dedup(self, docs: List[Document]) -> Tuple[List[Document], Dict[str, Any]]:
+    def dedup(self, docs: list[Document]) -> tuple[list[Document], dict[str, Any]]:
         unique, stats, details = deduplicate_documents(
             docs,
             exact_config=self.config.exact_dedup,
@@ -193,10 +191,12 @@ class DataPipeline:
             do_exact=self.config.do_exact_dedup,
             do_near=self.config.do_near_dedup,
         )
-        self._log(f"Dedup: input={stats.get('input')} exact_dup={stats.get('exact_duplicates')} near_dup={stats.get('near_duplicates')} final={stats.get('final_unique')}")
+        self._log(
+            f"Dedup: input={stats.get('input')} exact_dup={stats.get('exact_duplicates')} near_dup={stats.get('near_duplicates')} final={stats.get('final_unique')}"
+        )
         return unique, {"stats": stats, "details": details}
 
-    def check_contamination(self, docs: List[Document]) -> Tuple[List[Document], Dict[str, Any]]:
+    def check_contamination(self, docs: list[Document]) -> tuple[list[Document], dict[str, Any]]:
         # For Phase 1, we use empty protected registry unless populated
         registry = ContaminationRegistry()
         # In future, load protected datasets from config
@@ -205,12 +205,12 @@ class DataPipeline:
         self._log(f"Contamination: {len(clean)}/{len(docs)} clean, {len(contaminated)} contaminated")
         return clean, {"contaminated": contaminated}
 
-    def split(self, docs: List[Document]) -> Dict[str, List[Document]]:
+    def split(self, docs: list[Document]) -> dict[str, list[Document]]:
         splits = split_documents(docs, self.config.split)
         self._log(f"Split: train={len(splits['train'])} val={len(splits['val'])} test={len(splits['test'])}")
         return splits
 
-    def mix(self, docs_by_source: Dict[str, List[Document]]) -> Tuple[List[Document], List]:
+    def mix(self, docs_by_source: dict[str, list[Document]]) -> tuple[list[Document], list]:
         if not self.config.mixture:
             # No mixing config, return concatenated
             all_docs = []
@@ -222,7 +222,7 @@ class DataPipeline:
         self._log(f"Mixing: {len(mixed)} docs mixed from {len(docs_by_source)} sources")
         return mixed, stats
 
-    def tokenize(self, docs: List[Document]):
+    def tokenize(self, docs: list[Document]):
         if self.tokenizer is None:
             raise ValueError("Tokenizer required for tokenization stage")
         tokenized, info, stats = tokenize_documents(docs, self.tokenizer, self.config.tokenization)
@@ -242,7 +242,9 @@ class DataPipeline:
         self.config.packing.sequence_length = self.config.sequence_length
 
         result = pack_tokenized_documents(tokenized_docs, self.config.packing)
-        self._log(f"Packing: {result.total_tokens} tokens -> {result.total_sequences} sequences, discarded={result.discarded_tokens} padded={result.padded_tokens}")
+        self._log(
+            f"Packing: {result.total_tokens} tokens -> {result.total_sequences} sequences, discarded={result.discarded_tokens} padded={result.padded_tokens}"
+        )
         return result
 
     def shard(self, packing_result):
@@ -260,9 +262,9 @@ class DataPipeline:
 
     def build_manifest(
         self,
-        sources_info: List[Dict[str, Any]],
-        splits: Dict[str, List[Document]],
-        token_counts: Dict[str, int],
+        sources_info: list[dict[str, Any]],
+        splits: dict[str, list[Document]],
+        token_counts: dict[str, int],
         shard_infos,
         tokenizer_info,
         packing_result,
@@ -298,17 +300,17 @@ class DataPipeline:
 
     def build_report(
         self,
-        ingested: List[Document],
-        retained: List[Document],
-        rejected_reasons: Dict[str, int],
-        dedup_stats: Dict[str, int],
-        token_counts: Dict[str, int],
-        tokens_per_source: Dict[str, int],
-        tokens_per_language: Dict[str, int],
-        splits: Dict[str, List[Document]],
-        split_token_counts: Dict[str, int],
+        ingested: list[Document],
+        retained: list[Document],
+        rejected_reasons: dict[str, int],
+        dedup_stats: dict[str, int],
+        token_counts: dict[str, int],
+        tokens_per_source: dict[str, int],
+        tokens_per_language: dict[str, int],
+        splits: dict[str, list[Document]],
+        split_token_counts: dict[str, int],
         quality_scores,
-        pii_stats: Dict[str, int],
+        pii_stats: dict[str, int],
         num_shards: int,
         storage_bytes: int,
     ):
@@ -337,11 +339,11 @@ class DataPipeline:
         self._log(f"Report saved to {json_path} and {md_path}")
         return report
 
-    def run(self, raw_docs: List[Document]) -> Dict[str, Any]:
+    def run(self, raw_docs: list[Document]) -> dict[str, Any]:
         """Run full pipeline end-to-end."""
 
         # Track rejected reasons
-        rejected_reasons: Dict[str, int] = {}
+        rejected_reasons: dict[str, int] = {}
 
         # Stage 1: Ingest
         docs = self.ingest(raw_docs)
@@ -393,8 +395,8 @@ class DataPipeline:
         all_tokenized, tokenizer_info, all_token_stats = self.tokenize(docs)
 
         # Tokenize splits for per-split counts
-        split_token_counts: Dict[str, int] = {}
-        split_tokenized: Dict[str, List] = {}
+        split_token_counts: dict[str, int] = {}
+        split_tokenized: dict[str, list] = {}
         for split_name, split_docs in splits.items():
             if split_docs:
                 tok_docs, _, stats = self.tokenize(split_docs)
@@ -458,13 +460,13 @@ class DataPipeline:
         # Report
         # Tokens per source / language
         tokens_per_source = packing_result.tokens_per_source
-        tokens_per_language: Dict[str, int] = {}
+        tokens_per_language: dict[str, int] = {}
         for doc in docs:
             # Approximate: use avg tokens per doc * count per language? Better: use tokenized docs
             pass
         # For simplicity, use source distribution as language proxy, but compute from tokenized
         # Let's compute tokens per language from all_tokenized + docs
-        lang_token_map: Dict[str, int] = {}
+        lang_token_map: dict[str, int] = {}
         # Map doc_id -> language
         doc_lang_map = {d.document_id: d.language for d in docs}
         for td in all_tokenized:

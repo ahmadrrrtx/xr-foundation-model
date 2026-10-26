@@ -73,6 +73,8 @@ class Trainer:
         scheduler: SchedulerLoader | None = None,
         checkpoint_dir: str = "checkpoints/",
         device: str | torch.device | None = None,
+        data_manifest_hash: str | None = None,
+        tokenizer_hash: str | None = None,
     ) -> None:
         if model is None:
             raise ValueError("model is required")
@@ -88,6 +90,8 @@ class Trainer:
             optimizer=optimizer,
             scheduler=scheduler,
             checkpoint_dir=checkpoint_dir,
+            data_manifest_hash=data_manifest_hash,
+            tokenizer_hash=tokenizer_hash,
         )
         if self._device_override is not None:
             self.loop.device = torch.device(self._device_override)
@@ -133,6 +137,12 @@ class Trainer:
         if dataset is None:
             raise ValueError("dataset is required")
         self.loop.dataset = dataset
+        if self.loop.data_manifest_hash is None:
+            self.loop.data_manifest_hash = getattr(dataset, "data_manifest_hash", None) or getattr(
+                dataset, "manifest_hash", None
+            )
+        if self.loop.tokenizer_hash is None:
+            self.loop.tokenizer_hash = getattr(dataset, "tokenizer_hash", None)
         self.loop.validation_fn = validation_fn
         self.loop.metrics_writer = metrics_writer
         result = self.loop.training_loop(
@@ -171,6 +181,7 @@ class Trainer:
             loss=loss,
             best_loss=self.loop.best_loss,
             extra=self.loop._checkpoint_extra(),
+            scaler=self.loop.mixed_precision_loader,
         )
 
 

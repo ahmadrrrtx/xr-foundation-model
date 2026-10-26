@@ -18,10 +18,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import List, Tuple, Dict
+from typing import Literal
 
 from xrfm.data.schema import Document, PIIScore
-
 
 # Regex patterns
 _EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
@@ -67,7 +66,7 @@ class PIIFilter:
 
     def scan(self, doc: Document) -> PIIScore:
         text = doc.text
-        flagged: List[str] = []
+        flagged: list[str] = []
 
         has_email = False
         has_phone = False
@@ -113,6 +112,7 @@ class PIIFilter:
                     flagged.append("credit_card")
 
         # Determine risk level
+        risk: Literal["low", "medium", "high"]
         if has_secret or has_api_key or has_sensitive_id:
             risk = "high"
         elif has_email and has_phone:
@@ -132,7 +132,7 @@ class PIIFilter:
             risk_level=risk,
         )
 
-    def should_keep(self, score: PIIScore) -> Tuple[bool, str]:
+    def should_keep(self, score: PIIScore) -> tuple[bool, str]:
         if score.risk_level == "high" and self.config.remove_high_risk:
             return False, f"pii_high_risk_{','.join(score.flagged_patterns)}"
         return True, "passed"
@@ -178,18 +178,18 @@ class PIIFilter:
 
 
 def filter_documents_pii(
-    docs: List[Document],
+    docs: list[Document],
     config: PIIFilterConfig | None = None,
-) -> Tuple[List[Document], List[Tuple[Document, PIIScore, str]], List[PIIScore], Dict[str, int]]:
+) -> tuple[list[Document], list[tuple[Document, PIIScore, str]], list[PIIScore], dict[str, int]]:
     """
     Filter documents for PII.
     Returns (kept, rejected, all_scores, stats).
     Stats: scanned, flagged, removed, transformed.
     """
     filt = PIIFilter(config)
-    kept: List[Document] = []
-    rejected: List[Tuple[Document, PIIScore, str]] = []
-    all_scores: List[PIIScore] = []
+    kept: list[Document] = []
+    rejected: list[tuple[Document, PIIScore, str]] = []
+    all_scores: list[PIIScore] = []
 
     scanned = 0
     flagged = 0

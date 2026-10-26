@@ -15,23 +15,85 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Any
 
 from xrfm.data.schema import Document, LanguageScore
-
 
 # Simple heuristic: character n-gram / common words for English vs others
 # This is intentionally lightweight for Phase 1 golden dataset.
 # Production can plug in fastText or GlotLID.
 
 _ENGLISH_COMMON = {
-    "the", "and", "is", "in", "to", "of", "a", "that", "it", "with", "for", "as",
-    "was", "on", "are", "be", "this", "have", "from", "or", "had", "by", "not",
-    "but", "what", "all", "were", "we", "when", "your", "can", "said", "there",
-    "use", "each", "which", "she", "do", "how", "their", "if", "will", "up",
-    "other", "about", "out", "many", "then", "them", "these", "so", "some",
-    "her", "would", "make", "like", "him", "into", "time", "has", "look",
-    "two", "more", "write", "go", "see", "number", "no", "way", "could",
+    "the",
+    "and",
+    "is",
+    "in",
+    "to",
+    "of",
+    "a",
+    "that",
+    "it",
+    "with",
+    "for",
+    "as",
+    "was",
+    "on",
+    "are",
+    "be",
+    "this",
+    "have",
+    "from",
+    "or",
+    "had",
+    "by",
+    "not",
+    "but",
+    "what",
+    "all",
+    "were",
+    "we",
+    "when",
+    "your",
+    "can",
+    "said",
+    "there",
+    "use",
+    "each",
+    "which",
+    "she",
+    "do",
+    "how",
+    "their",
+    "if",
+    "will",
+    "up",
+    "other",
+    "about",
+    "out",
+    "many",
+    "then",
+    "them",
+    "these",
+    "so",
+    "some",
+    "her",
+    "would",
+    "make",
+    "like",
+    "him",
+    "into",
+    "time",
+    "has",
+    "look",
+    "two",
+    "more",
+    "write",
+    "go",
+    "see",
+    "number",
+    "no",
+    "way",
+    "could",
 }
 
 # Very rough script detection
@@ -48,9 +110,9 @@ class LanguageDetectorConfig:
     default_language: str = "en"
     threshold: float = 0.6  # confidence threshold to accept
     detector: str = "heuristic"  # heuristic | fasttext | glotlid
-    allowed_languages: Optional[List[str]] = None  # None = all allowed, or list like ["en"]
+    allowed_languages: list[str] | None = None  # None = all allowed, or list like ["en"]
     # For fastText path
-    fasttext_model_path: Optional[str] = None
+    fasttext_model_path: str | None = None
 
 
 class LanguageDetector:
@@ -88,7 +150,7 @@ class HeuristicLanguageDetector(LanguageDetector):
         english_ratio = english_hits / total_words
 
         # Script detection
-        scores: Dict[str, float] = {}
+        scores: dict[str, float] = {}
         scores["en"] = english_ratio
 
         # Arabic
@@ -146,11 +208,11 @@ class FastTextLanguageDetector(LanguageDetector):
 
     def __init__(self, config: LanguageDetectorConfig | None = None):
         super().__init__(config)
-        self._model = None
+        self._model: Any = None
         self._version = "unknown"
         if config and config.fasttext_model_path:
             try:
-                import fasttext
+                import fasttext  # type: ignore[import-not-found]  # optional runtime dependency
 
                 self._model = fasttext.load_model(config.fasttext_model_path)
                 self._version = getattr(fasttext, "__version__", "unknown")
@@ -196,10 +258,10 @@ def get_detector(config: LanguageDetectorConfig | None = None) -> LanguageDetect
 
 
 def filter_by_language(
-    docs: List[Document],
+    docs: list[Document],
     detector: LanguageDetector | None = None,
     config: LanguageDetectorConfig | None = None,
-) -> Tuple[List[Document], List[Tuple[Document, LanguageScore]], List[LanguageScore]]:
+) -> tuple[list[Document], list[tuple[Document, LanguageScore]], list[LanguageScore]]:
     """
     Filter documents by language.
     Returns (kept, rejected_with_score, all_scores).
@@ -210,11 +272,11 @@ def filter_by_language(
     cfg = config or (detector.config if detector else LanguageDetectorConfig())
     det = detector or get_detector(cfg)
 
-    kept: List[Document] = []
-    rejected: List[Tuple[Document, LanguageScore]] = []
-    all_scores: List[LanguageScore] = []
+    kept: list[Document] = []
+    rejected: list[tuple[Document, LanguageScore]] = []
+    all_scores: list[LanguageScore] = []
 
-    allowed = set([l.lower() for l in cfg.allowed_languages]) if cfg.allowed_languages else None
+    allowed = {language.lower() for language in cfg.allowed_languages} if cfg.allowed_languages else None
 
     for doc in docs:
         score = det.detect_document(doc)

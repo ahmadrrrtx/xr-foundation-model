@@ -5,33 +5,38 @@ Supports DDP/FSDP, gradient accumulation, mixed precision,
 gradient clipping, checkpointing, and resume.
 """
 
+import hashlib
+import json
 import logging
 import random
 from contextlib import nullcontext
-from typing import Any
+from typing import Any, NoReturn
 
+import numpy as np
 import torch
 import torch.nn as nn
 
-from xrfm.training.checkpoint import CheckpointLoader
+from xrfm.training.checkpoint import CheckpointLoader, _capture_rng_state, _restore_rng_state
 
 
 def _set_seed(seed: int) -> None:
     """Seed all global RNGs for reproducible runs (forensic-audit fix, F-25)."""
     random.seed(seed)
+    np.random.seed(seed)
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
 
 from xrfm.config.loader import load_config
-from xrfm.config.schema import TrainingConfig, XRFMConfig, config_hash
+from xrfm.config.schema import TrainingConfig, XRFMConfig
 from xrfm.training.distributed import (
     barrier,
     create_distributed_dataloader,
     get_raw_model,
     is_distributed,
     is_main_process,
+    set_dataloader_epoch,
     wrap_model_ddp,
     wrap_model_fsdp,
 )
@@ -40,6 +45,10 @@ from xrfm.training.optimizer import OptimizerLoader
 from xrfm.training.scheduler import SchedulerLoader
 
 logger = logging.getLogger("xrfm.training")
+
+
+class TrainingOOMError(RuntimeError):
+    """A CUDA allocation failure that invalidates the current training attempt."""
 
 
 class _ConfigFacade:
@@ -79,6 +88,8 @@ class TrainingLoop:
         scheduler: SchedulerLoader | None = None,
         checkpoint_dir: str = "checkpoints/",
         config_path: str | None = None,
+        data_manifest_hash: str | None = None,
+        tokenizer_hash: str | None = None,
     ) -> None:
         """Create a training loop from a typed config (or legacy YAML path).
 
@@ -131,6 +142,19 @@ class TrainingLoop:
 
         self.dataset: Any = dataset
         self.checkpoint_dir = checkpoint_dir
+        self.data_manifest_hash = (
+            data_manifest_hash
+            or getattr(dataset, "data_manifest_hash", None)
+            or getattr(dataset, "manifest_hash", None)
+        )
+        self.tokenizer_hash = tokenizer_hash or getattr(dataset, "tokenizer_hash", None)
+        self.epoch: int = 0
+        self._batch_in_epoch: int = 0
+        self._resume_rng_state: dict[str, Any] | None = None
+        self._resume_loader_kind: str | None = None
+        self._active_loader_kind = "internal"
+        self._resolved_batch_size: int | None = None
+        self._resolved_drop_last: bool | None = None
 
         # Optimizer on raw model params
         raw_model = get_raw_model(self.model)
@@ -159,7 +183,10 @@ class TrainingLoop:
             )
 
         self.checkpoint_loader = CheckpointLoader(checkpoint_dir)
-        self.mixed_precision_loader = MixedPrecisionLoader(enabled=train_cfg.mixed_precision)
+        self.mixed_precision_loader = MixedPrecisionLoader(
+            enabled=train_cfg.mixed_precision,
+            precision=train_cfg.precision,
+        )
 
         # All hyperparameters come from the validated typed config — no
         # code-level duplicated defaults (single source of truth).
@@ -172,6 +199,7 @@ class TrainingLoop:
         self.resume_from: str | None = train_cfg.resume_from
         self.seed: int = train_cfg.seed
         self.error_if_nonfinite: bool = train_cfg.error_if_nonfinite
+        self.max_optimizer_skips: int = train_cfg.max_optimizer_skips
         # Loss masking: targets equal to this value are ignored by
         # cross_entropy (padding positions). -100 is PyTorch's convention.
         self.ignore_index: int = train_cfg.ignore_index
@@ -219,20 +247,61 @@ class TrainingLoop:
         self.best_loss: float = float("inf")
         self._micro_counter: int = 0
         self._accum_loss: float = 0.0
+        self._consecutive_optimizer_skips: int = 0
         # Optional callable(callable[TrainingLoop] -> dict with loss/perplexity).
         self.validation_fn: Any | None = None
         # Optional metrics sink with write_metrics(step, metrics).
         self.metrics_writer: Any | None = None
 
+        self.resume_exact: bool | None = None
         if self.resume_from is not None:
-            meta = self.checkpoint_loader.load_checkpoint(self.resume_from, raw_model, self.optimizer, self.scheduler)
-            self.current_step = meta.get("step", 0)
-            self.best_loss = meta.get("best_loss", float("inf"))
+            meta = self.checkpoint_loader.load_checkpoint(
+                self.resume_from,
+                raw_model,
+                self.optimizer,
+                self.scheduler,
+                scaler=self.mixed_precision_loader,
+            )
+            self.current_step = int(meta.get("step", 0))
+            self.best_loss = float(meta.get("best_loss", float("inf")))
+            if int(meta.get("format_version", 1)) >= 2:
+                extra = meta.get("extra") or {}
+                if not meta.get("rng_restored"):
+                    raise RuntimeError("format-v2 checkpoint did not restore RNG state; exact resume is unavailable")
+                if extra.get("config_hash") != self._config_identity():
+                    raise RuntimeError("checkpoint config identity does not match the current run")
+                for field in ("data_manifest_hash", "tokenizer_hash"):
+                    saved_identity = extra.get(field)
+                    current_identity = getattr(self, field)
+                    if not saved_identity or not current_identity or saved_identity != current_identity:
+                        raise RuntimeError(
+                            f"exact resume requires matching {field}; "
+                            "pass the original data/tokenizer identity to TrainingLoop"
+                        )
+                data_state = extra.get("data_state")
+                required = {"epoch", "batch_in_epoch", "micro_counter", "accum_loss", "loader_kind"}
+                if not isinstance(data_state, dict) or not required.issubset(data_state):
+                    raise RuntimeError(
+                        "format-v2 checkpoint lacks complete dataloader position; exact resume is unavailable"
+                    )
+                self.epoch = int(data_state["epoch"])
+                self._batch_in_epoch = int(data_state["batch_in_epoch"])
+                self._micro_counter = int(data_state["micro_counter"])
+                self._accum_loss = float(data_state["accum_loss"])
+                self._resume_loader_kind = str(data_state["loader_kind"])
+                self._resume_rng_state = _capture_rng_state()
+                self.resume_exact = True
+            else:
+                self.resume_exact = False
+                logger.warning(
+                    "legacy checkpoint restored without exact data/RNG identity; this is not an exact resume"
+                )
             logger.info(
-                "Resumed from step %d, best_loss=%.4f (config resume_from=%s)",
+                "Resumed from step %d, best_loss=%.4f (config resume_from=%s, exact=%s)",
                 self.current_step,
                 self.best_loss,
                 self.resume_from,
+                self.resume_exact,
             )
 
     @property
@@ -240,18 +309,32 @@ class TrainingLoop:
         """Legacy accessor: dot-notation reads over the typed config."""
         return _ConfigFacade(self.config)
 
+    def _config_identity(self) -> str:
+        """Hash the run config while excluding the resume pointer itself."""
+        raw = self.config.to_dict() if self.config is not None else {"training": self.training_config.to_dict()}
+        if isinstance(raw.get("training"), dict):
+            raw["training"]["resume_from"] = None
+        return hashlib.sha256(json.dumps(raw, sort_keys=True, default=str).encode("utf-8")).hexdigest()[:16]
+
     def _checkpoint_extra(self) -> dict[str, Any]:
-        """Reproducibility metadata stored in every checkpoint (F-33)."""
-        try:
-            raw_config = self.config.to_dict() if self.config is not None else None
-        except Exception:  # noqa: BLE001
-            raw_config = None
+        """Reproducibility, identity, and iterator state for exact resume."""
+        raw_config = self.config.to_dict() if self.config is not None else {"training": self.training_config.to_dict()}
         return {
             "config_path": self.config_path,
             "config": raw_config,
-            "config_hash": config_hash(self.config) if (self.config is not None and raw_config is not None) else None,
+            "config_hash": self._config_identity(),
+            "data_manifest_hash": self.data_manifest_hash,
+            "tokenizer_hash": self.tokenizer_hash,
+            "identity_complete": bool(self.data_manifest_hash and self.tokenizer_hash),
             "seed": self.seed,
             "ignore_index": self.ignore_index,
+            "data_state": {
+                "epoch": self.epoch,
+                "batch_in_epoch": self._batch_in_epoch,
+                "micro_counter": self._micro_counter,
+                "accum_loss": self._accum_loss,
+                "loader_kind": self._active_loader_kind,
+            },
             # str() is important: TorchVersion objects are not weights_only-safe.
             "pytorch_version": str(torch.__version__),
         }
@@ -274,21 +357,41 @@ class TrainingLoop:
 
     # -- train step --
 
+    def _abort_oom(self, exc: torch.cuda.OutOfMemoryError) -> NoReturn:
+        """Invalidate partial gradients and stop the coordinated attempt.
+
+        There is no safe local "skip this batch" path for DDP: ranks can
+        diverge or block in a collective.  Callers must terminate the attempt
+        and restart every rank from the last complete checkpoint.
+        """
+        self.optimizer.optimizer.zero_grad(set_to_none=True)
+        self._accum_loss = 0.0
+        self._micro_counter = 0
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        logger.error(
+            "CUDA OOM at step %d; aborting training attempt (distributed=%s). "
+            "Resume all ranks from the last complete checkpoint.",
+            self.current_step,
+            is_distributed(),
+        )
+        raise TrainingOOMError("CUDA OOM aborted the training attempt; partial gradients were discarded") from exc
+
     def train_step(
         self,
         batch_input_ids: torch.Tensor,
         batch_target_ids: torch.Tensor,
         batch_mask: torch.Tensor | None = None,
-    ) -> dict[str, float]:
+    ) -> dict[str, Any]:
         if self.optimizer is None or self.model is None:
             raise RuntimeError("model/optimizer not initialized")
         if batch_input_ids.dim() != 2 or batch_target_ids.dim() != 2:
             raise ValueError("batch tensors must be 2D")
+        if batch_input_ids.shape != batch_target_ids.shape:
+            raise ValueError("language-model input and target batch shapes must match")
 
         raw = get_raw_model(self.model)
         device = next(raw.parameters()).device
-        # non_blocking=True overlaps H2D copies with compute when the loader
-        # uses pin_memory (Phase 27 hardening; harmless on CPU).
         non_blocking = self.pin_memory and device.type == "cuda"
         if batch_input_ids.device != device:
             batch_input_ids = batch_input_ids.to(device, non_blocking=non_blocking)
@@ -297,46 +400,27 @@ class TrainingLoop:
         if batch_mask is not None and batch_mask.device != device:
             batch_mask = batch_mask.to(device, non_blocking=non_blocking)
         vocab_size = int(getattr(raw.embedding, "vocab_size"))
-        if (batch_input_ids >= vocab_size).any():
-            raise IndexError(f"Token ID exceeds vocab size ({vocab_size})")
+        if (batch_input_ids < 0).any() or (batch_input_ids >= vocab_size).any():
+            raise IndexError(f"Token ID outside [0, {vocab_size})")
 
-        # zero_grad at start of accumulation cycle
         if self._micro_counter % self.grad_accum_steps == 0:
-            self.optimizer.zero_grad()
+            self.optimizer.optimizer.zero_grad(set_to_none=True)
 
-        # forward + loss (DDP no_sync on intermediate micro-batches)
         self.model.train()
         try:
             with self._no_sync_ctx():
                 with self.mixed_precision_loader.autocast_ctx():
                     logits, _ = self.model(batch_input_ids, mask=batch_mask)
-        except torch.cuda.OutOfMemoryError:
-            # CUDA-only: skip the micro-batch and continue instead of dying.
-            # (Phase 27 hardening — prevents a single oversized batch from
-            # killing a long GPU run.)
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            logger.warning(
-                "CUDA OOM at step %d micro %d; skipping batch",
-                self.current_step,
-                self._micro_counter,
-            )
-            self._micro_counter += 1
-            return {
-                "loss": float("nan"),
-                "learning_rate": self.scheduler.get_lr() if self.scheduler else float("nan"),
-                "step": self.current_step,
-                "step_performed": False,
-            }
-
-        loss = nn.functional.cross_entropy(
-            logits.view(-1, logits.shape[-1]),
-            batch_target_ids.view(-1),
-            ignore_index=self.ignore_index,
-        )
-        self._accum_loss += loss.item()
-        scaled = loss / self.grad_accum_steps
-        self.mixed_precision_loader.scale(scaled).backward()
+                loss = nn.functional.cross_entropy(
+                    logits.view(-1, logits.shape[-1]),
+                    batch_target_ids.view(-1),
+                    ignore_index=self.ignore_index,
+                )
+                self._accum_loss += loss.item()
+                scaled = loss / self.grad_accum_steps
+                self.mixed_precision_loader.scale(scaled).backward()
+        except torch.cuda.OutOfMemoryError as exc:
+            self._abort_oom(exc)
         self._micro_counter += 1
 
         if not self._ready_to_step():
@@ -348,25 +432,43 @@ class TrainingLoop:
                 "step_performed": False,
             }
 
-        # optimizer step
-        self.mixed_precision_loader.unscale_(self.optimizer.optimizer)
-        if self.gradient_clip > 0:
-            torch.nn.utils.clip_grad_norm_(
-                raw.parameters(),
-                max_norm=self.gradient_clip,
-                norm_type=2.0,
-                error_if_nonfinite=self.error_if_nonfinite,
-            )
-        ok = self.mixed_precision_loader.step(self.optimizer.optimizer)
-        if self.scheduler:
-            self.scheduler.step()
-        self.mixed_precision_loader.update()
+        try:
+            self.mixed_precision_loader.unscale_(self.optimizer.optimizer)
+            if self.gradient_clip > 0:
+                torch.nn.utils.clip_grad_norm_(
+                    raw.parameters(),
+                    max_norm=self.gradient_clip,
+                    norm_type=2.0,
+                    error_if_nonfinite=self.error_if_nonfinite,
+                )
+            ok = self.mixed_precision_loader.step(self.optimizer.optimizer)
+            self.mixed_precision_loader.update()
+        except torch.cuda.OutOfMemoryError as exc:
+            self._abort_oom(exc)
 
-        # Report the mean loss over the accumulation cycle. The value is the
-        # per-rank average (distributed gradients already synchronize across
-        # ranks; per-rank losses are expected to differ slightly).
         mean_loss = self._accum_loss / self.grad_accum_steps
         self._accum_loss = 0.0
+        self._micro_counter = 0
+        if not ok:
+            # An overflow skip consumes no optimizer/scheduler/global step.
+            # Do not carry partial gradients into the next accumulation cycle.
+            self.optimizer.optimizer.zero_grad(set_to_none=True)
+            self._consecutive_optimizer_skips += 1
+            if self._consecutive_optimizer_skips > self.max_optimizer_skips:
+                raise RuntimeError(
+                    f"more than {self.max_optimizer_skips} consecutive optimizer steps were skipped; "
+                    "inspect loss/gradient scaling before continuing"
+                )
+            return {
+                "loss": mean_loss,
+                "learning_rate": self.scheduler.get_lr() if self.scheduler else self.optimizer.learning_rate,
+                "step": self.current_step,
+                "step_performed": False,
+            }
+
+        self._consecutive_optimizer_skips = 0
+        if self.scheduler:
+            self.scheduler.step()
         self.current_step += 1
         if mean_loss < self.best_loss:
             self.best_loss = mean_loss
@@ -375,8 +477,83 @@ class TrainingLoop:
             "loss": mean_loss,
             "learning_rate": lr,
             "step": self.current_step,
-            "step_performed": ok,
+            "step_performed": True,
         }
+
+    def _build_internal_dataloader(self, epoch: int) -> Any:
+        """Build one deterministic epoch iterator with the model pad contract."""
+        if self.dataset is None:
+            raise RuntimeError("internal dataloader requires a dataset")
+        raw = get_raw_model(self.model)
+        model_config = getattr(raw, "config", None)
+        model_pad = getattr(model_config, "pad_token_id", None)
+        dataset_pad = getattr(self.dataset, "pad_id", None)
+        if model_pad is not None and dataset_pad is not None and model_pad != dataset_pad:
+            raise ValueError(f"model pad_token_id={model_pad} != dataset pad_id={dataset_pad}")
+        pad_id = model_pad if model_pad is not None else (dataset_pad if dataset_pad is not None else 0)
+
+        generator = torch.Generator()
+        generator.manual_seed((self.seed + epoch) % (2**63 - 1))
+
+        def _worker_init(worker_id: int) -> None:
+            worker_seed = (self.seed + epoch * 1_000_003 + worker_id * 1000) % (2**32)
+            random.seed(worker_seed)
+            np.random.seed(worker_seed)
+            torch.manual_seed(worker_seed)
+
+        kwargs: dict[str, Any] = {
+            "generator": generator,
+            "worker_init_fn": _worker_init,
+            "num_workers": self.num_workers,
+            "pin_memory": self.pin_memory,
+            "pad_id": pad_id,
+            "ignore_index": self.ignore_index,
+            "return_attention_mask": True,
+            "sampler_seed": self.seed,
+        }
+        if self.prefetch_factor is not None:
+            kwargs["prefetch_factor"] = self.prefetch_factor
+        if self.num_workers > 0:
+            kwargs["persistent_workers"] = self.persistent_workers
+
+        if self._resolved_batch_size is None:
+            batch_size = self.batch_size
+            drop_last = True
+            loader = create_distributed_dataloader(
+                self.dataset,
+                batch_size=batch_size,
+                shuffle=True,
+                drop_last=drop_last,
+                **kwargs,
+            )
+            if len(loader) == 0:
+                logger.warning(
+                    "Dataset length (%d) < batch_size (%d) with drop_last=True; retrying with drop_last=False.",
+                    len(self.dataset),
+                    batch_size,
+                )
+                batch_size = min(batch_size, len(self.dataset))
+                if batch_size <= 0:
+                    raise ValueError("dataset is empty")
+                drop_last = False
+                loader = create_distributed_dataloader(
+                    self.dataset,
+                    batch_size=batch_size,
+                    shuffle=True,
+                    drop_last=drop_last,
+                    **kwargs,
+                )
+            self._resolved_batch_size = batch_size
+            self._resolved_drop_last = drop_last
+            return loader
+
+        return create_distributed_dataloader(
+            self.dataset,
+            batch_size=self._resolved_batch_size,
+            shuffle=True,
+            drop_last=bool(self._resolved_drop_last),
+            **kwargs,
+        )
 
     # -- full loop --
 
@@ -390,68 +567,32 @@ class TrainingLoop:
         if self.model is None or self.optimizer is None:
             raise RuntimeError("model and optimizer required")
 
-        max_steps = max_steps or self.max_steps
-        checkpoint_every = checkpoint_every or self.checkpoint_every
+        max_steps = self.max_steps if max_steps is None else max_steps
+        checkpoint_every = self.checkpoint_every if checkpoint_every is None else checkpoint_every
         if max_steps <= 0 or checkpoint_every <= 0:
             raise ValueError("max_steps and checkpoint_every must be positive")
         if self.dataset is None and dataloader is None:
             raise ValueError("dataset (or dataloader) is required")
 
-        # Deterministic shuffling (F-25): a generator seeded from `self.seed`
-        # + an epoch-derived offset keeps batch order reproducible across runs.
-        generator = torch.Generator()
-        generator.manual_seed(self.seed)
-
-        def _worker_init(worker_id: int) -> None:
-            seed = (self.seed + worker_id * 1000) % (2**32)
-            random.seed(seed)
-            torch.manual_seed(seed)
-
-        dl_kwargs: dict[str, Any] = {
-            "generator": generator,
-            "worker_init_fn": _worker_init,
-            "num_workers": self.num_workers,
-            "pin_memory": self.pin_memory,
-        }
-        if self.prefetch_factor is not None:
-            dl_kwargs["prefetch_factor"] = self.prefetch_factor
-        if self.num_workers > 0:
-            dl_kwargs["persistent_workers"] = self.persistent_workers
-
-        if dataloader is not None:
-            # Caller-supplied DataLoader (batch contract: (input_ids, targets)
-            # 2D tensors). The loop drives it as-is below.
-            if len(dataloader) == 0:
-                raise ValueError("Provided dataloader is empty.")
-            assert dataloader is not None  # narrowed for type checkers
-        else:
-            dataloader = create_distributed_dataloader(
-                self.dataset,
-                batch_size=self.batch_size,
-                shuffle=True,
-                drop_last=True,
-                **dl_kwargs,
+        loader_kind = "external" if dataloader is not None else "internal"
+        if self._resume_loader_kind is not None and self._resume_loader_kind != loader_kind:
+            raise RuntimeError(
+                f"checkpoint was saved with {self._resume_loader_kind} dataloader, "
+                f"but resume requested {loader_kind}; exact resume is unavailable"
             )
-            if len(dataloader) == 0:
-                logger.warning(
-                    "Dataset length (%d) < batch_size (%d) with drop_last=True. Retrying with drop_last=False.",
-                    len(self.dataset),
-                    self.batch_size,
-                )
-                dataloader = create_distributed_dataloader(
-                    self.dataset,
-                    batch_size=min(self.batch_size, len(self.dataset)),
-                    shuffle=True,
-                    drop_last=False,
-                    **dl_kwargs,
-                )
-            if len(dataloader) == 0:
-                raise ValueError(f"Dataset length ({len(self.dataset)}) is too small for training.")
-            assert dataloader is not None  # narrowed for type checkers
+        self._active_loader_kind = loader_kind
+        if dataloader is not None and len(dataloader) == 0:
+            raise ValueError("Provided dataloader is empty.")
+
+        # If this is a continuation, positioning the iterator must not consume
+        # the RNG state that belongs to the next training computation.
+        position_rng = self._resume_rng_state
+        if position_rng is None and self._batch_in_epoch > 0:
+            position_rng = _capture_rng_state()
+
         eff_bs = self.batch_size * self.grad_accum_steps
         if is_distributed():
             eff_bs *= torch.distributed.get_world_size()
-
         if is_main_process():
             logger.info(
                 "Starting: max_steps=%d per_dev_bs=%d accum=%d eff_bs=%d",
@@ -462,18 +603,53 @@ class TrainingLoop:
             )
 
         final_ckpt = None
-        metrics = {"loss": 0.0, "learning_rate": 0.0, "step": 0, "step_performed": False}
+        metrics: dict[str, Any] = {
+            "loss": 0.0,
+            "learning_rate": 0.0,
+            "step": self.current_step,
+            "step_performed": False,
+        }
         self._metrics_records: list[dict[str, float]] = []
 
         while self.current_step < max_steps:
-            for bi, bt in dataloader:
-                if self.current_step >= max_steps:
+            epoch_loader = dataloader if dataloader is not None else self._build_internal_dataloader(self.epoch)
+            if len(epoch_loader) == 0:
+                raise ValueError("dataloader is empty")
+            set_dataloader_epoch(epoch_loader, self.epoch)
+            iterator = iter(epoch_loader)
+
+            # Restore a persisted batch position without training on skipped
+            # examples. If dataset access uses global RNG, undo that access
+            # afterward; it is bookkeeping, not a second consumption event.
+            for _ in range(self._batch_in_epoch):
+                try:
+                    next(iterator)
+                except StopIteration as exc:
+                    raise RuntimeError("checkpoint dataloader position exceeds the current epoch") from exc
+            if position_rng is not None:
+                _restore_rng_state(position_rng)
+                position_rng = None
+                self._resume_rng_state = None
+
+            epoch_exhausted = False
+            while self.current_step < max_steps:
+                try:
+                    batch = next(iterator)
+                except StopIteration:
+                    self.epoch += 1
+                    self._batch_in_epoch = 0
+                    epoch_exhausted = True
                     break
-                metrics = self.train_step(bi, bt)
+
+                if not isinstance(batch, (tuple, list)) or len(batch) not in (2, 3):
+                    raise ValueError("dataloader must yield (inputs, targets) or (inputs, targets, mask)")
+                batch_input, batch_target = batch[0], batch[1]
+                batch_mask = batch[2] if len(batch) == 3 else None
+                metrics = self.train_step(batch_input, batch_target, batch_mask)
+                self._batch_in_epoch += 1
                 if not metrics["step_performed"]:
                     continue
 
-                # Validation hook (F-27): called periodically if configured.
                 if self.eval_every > 0 and self.validation_fn is not None:
                     if self.current_step % self.eval_every == 0:
                         try:
@@ -486,11 +662,13 @@ class TrainingLoop:
                 self._metrics_records.append(dict(metrics))
                 if self.metrics_writer is not None:
                     self.metrics_writer.write_metrics(self.current_step, metrics)
-
                 if is_main_process() and self.current_step % log_interval == 0:
                     extra = ""
                     if "val_loss" in metrics:
-                        extra = f" | ValLoss: {metrics.get('val_loss', float('nan')):.4f} | ValPPL: {metrics.get('val_ppl', float('nan')):.2f}"
+                        extra = (
+                            f" | ValLoss: {metrics.get('val_loss', float('nan')):.4f}"
+                            f" | ValPPL: {metrics.get('val_ppl', float('nan')):.2f}"
+                        )
                     logger.info(
                         "Step %d/%d | Loss: %.4f | LR: %.6f | EffBS: %d%s",
                         self.current_step,
@@ -511,9 +689,13 @@ class TrainingLoop:
                             loss=metrics["loss"],
                             best_loss=self.best_loss,
                             extra=self._checkpoint_extra(),
+                            scaler=self.mixed_precision_loader,
                         )
                         logger.info("Checkpoint: %s", final_ckpt)
                     barrier()
+
+            if not epoch_exhausted and self.current_step >= max_steps:
+                break
 
         if is_main_process():
             final_ckpt = self.checkpoint_loader.save_checkpoint(
@@ -524,6 +706,7 @@ class TrainingLoop:
                 loss=metrics["loss"],
                 best_loss=self.best_loss,
                 extra=self._checkpoint_extra(),
+                scaler=self.mixed_precision_loader,
             )
             logger.info(
                 "Training complete: loss=%.4f best=%.4f | Saved final checkpoint: %s",
@@ -537,4 +720,7 @@ class TrainingLoop:
             "best_loss": self.best_loss,
             "final_step": self.current_step,
             "checkpoint_path": final_ckpt,
+            "epoch": self.epoch,
+            "batch_in_epoch": self._batch_in_epoch,
+            "resume_exact": self.resume_exact,
         }

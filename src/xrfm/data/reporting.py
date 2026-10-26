@@ -18,9 +18,9 @@ import json
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
+from typing import Any
 
-from xrfm.data.schema import Document, DocumentAttributes
+from xrfm.data.schema import Document
 
 
 @dataclass
@@ -34,20 +34,20 @@ class DatasetReport:
     documents_deduplicated: int
     documents_retained: int
     # Distributions
-    languages: Dict[str, int]
-    license_distribution: Dict[str, int]
-    source_distribution: Dict[str, int]
+    languages: dict[str, int]
+    license_distribution: dict[str, int]
+    source_distribution: dict[str, int]
     # Lengths
     avg_document_length: float
     min_document_length: int
     max_document_length: int
     # Tokens
     token_count: int
-    token_distribution: Dict[str, int]  # per source
-    tokens_per_language: Dict[str, int]
+    token_distribution: dict[str, int]  # per source
+    tokens_per_language: dict[str, int]
     # Quality
-    quality_score_distribution: Dict[str, int]  # buckets
-    pii_flags: Dict[str, int]
+    quality_score_distribution: dict[str, int]  # buckets
+    pii_flags: dict[str, int]
     near_duplicate_count: int
     exact_duplicate_count: int
     # Splits
@@ -63,9 +63,9 @@ class DatasetReport:
     # Timing
     processing_time_seconds: float
     # Extra
-    extra: Dict[str, Any] = field(default_factory=dict)
+    extra: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         from dataclasses import asdict
 
         return asdict(self)
@@ -135,17 +135,17 @@ class DatasetReport:
 def build_report_from_pipeline(
     dataset_name: str,
     dataset_version: str,
-    ingested: List[Document],
-    retained: List[Document],
-    rejected_reasons: Dict[str, int],
-    dedup_stats: Dict[str, int],
-    token_counts: Dict[str, int],
-    tokens_per_source: Dict[str, int],
-    tokens_per_language: Dict[str, int],
-    splits: Dict[str, List[Document]],
-    split_token_counts: Dict[str, int],
-    quality_scores: List,
-    pii_stats: Dict[str, int],
+    ingested: list[Document],
+    retained: list[Document],
+    rejected_reasons: dict[str, int],
+    dedup_stats: dict[str, int],
+    token_counts: dict[str, int],
+    tokens_per_source: dict[str, int],
+    tokens_per_language: dict[str, int],
+    splits: dict[str, list[Document]],
+    split_token_counts: dict[str, int],
+    quality_scores: list,
+    pii_stats: dict[str, int],
     num_shards: int,
     storage_bytes: int,
     processing_time: float,
@@ -153,17 +153,17 @@ def build_report_from_pipeline(
     """Build report from pipeline outputs."""
 
     # Languages
-    lang_dist: Dict[str, int] = {}
+    lang_dist: dict[str, int] = {}
     for doc in retained:
         lang_dist[doc.language] = lang_dist.get(doc.language, 0) + 1
 
     # Licenses
-    lic_dist: Dict[str, int] = {}
+    lic_dist: dict[str, int] = {}
     for doc in retained:
         lic_dist[doc.license] = lic_dist.get(doc.license, 0) + 1
 
     # Sources
-    src_dist: Dict[str, int] = {}
+    src_dist: dict[str, int] = {}
     for doc in retained:
         src_dist[doc.source] = src_dist.get(doc.source, 0) + 1
 
@@ -174,7 +174,7 @@ def build_report_from_pipeline(
     max_len = max(lengths) if lengths else 0
 
     # Quality distribution (bucket overall_score)
-    qual_dist: Dict[str, int] = {"0.0-0.3": 0, "0.3-0.6": 0, "0.6-0.8": 0, "0.8-1.0": 0}
+    qual_dist: dict[str, int] = {"0.0-0.3": 0, "0.3-0.6": 0, "0.6-0.8": 0, "0.8-1.0": 0}
     for qs in quality_scores:
         # qs may be QualityScore
         score = getattr(qs, "overall_score", 0.0)

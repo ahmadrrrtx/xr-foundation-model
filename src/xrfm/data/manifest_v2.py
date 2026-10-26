@@ -29,12 +29,11 @@ from __future__ import annotations
 import json
 import os
 import time
-import hashlib
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any
 
-from xrfm.data.checksums import sha256_file, hash_config, compute_dataset_id
+from xrfm.data.checksums import compute_dataset_id, hash_config
 
 
 def _get_git_commit() -> str:
@@ -67,7 +66,7 @@ class SourceManifestEntry:
     language: str
     document_count: int
     token_count: int
-    extra: Dict[str, Any] = field(default_factory=dict)
+    extra: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -76,10 +75,10 @@ class TokenizerManifestEntry:
     version: str
     hash: str
     vocab_size: int
-    pad_token_id: Optional[int]
-    eos_token_id: Optional[int]
-    bos_token_id: Optional[int]
-    config: Dict[str, Any] = field(default_factory=dict)
+    pad_token_id: int | None
+    eos_token_id: int | None
+    bos_token_id: int | None
+    config: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -112,10 +111,10 @@ class DatasetManifestV2:
     created_at: str
     git_commit: str
     processing_pipeline_version: str
-    processing_config: Dict[str, Any]
+    processing_config: dict[str, Any]
     processing_config_hash: str
     tokenizer: TokenizerManifestEntry
-    sources: List[SourceManifestEntry]
+    sources: list[SourceManifestEntry]
     documents_total: int
     documents_train: int
     documents_val: int
@@ -124,15 +123,15 @@ class DatasetManifestV2:
     tokens_train: int
     tokens_val: int
     tokens_test: int
-    shards: List[ShardManifestEntry]
+    shards: list[ShardManifestEntry]
     num_shards: int
     sequence_length: int
     split: SplitManifestEntry
-    checksums: Dict[str, str]
-    reports: Dict[str, str] = field(default_factory=dict)
-    extra: Dict[str, Any] = field(default_factory=dict)
+    checksums: dict[str, str]
+    reports: dict[str, str] = field(default_factory=dict)
+    extra: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     def to_json(self, indent: int = 2) -> str:
@@ -144,7 +143,7 @@ class DatasetManifestV2:
             f.write(self.to_json())
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> DatasetManifestV2:
+    def from_dict(cls, data: dict[str, Any]) -> DatasetManifestV2:
         # Reconstruct nested
         tokenizer_data = data.get("tokenizer", {})
         tokenizer = TokenizerManifestEntry(**tokenizer_data)
@@ -152,7 +151,9 @@ class DatasetManifestV2:
         sources = [SourceManifestEntry(**s) for s in data.get("sources", [])]
         shards = [ShardManifestEntry(**sh) for sh in data.get("shards", [])]
         split_data = data.get("split", {})
-        split_entry = SplitManifestEntry(**split_data) if split_data else SplitManifestEntry(0, 0, 0, 0, 0, 0, "hash", 42)
+        split_entry = (
+            SplitManifestEntry(**split_data) if split_data else SplitManifestEntry(0, 0, 0, 0, 0, 0, "hash", 42)
+        )
 
         return cls(
             dataset_name=data["dataset_name"],
@@ -184,7 +185,7 @@ class DatasetManifestV2:
 
     @classmethod
     def load(cls, path: str) -> DatasetManifestV2:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         return cls.from_dict(data)
 
@@ -192,15 +193,15 @@ class DatasetManifestV2:
 def build_manifest_v2(
     dataset_name: str,
     dataset_version: str,
-    processing_config: Dict[str, Any],
+    processing_config: dict[str, Any],
     tokenizer_info,
-    sources: List[Dict[str, Any]],
-    splits: Dict[str, List],
-    token_counts: Dict[str, int],
-    shard_infos: List,
+    sources: list[dict[str, Any]],
+    splits: dict[str, list],
+    token_counts: dict[str, int],
+    shard_infos: list,
     sequence_length: int,
-    split_config: Dict[str, Any],
-    checksums: Dict[str, str] | None = None,
+    split_config: dict[str, Any],
+    checksums: dict[str, str] | None = None,
     pipeline_version: str = "xrfm-pipeline-v1",
 ) -> DatasetManifestV2:
     """
@@ -241,13 +242,19 @@ def build_manifest_v2(
         )
     else:
         tok_entry = TokenizerManifestEntry(
-            name="unknown", version="unknown", hash="unknown", vocab_size=0, pad_token_id=None, eos_token_id=None, bos_token_id=None
+            name="unknown",
+            version="unknown",
+            hash="unknown",
+            vocab_size=0,
+            pad_token_id=None,
+            eos_token_id=None,
+            bos_token_id=None,
         )
 
     # Sources
-    source_entries = []
+    source_entries: list[SourceManifestEntry] = []
     for s in sources:
-        entry = SourceManifestEntry(
+        source_entry = SourceManifestEntry(
             name=s.get("name", "unknown"),
             uri=s.get("uri", ""),
             type=s.get("type", "text"),
@@ -260,13 +267,13 @@ def build_manifest_v2(
             token_count=s.get("token_count", 0),
             extra=s.get("extra", {}),
         )
-        source_entries.append(entry)
+        source_entries.append(source_entry)
 
     # Shards
-    shard_entries = []
+    shard_entries: list[ShardManifestEntry] = []
     for si in shard_infos:
         # si may be ShardInfo from sharding.py
-        entry = ShardManifestEntry(
+        shard_entry = ShardManifestEntry(
             shard_id=getattr(si, "shard_id", 0),
             path=getattr(si, "path", ""),
             num_sequences=getattr(si, "num_sequences", 0),
@@ -274,7 +281,7 @@ def build_manifest_v2(
             sha256=getattr(si, "sha256", ""),
             dtype=getattr(si, "dtype", "uint32"),
         )
-        shard_entries.append(entry)
+        shard_entries.append(shard_entry)
 
     # Splits
     train_docs = len(splits.get("train", []))

@@ -44,15 +44,13 @@ class LocalSearchAgent:
         prompt = self.retriever.format_context_prompt(query, top_k=top_k_retrieval)
         input_ids = torch.tensor([self.tokenizer.encode(prompt)], dtype=torch.long)
 
-        output_ids = self.engine.generate(
+        metadata = self.engine.generate_with_metadata(
             input_ids,
             max_new_tokens=max_new_tokens,
             temperature=temperature,
         )
 
-        prompt_len = input_ids.shape[1]
-        new_ids = output_ids[prompt_len:]
-        answer_text = self.tokenizer.decode(new_ids.tolist())
+        answer_text = self.tokenizer.decode(metadata.completion_token_ids.tolist())
 
         return {
             "query": query,

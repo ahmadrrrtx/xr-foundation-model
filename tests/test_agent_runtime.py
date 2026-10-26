@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import time
-
 from xrfm.agent import (
     AgentPhase,
     AgentRuntime,
@@ -13,6 +11,11 @@ from xrfm.agent import (
     ToolRegistry,
     ToolSpec,
 )
+
+
+class RepeaterBackend(ScriptedBackend):
+    def chat(self, messages, tools):
+        return super().chat([messages[0]], tools)
 
 
 def make_runtime(tmp_path):
@@ -45,7 +48,9 @@ def test_path_traversal_is_blocked(tmp_path):
 
 def test_permission_denial_is_deterministic():
     registry = ToolRegistry()
-    registry.register(ToolSpec("danger", "test", {"type": "object"}, permissions=("process.execute",), risk="high"), lambda _: "bad")
+    registry.register(
+        ToolSpec("danger", "test", {"type": "object"}, permissions=("process.execute",), risk="high"), lambda _: "bad"
+    )
     result = ToolExecutor(registry, PermissionPolicy()).execute(ToolCall("danger", {}))
     assert result.denied and not result.ok
     assert "missing permissions" in (result.error or "")
@@ -60,14 +65,11 @@ def test_unknown_tool_and_bad_schema_are_contained():
 
 
 def test_repeated_call_guard(tmp_path):
-    class Repeater(ScriptedBackend):
-        def chat(self, messages, tools):
-            return super().chat([messages[0]], tools)
-
     registry = ToolRegistry()
     SafeFilesystemTools(tmp_path).register(registry)
-    state = AgentRuntime(Repeater(), ToolExecutor(registry, PermissionPolicy(allowed_permissions={"filesystem.read"})),).run(
-        "Find the largest file in this project."
-    )
+    state = AgentRuntime(
+        RepeaterBackend(),
+        ToolExecutor(registry, PermissionPolicy(allowed_permissions={"filesystem.read"})),
+    ).run("Find the largest file in this project.")
     # ScriptedBackend sees no observation because this test's backend discards it.
     assert state.failed or state.final_answer

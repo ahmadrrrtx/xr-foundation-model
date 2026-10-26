@@ -138,34 +138,49 @@ class MultiHeadAttention(nn.Module):
             present_kv = (K_full, V_full)
 
         # ------------------------------------------------------------------
-        # Attention mask resolution (forensic-audit fix, F-01/F-02):
-        # Causality must NOT depend on the flash-attention import succeeding.
-        #  - If an explicit 0/1 mask is supplied, it is honored (1=attend).
-        #  - If no mask is supplied, a causal mask is ALWAYS applied so the
-        #    manual (fallback) path is causal by construction.
-        #  - The optimized SDPA path is kept, but only as an accelerator:
-        #    if it fails, the manual path below is still causal.
+        # Attention mask contract: masks are 0/1 (1=attend), never a
+        # replacement for causality. 2-D masks are normally (B, kv) padding
+        # masks; (q, kv) is accepted when its first dimension is not B. 3-D
+        # masks are (B, q, kv), and 4-D masks broadcast to (B, H, q, kv).
+        # A document/custom 2-D mask with B == q must be passed as 4-D to
+        # remove that intentional ambiguity.
         # ------------------------------------------------------------------
         q_len = Q.shape[2]
         kv_len = K_full.shape[2]
-
-        use_flash = False
+        causal_mask = torch.triu(
+            torch.full((q_len, kv_len), float("-inf"), dtype=Q.dtype, device=Q.device),
+            diagonal=cache_len + 1,
+        )
+        additive_mask = causal_mask
         if mask is not None:
-            # Normalize user mask (0/1 semantics, broadcastable to (B,H,q,kv)).
-            if mask.dtype not in (torch.float32, torch.float64, torch.float16, torch.bfloat16):
-                mask = mask.to(dtype=Q.dtype)
             if mask.dim() not in (2, 3, 4):
                 raise ValueError(f"Mask must have 2-4 dims, got {mask.dim()}")
-            additive_mask = torch.zeros_like(mask, dtype=Q.dtype)
-            additive_mask = additive_mask.masked_fill(mask == 0, float("-inf"))
-        else:
-            # Causal mask (additive): query position i may attend to kv
-            # positions 0 .. cache_len + i.
-            # M[i, j] = -inf  iff  j - i > cache_len  (future positions blocked)
-            additive_mask = torch.triu(
-                torch.full((q_len, kv_len), float("-inf"), dtype=Q.dtype, device=Q.device),
-                diagonal=cache_len + 1,
-            )
+            if not bool(torch.all((mask == 0) | (mask == 1))):
+                raise ValueError("attention mask values must be 0 or 1 (1=attend)")
+            if mask.dim() == 2:
+                if mask.shape[0] == batch_size and mask.shape[1] == kv_len:
+                    mask = mask.unsqueeze(1).unsqueeze(2)  # (B,1,1,kv) padding
+                elif tuple(mask.shape) == (q_len, kv_len):
+                    mask = mask.unsqueeze(0).unsqueeze(0)  # (1,1,q,kv) custom
+                else:
+                    raise ValueError(
+                        f"2-D mask must be (batch={batch_size}, kv={kv_len}) or (q={q_len}, kv={kv_len}); "
+                        f"got {tuple(mask.shape)}"
+                    )
+            elif mask.dim() == 3:
+                if mask.shape[0] not in (1, batch_size) or mask.shape[1] not in (1, q_len) or mask.shape[2] != kv_len:
+                    raise ValueError(f"3-D mask must broadcast to (B,q,kv)=({batch_size},{q_len},{kv_len})")
+                mask = mask.unsqueeze(1)  # (B,1,q,kv)
+            else:
+                if mask.shape[-1] != kv_len or mask.shape[-2] not in (1, q_len):
+                    raise ValueError(f"4-D mask must end in (q,kv)=({q_len},{kv_len})")
+            mask = mask.to(device=Q.device, dtype=Q.dtype)
+            explicit_mask = torch.zeros_like(mask, dtype=Q.dtype).masked_fill(mask == 0, float("-inf"))
+            # Broadcasting here is deliberate: causal and padding/document
+            # restrictions must both remain in the final additive mask.
+            additive_mask = causal_mask + explicit_mask
+
+        use_flash = False
 
         # Optimized path (drop-in accelerator; correctness guaranteed by the
         # additive mask above even if this path fails).

@@ -11,9 +11,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-import time
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any
 
 from xrfm.data.schema import Document
 
@@ -55,11 +54,11 @@ class TokenizerInfo:
     version: str
     hash: str
     vocab_size: int
-    pad_token_id: Optional[int]
-    eos_token_id: Optional[int]
-    bos_token_id: Optional[int]
-    unk_token_id: Optional[int]
-    config: Dict[str, Any] = field(default_factory=dict)
+    pad_token_id: int | None
+    eos_token_id: int | None
+    bos_token_id: int | None
+    unk_token_id: int | None
+    config: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_tokenizer(cls, tokenizer, name: str = "xrfm-bpe", version: str = "v1") -> TokenizerInfo:
@@ -76,7 +75,7 @@ class TokenizerInfo:
             config={"class": type(tokenizer).__name__},
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "version": self.version,
@@ -94,12 +93,12 @@ class TokenizerInfo:
 class TokenizedDocument:
     document_id: str
     source: str
-    tokens: List[int]
+    tokens: list[int]
     token_count: int
     tokenizer_hash: str
     content_hash: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "document_id": self.document_id,
             "source": self.source,
@@ -116,14 +115,14 @@ class TokenizationConfig:
     add_bos: bool = False
     # Whether to insert EOS between documents when packing later
     # This config is for per-doc tokenization
-    max_length: Optional[int] = None  # truncate if needed
+    max_length: int | None = None  # truncate if needed
 
 
 def tokenize_documents(
-    docs: List[Document],
+    docs: list[Document],
     tokenizer,
     config: TokenizationConfig | None = None,
-) -> Tuple[List[TokenizedDocument], TokenizerInfo, Dict[str, int]]:
+) -> tuple[list[TokenizedDocument], TokenizerInfo, dict[str, int]]:
     """
     Tokenize list of documents, recording tokenizer identity.
     Returns (tokenized_docs, tokenizer_info, stats)
@@ -132,7 +131,7 @@ def tokenize_documents(
     cfg = config or TokenizationConfig()
     info = TokenizerInfo.from_tokenizer(tokenizer)
 
-    tokenized: List[TokenizedDocument] = []
+    tokenized: list[TokenizedDocument] = []
     total_tokens = 0
 
     for doc in docs:

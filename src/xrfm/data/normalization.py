@@ -17,7 +17,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Literal
 
 from xrfm.data.schema import Document
 
@@ -38,25 +38,25 @@ class NormalizationResult:
     is_malformed: bool
 
 
-def normalize_unicode(text: str, form: str = "NFC") -> Tuple[str, bool]:
+def normalize_unicode(text: str, form: Literal["NFC", "NFD", "NFKC", "NFKD"] = "NFC") -> tuple[str, bool]:
     """Unicode normalization, returns (normalized_text, changed)."""
     normalized = unicodedata.normalize(form, text)
     return normalized, normalized != text
 
 
-def normalize_newlines(text: str) -> Tuple[str, bool]:
+def normalize_newlines(text: str) -> tuple[str, bool]:
     """Normalize \r\n and \r to \n."""
     new_text = text.replace("\r\n", "\n").replace("\r", "\n")
     return new_text, new_text != text
 
 
-def remove_control_chars(text: str) -> Tuple[str, bool]:
+def remove_control_chars(text: str) -> tuple[str, bool]:
     """Remove control chars except \n and \t."""
     new_text = _CONTROL_CHARS_RE.sub("", text)
     return new_text, new_text != text
 
 
-def normalize_whitespace(text: str, preserve_code: bool = True) -> Tuple[str, bool]:
+def normalize_whitespace(text: str, preserve_code: bool = True) -> tuple[str, bool]:
     """
     Conservative whitespace normalization.
     - Removes trailing whitespace per line
@@ -81,7 +81,7 @@ def normalize_whitespace(text: str, preserve_code: bool = True) -> Tuple[str, bo
     return text, text != original
 
 
-def detect_malformed(text: str) -> Tuple[bool, str]:
+def detect_malformed(text: str) -> tuple[bool, str]:
     """
     Detect obviously malformed text.
     Returns (is_malformed, reason).
@@ -101,7 +101,7 @@ def detect_malformed(text: str) -> Tuple[bool, str]:
 
 def normalize_document(
     doc: Document,
-    unicode_form: str = "NFC",
+    unicode_form: Literal["NFC", "NFD", "NFKC", "NFKD"] = "NFC",
     preserve_code: bool = True,
 ) -> NormalizationResult:
     """

@@ -1,0 +1,62 @@
+{
+  "audit_date": "2026-10-22",
+  "repository": "ahmadrrrtx/xr-foundation-model",
+  "revision": "b8bea87683ef3ae1c839bf1891b7cc882273de83",
+  "upstream_main_reconfirmed": true,
+  "tracked_source_files_modified_by_audit": false,
+  "test_suite": {
+    "passed": 505,
+    "warnings": 5,
+    "coverage_run_seconds": 205.03,
+    "line_coverage_percent": 79,
+    "statements": 6711,
+    "missed_statements": 1437,
+    "command": "coverage run --source=src/xrfm,api -m pytest -q --disable-warnings"
+  },
+  "verified_measurements": {
+    "committed_checkpoint_bytes": 76805341,
+    "checkpoint_current_model_compatible": false,
+    "tiny_corpus_bytes": 5524848,
+    "tiny_corpus_lines": 108319,
+    "tiny_corpus_tokens": 1777645,
+    "tiny_corpus_characters_per_token": 3.0607,
+    "tokenizer_tokens_per_second_local": 236158,
+    "tokenizer_fit_validation_test_line_intersection_percent_approx": 89.7,
+    "agent_requested_timeout_seconds": 0.05,
+    "agent_observed_return_seconds_approx": 0.502,
+    "explicit_mask_future_edit_token0_output_delta": 4.525887489318848,
+    "negative_max_chars_input": -1,
+    "negative_max_chars_source_characters": 10011,
+    "negative_max_chars_returned_characters": 10010
+  },
+  "direct_probe_results": {
+    "successful_optimizer_step_return": null,
+    "mixed_precision_loader_reported_step_performed": false,
+    "collate_second_row_padding_id": 0,
+    "top_p_ignored_when_top_k_set": true,
+    "synthetic_redaction": {
+      "api_key=supersecret123": "api_key=supersecret123: [REDACTED]",
+      "api_key: supersecret123": "api_key: [REDACTED]",
+      "Bearer abcdefghijklmnop": "Bearer abcdefghijklmnop: [REDACTED]",
+      "password=hunter2": "password=hunter2: [REDACTED]"
+    }
+  },
+  "code_inspection_only_requiring_hardware_or_distributed_tests": [
+    "distributed_oom_rank_divergence_or_deadlock",
+    "physical_cuda_dtype_stability",
+    "physical_gpu_scheduler_and_checkpoint_behavior"
+  ],
+  "gate_state": {
+    "G0": "PASS",
+    "G1": "FAIL",
+    "G2": "PENDING",
+    "G3": "PENDING",
+    "G4": "PENDING",
+    "G5": "PENDING",
+    "G6": "PENDING",
+    "overall": "NO-GO"
+  },
+  "implementation_or_training_started": false,
+  "external_data_approved_for_training": false,
+  "kaggle_credentials_needed_now": false
+}

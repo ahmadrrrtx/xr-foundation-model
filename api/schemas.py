@@ -1,6 +1,10 @@
 """Pydantic schemas for XRFM API."""
 
+from typing import Annotated
+
 from pydantic import BaseModel, Field
+
+StopString = Annotated[str, Field(min_length=1, max_length=256)]
 
 
 class CompletionRequest(BaseModel):
@@ -9,7 +13,7 @@ class CompletionRequest(BaseModel):
     temperature: float = Field(default=1.0, ge=0.0, le=2.0)
     top_k: int | None = Field(default=None, ge=1, le=1000)
     top_p: float | None = Field(default=None, gt=0.0, le=1.0)
-    stop: list[str] | None = Field(default=None)
+    stop: list[StopString] | None = Field(default=None, max_length=8)
     stream: bool = Field(default=False)
     repetition_penalty: float = Field(default=1.0, ge=1.0, le=5.0)
 

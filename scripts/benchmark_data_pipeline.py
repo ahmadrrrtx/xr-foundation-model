@@ -14,13 +14,13 @@ Does NOT make performance claims without actual measurements.
 """
 
 import os
-import time
-import psutil
 import tempfile
-from pathlib import Path
+import time
 
+import psutil
+
+from xrfm.data.pipeline import DataPipeline, PipelineConfig
 from xrfm.data.schema import Document
-from xrfm.data.pipeline import PipelineConfig, DataPipeline
 from xrfm.data.sharding import ShardingConfig
 from xrfm.tokenization import BPETokenizer
 
@@ -32,7 +32,21 @@ def generate_synthetic_docs(num_docs: int, avg_chars: int = 1000) -> list[Docume
     docs = []
     for i in range(num_docs):
         # Generate random-ish text
-        words = ["the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog", "machine", "learning", "data", "model", "training"]
+        words = [
+            "the",
+            "quick",
+            "brown",
+            "fox",
+            "jumps",
+            "over",
+            "lazy",
+            "dog",
+            "machine",
+            "learning",
+            "data",
+            "model",
+            "training",
+        ]
         text = " ".join(rng.choice(words) for _ in range(avg_chars // 5))
         docs.append(Document(text=text, source="synthetic", language="en", document_id=f"synth-{i}"))
     return docs
@@ -83,7 +97,7 @@ def benchmark(num_docs: int = 100, sequence_length: int = 128):
         print(f"Peak RAM: {peak_mem:.1f} MB (before {mem_before:.1f} MB)")
         print(f"Total tokens: {total_tokens}")
         print(f"Sequences: {num_sequences}")
-        print(f"Output size: {storage_bytes} bytes ({storage_bytes/1e6:.2f} MB)")
+        print(f"Output size: {storage_bytes} bytes ({storage_bytes / 1e6:.2f} MB)")
         print(f"Shards: {len(result['shard_infos'])}")
 
         return {
@@ -110,4 +124,6 @@ if __name__ == "__main__":
 
     print("\n=== Summary ===")
     for r in results:
-        print(f"{r['num_docs']} docs: {r['docs_per_sec']:.1f} docs/sec, {r['tokens_per_sec']:.1f} tokens/sec, {r['peak_ram_mb']:.1f} MB RAM")
+        print(
+            f"{r['num_docs']} docs: {r['docs_per_sec']:.1f} docs/sec, {r['tokens_per_sec']:.1f} tokens/sec, {r['peak_ram_mb']:.1f} MB RAM"
+        )

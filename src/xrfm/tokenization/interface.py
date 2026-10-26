@@ -25,7 +25,26 @@ rewrites. Phase 0 only *added* the special-token accessors; nothing was
 removed or renamed.
 """
 
+import hashlib
+import json
 from abc import ABC, abstractmethod
+from typing import Any
+
+
+def tokenizer_fingerprint(tokenizer: Any) -> str | None:
+    """Hash exposed token-to-ID state, or return None when it is unavailable."""
+    vocab = getattr(tokenizer, "vocab", None)
+    if not isinstance(vocab, dict) or not vocab:
+        return None
+    payload = {
+        "class": type(tokenizer).__name__,
+        "version": getattr(tokenizer, "_version", None),
+        "vocab": vocab,
+        "merges": getattr(tokenizer, "merges", None),
+        "special_tokens": getattr(tokenizer, "special_tokens", None),
+    }
+    encoded = json.dumps(payload, sort_keys=True, ensure_ascii=True, default=str).encode("utf-8")
+    return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
 
 
 class Tokenizer(ABC):

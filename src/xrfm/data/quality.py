@@ -17,12 +17,9 @@ Preserves metadata to answer why document was excluded.
 from __future__ import annotations
 
 import re
-import math
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Tuple, Callable, Optional
+from dataclasses import dataclass
 
-from xrfm.data.schema import Document, QualityScore, ProcessingDecision
-
+from xrfm.data.schema import Document, QualityScore
 
 # Common boilerplate phrases (low quality)
 _BOILERPLATE_PATTERNS = [
@@ -165,7 +162,7 @@ class QualityFilter:
             is_malformed=is_malformed,
         )
 
-    def should_keep(self, score: QualityScore) -> Tuple[bool, str]:
+    def should_keep(self, score: QualityScore) -> tuple[bool, str]:
         """Decide keep/reject with reason."""
         cfg = self.config
         if score.is_too_short:
@@ -186,17 +183,17 @@ class QualityFilter:
 
 
 def filter_documents_quality(
-    docs: List[Document],
+    docs: list[Document],
     config: QualityFilterConfig | None = None,
-) -> Tuple[List[Document], List[Tuple[Document, QualityScore, str]], List[QualityScore]]:
+) -> tuple[list[Document], list[tuple[Document, QualityScore, str]], list[QualityScore]]:
     """
     Filter documents by quality.
     Returns (kept, rejected_with_score_and_reason, all_scores).
     """
     filt = QualityFilter(config)
-    kept: List[Document] = []
-    rejected: List[Tuple[Document, QualityScore, str]] = []
-    all_scores: List[QualityScore] = []
+    kept: list[Document] = []
+    rejected: list[tuple[Document, QualityScore, str]] = []
+    all_scores: list[QualityScore] = []
 
     for doc in docs:
         score = filt.score(doc)
