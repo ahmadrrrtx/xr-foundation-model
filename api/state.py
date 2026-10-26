@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException, Request
+
+if TYPE_CHECKING:
+    from xrfm.agent.control import AgentControl
 
 
 @dataclass
@@ -20,6 +23,7 @@ class APIState:
     model_id: str = "xrfm-default"
     started_at: float = 0.0
     generation_lock: threading.Lock = field(default_factory=threading.Lock)
+    agent_control: AgentControl | None = None
 
 
 def get_state(request: Request) -> APIState:

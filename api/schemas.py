@@ -99,6 +99,11 @@ class AgentRequest(BaseModel):
     request: str = Field(..., min_length=1, max_length=16000)
 
 
+class AgentRevokeRequest(BaseModel):
+    permission: str | None = Field(default=None, min_length=1, max_length=128)
+    tool: str | None = Field(default=None, min_length=1, max_length=128)
+
+
 class AgentEventResponse(BaseModel):
     phase: str
     message: str

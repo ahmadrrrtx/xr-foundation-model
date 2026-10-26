@@ -2,6 +2,7 @@
 
 from .backend_execution import BackendCancelledError, BackendExecutionError, BackendExecutor, BackendTimeoutError
 from .backends import BackendInfo, ModelBackend, OpenAICompatibleBackend, ScriptedBackend
+from .control import AgentControl
 from .evaluation import AgentBenchmarkCase, AgentBenchmarkResult, reference_cases, run_benchmark
 from .execution import ToolExecutor
 from .protocols import (
@@ -22,6 +23,7 @@ from .tools import SafeFilesystemTools, ToolError, ToolRegistry
 __all__ = [
     "AgentBenchmarkCase",
     "AgentBenchmarkResult",
+    "AgentControl",
     "AgentEvent",
     "AgentPhase",
     "AgentRuntime",

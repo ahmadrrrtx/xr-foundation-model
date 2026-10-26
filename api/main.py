@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from api.agent_config import validate_agent_configuration
 from api.state import APIState
 from xrfm import __version__
+from xrfm.agent.control import AgentControl
 from xrfm.config.schema import ModelConfig
 from xrfm.inference.engine import GenerationEngine
 from xrfm.models.gpt import GPTModel
@@ -96,6 +97,7 @@ async def lifespan(app: FastAPI):
     """Own one complete model/tokenizer/engine lifecycle per application."""
     global _model, _engine, _tokenizer, _startup_time, _model_loaded
     state = APIState(started_at=time.time())
+    state.agent_control = AgentControl()
     app.state.xrfm = state
     _model = None
     _engine = None
@@ -142,6 +144,9 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        if state.agent_control is not None:
+            state.agent_control.close()
+            state.agent_control = None
         state.model = None
         state.engine = None
         state.tokenizer = None
