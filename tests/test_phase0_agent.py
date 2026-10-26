@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import threading
@@ -219,13 +220,78 @@ def test_agent_http_stream_does_not_buffer_backend_work(monkeypatch: pytest.Monk
 
     runtime = AgentRuntime(_SlowBackend(), ToolExecutor(ToolRegistry()))
     monkeypatch.setattr(route, "_get_runtime", lambda: runtime)
-    with TestClient(app) as client:
+
+    async def probe() -> None:
+        body = b'{"request":"hello"}'
+        scope = {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "POST",
+            "scheme": "http",
+            "path": "/v1/agent/stream",
+            "raw_path": b"/v1/agent/stream",
+            "query_string": b"",
+            "headers": [
+                (b"host", b"testserver"),
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode()),
+            ],
+            "client": ("testclient", 50000),
+            "server": ("testserver", 80),
+            "state": {},
+        }
+        request_sent = False
+        disconnect = asyncio.Event()
+        messages: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+
+        async def receive() -> dict[str, Any]:
+            nonlocal request_sent
+            if not request_sent:
+                request_sent = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            await disconnect.wait()
+            return {"type": "http.disconnect"}
+
+        async def send(message: dict[str, Any]) -> None:
+            await messages.put(message)
+
         started = time.monotonic()
-        with client.stream("POST", "/v1/agent/stream", json={"request": "hello"}) as response:
-            lines = response.iter_lines()
-            assert next(lines) == "event: request"
-            assert time.monotonic() - started < 0.2
-            assert "event: done" in list(lines)
+        task = asyncio.create_task(app(scope, receive, send))
+        try:
+            response_start = await asyncio.wait_for(messages.get(), timeout=0.5)
+            assert response_start["type"] == "http.response.start"
+            assert response_start["status"] == 200
+            first_body = await asyncio.wait_for(messages.get(), timeout=0.5)
+            assert time.monotonic() - started < 0.5
+            assert first_body["type"] == "http.response.body"
+            assert first_body["body"].startswith(b"event: request\n")
+            assert not task.done(), "the backend must still be running when the first event arrives"
+
+            streamed = [first_body["body"]]
+            while True:
+                message = await asyncio.wait_for(messages.get(), timeout=5)
+                if message["type"] != "http.response.body":
+                    continue
+                streamed.append(message.get("body", b""))
+                if not message.get("more_body", False):
+                    break
+            await task
+            assert b"event: done\n" in b"".join(streamed)
+        finally:
+            disconnect.set()
+            if not task.done():
+                task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
+    # Starlette 1.7's TestClient buffers whole responses even for
+    # client.stream(); direct ASGI messages test the actual streaming contract
+    # on every supported Python/Starlette combination.
+    with TestClient(app):
+        asyncio.run(probe())
 
 
 def test_tool_timeout_is_a_hard_wall_clock_bound() -> None:

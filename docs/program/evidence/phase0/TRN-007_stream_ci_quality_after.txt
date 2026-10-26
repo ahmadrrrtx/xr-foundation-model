@@ -1,0 +1,6 @@
+All checks passed!
+193 files already formatted
+All done! ✨ 🍰 ✨
+161 files would be left unchanged.
+src/xrfm/data/contamination.py:143: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+Success: no issues found in 93 source files

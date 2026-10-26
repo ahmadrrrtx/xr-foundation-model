@@ -1,0 +1,56 @@
+...FFF                                                                   [100%]
+=================================== FAILURES ===================================
+__________ test_stop_token_is_counted_and_terminal_metadata_is_exact ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f2ce19b3100>
+
+    def test_stop_token_is_counted_and_terminal_metadata_is_exact(monkeypatch: pytest.MonkeyPatch) -> None:
+        engine = GenerationEngine(_model())
+        sampled = iter([7, 8, 9])
+    
+        def fake_sample(logits: torch.Tensor, **kwargs: object) -> torch.Tensor:
+            return torch.tensor([[next(sampled)]], device=logits.device)
+    
+        monkeypatch.setattr("xrfm.inference.engine.sample_token", fake_sample)
+>       events = list(engine.stream(torch.tensor([[1, 2]]), max_new_tokens=5, stop_token_id=8))
+                      ^^^^^^^^^^^^^
+E       AttributeError: 'GenerationEngine' object has no attribute 'stream'
+
+tests/test_phase0_attention_accounting.py:70: AttributeError
+__________________ test_stop_string_is_counted_and_identified __________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f2cdf744e90>
+
+    def test_stop_string_is_counted_and_identified(monkeypatch: pytest.MonkeyPatch) -> None:
+        engine = GenerationEngine(_model())
+        sampled = iter([5, 6, 7, 8])
+    
+        def fake_sample(logits: torch.Tensor, **kwargs: object) -> torch.Tensor:
+            return torch.tensor([[next(sampled)]], device=logits.device)
+    
+        monkeypatch.setattr("xrfm.inference.engine.sample_token", fake_sample)
+        decoding = {5: "A", 6: "B", 7: "C", 8: "D"}
+>       final = engine.generate_with_metadata(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            torch.tensor([[1, 2]]),
+            max_new_tokens=5,
+            stop_sequences=["BC"],
+            decode_fn=lambda ids: "".join(decoding[token] for token in ids),
+        )
+E       AttributeError: 'GenerationEngine' object has no attribute 'generate_with_metadata'
+
+tests/test_phase0_attention_accounting.py:91: AttributeError
+____ test_truncation_preserves_original_effective_and_completion_accounting ____
+
+    def test_truncation_preserves_original_effective_and_completion_accounting() -> None:
+        engine = GenerationEngine(_model(max_seq_len=4))
+>       final = engine.generate_with_metadata(torch.tensor([[1, 2, 3, 4, 5, 6]]), max_new_tokens=10, temperature=0)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'GenerationEngine' object has no attribute 'generate_with_metadata'
+
+tests/test_phase0_attention_accounting.py:105: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_phase0_attention_accounting.py::test_stop_token_is_counted_and_terminal_metadata_is_exact
+FAILED tests/test_phase0_attention_accounting.py::test_stop_string_is_counted_and_identified
+FAILED tests/test_phase0_attention_accounting.py::test_truncation_preserves_original_effective_and_completion_accounting
+3 failed, 3 passed in 1.59s

@@ -1,0 +1,113 @@
+........................................................................ [ 12%]
+........................................................................ [ 25%]
+........................................................................ [ 38%]
+........................................................................ [ 51%]
+........................................................................ [ 64%]
+........................................................................ [ 77%]
+......F................................................................. [ 90%]
+......................................................                   [100%]
+=================================== FAILURES ===================================
+_____________ test_agent_http_stream_does_not_buffer_backend_work ______________
+tests/test_phase0_agent.py:227: in test_agent_http_stream_does_not_buffer_backend_work
+    assert time.monotonic() - started < 0.2
+E   assert (2611.037701501 - 2609.145578014) < 0.2
+E    +  where 2611.037701501 = <built-in function monotonic>()
+E    +    where <built-in function monotonic> = time.monotonic
+----------------------------- Captured stderr call -----------------------------
+/home/user/.cache/xrfm-py310/lib/python3.10/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+------------------------------ Captured log call -------------------------------
+WARNING  xrfm.api:main.py:126 Checkpoint rejected: checkpoints/checkpoint_step_500.pt: RuntimeError: Error(s) in loading state_dict for XRFMModel:
+	Unexpected key(s) in state_dict: "blocks.4.norm1.weight", "blocks.4.norm2.weight", "blocks.4.attn.W_q.weight", "blocks.4.attn.W_q.bias", "blocks.4.attn.W_k.weight", "blocks.4.attn.W_k.bias", "blocks.4.attn.W_v.weight", "blocks.4.attn.W_v.bias", "blocks.4.attn.W_o.weight", "blocks.4.attn.W_o.bias", "blocks.4.ffn.W_1.weight", "blocks.4.ffn.W_1.bias", "blocks.4.ffn.W_2.weight", "blocks.4.ffn.W_2.bias", "blocks.4.ffn.W_3.weight", "blocks.4.ffn.W_3.bias", "blocks.5.norm1.weight", "blocks.5.norm2.weight", "blocks.5.attn.W_q.weight", "blocks.5.attn.W_q.bias", "blocks.5.attn.W_k.weight", "blocks.5.attn.W_k.bias", "blocks.5.attn.W_v.weight", "blocks.5.attn.W_v.bias", "blocks.5.attn.W_o.weight", "blocks.5.attn.W_o.bias", "blocks.5.ffn.W_1.weight", "blocks.5.ffn.W_1.bias", "blocks.5.ffn.W_2.weight", "blocks.5.ffn.W_2.bias", "blocks.5.ffn.W_3.weight", "blocks.5.ffn.W_3.bias". 
+	size mismatch for embedding.embedding.weight: copying a param with shape torch.Size([50304, 256]) from checkpoint, the shape in current model is torch.Size([2048, 128]).
+	size mismatch for blocks.0.norm1.weight: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.0.norm2.weight: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.0.attn.W_q.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.0.attn.W_q.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.0.attn.W_k.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.0.attn.W_k.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.0.attn.W_v.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.0.attn.W_v.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.0.attn.W_o.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.0.attn.W_o.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.0.ffn.W_1.weight: copying a param with shape torch.Size([1024, 256]) from checkpoint, the shape in current model is torch.Size([512, 128]).
+	size mismatch for blocks.0.ffn.W_1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([512]).
+	size mismatch for blocks.0.ffn.W_2.weight: copying a param with shape torch.Size([1024, 256]) from checkpoint, the shape in current model is torch.Size([512, 128]).
+	size mismatch for blocks.0.ffn.W_2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([512]).
+	size mismatch for blocks.0.ffn.W_3.weight: copying a param with shape torch.Size([256, 1024]) from checkpoint, the shape in current model is torch.Size([128, 512]).
+	size mismatch for blocks.0.ffn.W_3.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.1.norm1.weight: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.1.norm2.weight: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.1.attn.W_q.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.1.attn.W_q.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.1.attn.W_k.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.1.attn.W_k.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.1.attn.W_v.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.1.attn.W_v.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.1.attn.W_o.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.1.attn.W_o.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.1.ffn.W_1.weight: copying a param with shape torch.Size([1024, 256]) from checkpoint, the shape in current model is torch.Size([512, 128]).
+	size mismatch for blocks.1.ffn.W_1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([512]).
+	size mismatch for blocks.1.ffn.W_2.weight: copying a param with shape torch.Size([1024, 256]) from checkpoint, the shape in current model is torch.Size([512, 128]).
+	size mismatch for blocks.1.ffn.W_2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([512]).
+	size mismatch for blocks.1.ffn.W_3.weight: copying a param with shape torch.Size([256, 1024]) from checkpoint, the shape in current model is torch.Size([128, 512]).
+	size mismatch for blocks.1.ffn.W_3.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.2.norm1.weight: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.2.norm2.weight: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.2.attn.W_q.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.2.attn.W_q.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.2.attn.W_k.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.2.attn.W_k.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.2.attn.W_v.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.2.attn.W_v.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.2.attn.W_o.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.2.attn.W_o.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.2.ffn.W_1.weight: copying a param with shape torch.Size([1024, 256]) from checkpoint, the shape in current model is torch.Size([512, 128]).
+	size mismatch for blocks.2.ffn.W_1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([512]).
+	size mismatch for blocks.2.ffn.W_2.weight: copying a param with shape torch.Size([1024, 256]) from checkpoint, the shape in current model is torch.Size([512, 128]).
+	size mismatch for blocks.2.ffn.W_2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([512]).
+	size mismatch for blocks.2.ffn.W_3.weight: copying a param with shape torch.Size([256, 1024]) from checkpoint, the shape in current model is torch.Size([128, 512]).
+	size mismatch for blocks.2.ffn.W_3.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.3.norm1.weight: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.3.norm2.weight: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.3.attn.W_q.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.3.attn.W_q.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.3.attn.W_k.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.3.attn.W_k.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.3.attn.W_v.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.3.attn.W_v.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.3.attn.W_o.weight: copying a param with shape torch.Size([256, 256]) from checkpoint, the shape in current model is torch.Size([128, 128]).
+	size mismatch for blocks.3.attn.W_o.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for blocks.3.ffn.W_1.weight: copying a param with shape torch.Size([1024, 256]) from checkpoint, the shape in current model is torch.Size([512, 128]).
+	size mismatch for blocks.3.ffn.W_1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([512]).
+	size mismatch for blocks.3.ffn.W_2.weight: copying a param with shape torch.Size([1024, 256]) from checkpoint, the shape in current model is torch.Size([512, 128]).
+	size mismatch for blocks.3.ffn.W_2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([512]).
+	size mismatch for blocks.3.ffn.W_3.weight: copying a param with shape torch.Size([256, 1024]) from checkpoint, the shape in current model is torch.Size([128, 512]).
+	size mismatch for blocks.3.ffn.W_3.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for norm_final.weight: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).
+	size mismatch for lm_head.weight: copying a param with shape torch.Size([50304, 256]) from checkpoint, the shape in current model is torch.Size([2048, 128]).
+=============================== warnings summary ===============================
+../../home/user/.cache/xrfm-py310/lib/python3.10/site-packages/fastapi/testclient.py:1
+  /home/user/.cache/xrfm-py310/lib/python3.10/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /home/user/.local/share/uv/python/cpython-3.10-linux-x86_64-gnu/lib/python3.10/importlib/__init__.py:126: DeprecationWarning: routing is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /home/user/.local/share/uv/python/cpython-3.10-linux-x86_64-gnu/lib/python3.10/importlib/__init__.py:126: DeprecationWarning: knowledge is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase14.py::test_builder_returns_model_and_head
+  /tmp/xrfm-ci-55ea/tests/test_neurotopo_phase14.py:25: DeprecationWarning: neurotopo is deprecated; import from xrfm.research.neurotopo instead
+    uncertainty=__import__("xrfm.neurotopo.config", fromlist=["UncertaintyConfig"]).UncertaintyConfig(enabled=True),
+
+tests/test_optimization.py::TestFlashAttention::test_force_math_backend
+  /home/user/.local/share/uv/python/cpython-3.10-linux-x86_64-gnu/lib/python3.10/contextlib.py:103: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
+    self.gen = func(*args, **kwds)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_phase0_agent.py::test_agent_http_stream_does_not_buffer_backend_work
+1 failed, 557 passed, 5 warnings in 269.10s (0:04:29)
