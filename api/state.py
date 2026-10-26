@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from fastapi import HTTPException, Request
 
 if TYPE_CHECKING:
+    from api.protection import RequestProtector
     from xrfm.agent.control import AgentControl
 
 
@@ -24,6 +25,7 @@ class APIState:
     started_at: float = 0.0
     generation_lock: threading.Lock = field(default_factory=threading.Lock)
     agent_control: AgentControl | None = None
+    protection: RequestProtector | None = None
 
 
 def get_state(request: Request) -> APIState:

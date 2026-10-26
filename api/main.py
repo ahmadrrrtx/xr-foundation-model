@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from api.agent_config import validate_agent_configuration
+from api.protection import ProtectionConfig, RequestProtectionMiddleware, RequestProtector
 from api.state import APIState
 from xrfm import __version__
 from xrfm.agent.control import AgentControl
@@ -98,6 +99,7 @@ async def lifespan(app: FastAPI):
     global _model, _engine, _tokenizer, _startup_time, _model_loaded
     state = APIState(started_at=time.time())
     state.agent_control = AgentControl()
+    state.protection = RequestProtector(ProtectionConfig.from_env())
     app.state.xrfm = state
     _model = None
     _engine = None
@@ -147,6 +149,7 @@ async def lifespan(app: FastAPI):
         if state.agent_control is not None:
             state.agent_control.close()
             state.agent_control = None
+        state.protection = None
         state.model = None
         state.engine = None
         state.tokenizer = None
@@ -166,6 +169,7 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", "Authorization", "X-XRFM-Agent-Key"],
 )
+app.add_middleware(RequestProtectionMiddleware)
 
 
 @app.middleware("http")

@@ -2,7 +2,7 @@ name: CI - Lint, Type Check, Test
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, phase-0-stabilization]
   pull_request:
     branches: [main, develop]
 

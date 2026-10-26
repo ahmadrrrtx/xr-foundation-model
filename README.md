@@ -144,6 +144,28 @@ xrfm validate-config config/tiny.yaml
 uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
 
+### API request contracts and limits
+
+Each application lifespan owns its request-protection state. JSON request bodies
+are limited by actual bytes, including chunked bodies without a trustworthy
+`Content-Length`; the default is 1 MiB (`XRFM_API_MAX_BODY_BYTES`, maximum
+64 MiB). Completion, tokenization, and agent-run endpoints have process-local
+fixed-window client rate limits (default 120 requests per 60 seconds) and an
+immediate in-flight capacity bound (default 8). Configure these with
+`XRFM_API_RATE_LIMIT_REQUESTS`, `XRFM_API_RATE_WINDOW_SECONDS`, and
+`XRFM_API_MAX_CONCURRENT`. Rate/capacity rejection returns 429 with
+`Retry-After`; oversized bodies return 413. Emergency agent control endpoints
+are not charged against this quota and retain their authentication checks.
+These limits are per application instance, not a distributed multi-worker rate
+limiter or a replacement for an authenticated production edge proxy.
+
+`stream=true` on unary `/v1/completions` returns 409 and directs callers to
+`/v1/completions/stream`. Tokenizer/input value errors return 400, request
+schema errors remain 422, readiness/kill-state failures remain 503, and
+unexpected generation failures return a sanitized 500 without internal
+exception text. No error contract implies provider-call cancellation or
+production readiness; those remain separately gated in the execution ledger.
+
 ## Data Pipeline (Phase 1)
 
 **Current dataset:** `xrfm-pretrain-v0.1` development corpus (golden dataset, 33 docs, MIT-licensed, tiny but complete pipeline)

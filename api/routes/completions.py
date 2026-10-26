@@ -78,6 +78,8 @@ def _complete(req: CompletionRequest, state: APIState) -> CompletionResponse:
 @router.post("/v1/completions", response_model=CompletionResponse)
 async def completions(req: CompletionRequest, request: Request) -> CompletionResponse:
     state = require_ready(request)
+    if req.stream:
+        raise HTTPException(status_code=409, detail="stream=true requires /v1/completions/stream")
     try:
         return await asyncio.to_thread(_complete, req, state)
     except ValueError as exc:

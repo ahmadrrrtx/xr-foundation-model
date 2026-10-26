@@ -1,0 +1,2 @@
+Dataset length (1) < batch_size (8) with drop_last=True; retrying with drop_last=False.
+CI TRAINING SMOKE: PASS (steps=60, loss 6.24 -> 2.207, ckpt=checkpoint_step_60.pt, resume step=60)
