@@ -26,6 +26,19 @@ class BackendProtocolError(ValueError):
     """A provider response cannot be trusted as a valid XR decision."""
 
 
+class _RejectProviderRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req: Any, fp: Any, code: Any, msg: Any, headers: Any, newurl: Any) -> None:
+        raise BackendProtocolError("provider redirects are disabled; configure the final endpoint explicitly")
+
+
+def _open_provider_request(request: urllib.request.Request, timeout: float) -> Any:
+    # The configured URL is validated by OpenAICompatibleBackend. A fresh
+    # opener avoids process-global state and refuses every redirect, including
+    # same-origin redirects and cross-origin credential forwarding.
+    opener = urllib.request.build_opener(_RejectProviderRedirect())
+    return opener.open(request, timeout=timeout)
+
+
 class ModelBackend(ABC):
     @abstractmethod
     def chat(self, messages: list[Message], tools: list[ToolSpec]) -> Decision:
@@ -214,8 +227,9 @@ class OpenAICompatibleBackend(ModelBackend):
         )
         if self.api_key:
             request.add_header("Authorization", "Bearer " + self.api_key)
-        # The constructor restricts the configured URL to absolute HTTP(S).
-        with urllib.request.urlopen(request, timeout=self.timeout) as response:  # nosec B310
+        # The constructor restricts the configured URL to absolute HTTP(S);
+        # the dedicated opener also rejects every redirect.
+        with _open_provider_request(request, timeout=self.timeout) as response:
             raw_body = response.read(1_000_001)
         if len(raw_body) > 1_000_000:
             raise BackendProtocolError("provider response exceeds the 1 MB bound")

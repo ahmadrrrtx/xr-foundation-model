@@ -1,0 +1,827 @@
+* Creating isolated environment: venv+pip...
+* Installing packages in isolated environment:
+  - setuptools>=77.0
+  - wheel
+* Getting build dependencies for sdist...
+running egg_info
+writing src/xrfm.egg-info/PKG-INFO
+writing dependency_links to src/xrfm.egg-info/dependency_links.txt
+writing entry points to src/xrfm.egg-info/entry_points.txt
+writing requirements to src/xrfm.egg-info/requires.txt
+writing top-level names to src/xrfm.egg-info/top_level.txt
+reading manifest file 'src/xrfm.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/xrfm.egg-info/SOURCES.txt'
+* Installed build dependency versions:
+  - setuptools==84.2.1
+  - wheel==0.48.0
+* Building sdist...
+running sdist
+running egg_info
+writing src/xrfm.egg-info/PKG-INFO
+writing dependency_links to src/xrfm.egg-info/dependency_links.txt
+writing entry points to src/xrfm.egg-info/entry_points.txt
+writing requirements to src/xrfm.egg-info/requires.txt
+writing top-level names to src/xrfm.egg-info/top_level.txt
+reading manifest file 'src/xrfm.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/xrfm.egg-info/SOURCES.txt'
+running check
+creating xrfm-1.0.1
+creating xrfm-1.0.1/src/xrfm
+creating xrfm-1.0.1/src/xrfm.egg-info
+creating xrfm-1.0.1/src/xrfm/agent
+creating xrfm-1.0.1/src/xrfm/config
+creating xrfm-1.0.1/src/xrfm/core
+creating xrfm-1.0.1/src/xrfm/data
+creating xrfm-1.0.1/src/xrfm/dynamics
+creating xrfm-1.0.1/src/xrfm/evaluation
+creating xrfm-1.0.1/src/xrfm/experiment
+creating xrfm-1.0.1/src/xrfm/inference
+creating xrfm-1.0.1/src/xrfm/knowledge
+creating xrfm-1.0.1/src/xrfm/memory
+creating xrfm-1.0.1/src/xrfm/models
+creating xrfm-1.0.1/src/xrfm/models/attention
+creating xrfm-1.0.1/src/xrfm/models/layers
+creating xrfm-1.0.1/src/xrfm/neurons
+creating xrfm-1.0.1/src/xrfm/neurotopo
+creating xrfm-1.0.1/src/xrfm/nt_evaluation
+creating xrfm-1.0.1/src/xrfm/nt_training
+creating xrfm-1.0.1/src/xrfm/optimization
+creating xrfm-1.0.1/src/xrfm/research/neurotopo
+creating xrfm-1.0.1/src/xrfm/research/neurotopo/dynamics
+creating xrfm-1.0.1/src/xrfm/research/neurotopo/evaluation
+creating xrfm-1.0.1/src/xrfm/research/neurotopo/knowledge
+creating xrfm-1.0.1/src/xrfm/research/neurotopo/memory
+creating xrfm-1.0.1/src/xrfm/research/neurotopo/neurons
+creating xrfm-1.0.1/src/xrfm/research/neurotopo/routing
+creating xrfm-1.0.1/src/xrfm/research/neurotopo/topology
+creating xrfm-1.0.1/src/xrfm/research/neurotopo/training
+creating xrfm-1.0.1/src/xrfm/research/neurotopo/uncertainty
+creating xrfm-1.0.1/src/xrfm/routing
+creating xrfm-1.0.1/src/xrfm/search
+creating xrfm-1.0.1/src/xrfm/tokenization
+creating xrfm-1.0.1/src/xrfm/topology
+creating xrfm-1.0.1/src/xrfm/training
+creating xrfm-1.0.1/src/xrfm/uncertainty
+creating xrfm-1.0.1/tests
+copying files to xrfm-1.0.1...
+copying LICENSE -> xrfm-1.0.1
+copying README.md -> xrfm-1.0.1
+copying pyproject.toml -> xrfm-1.0.1
+copying src/xrfm/__init__.py -> xrfm-1.0.1/src/xrfm
+copying src/xrfm/cli.py -> xrfm-1.0.1/src/xrfm
+copying src/xrfm/py.typed -> xrfm-1.0.1/src/xrfm
+copying src/xrfm.egg-info/PKG-INFO -> xrfm-1.0.1/src/xrfm.egg-info
+copying src/xrfm.egg-info/SOURCES.txt -> xrfm-1.0.1/src/xrfm.egg-info
+copying src/xrfm.egg-info/dependency_links.txt -> xrfm-1.0.1/src/xrfm.egg-info
+copying src/xrfm.egg-info/entry_points.txt -> xrfm-1.0.1/src/xrfm.egg-info
+copying src/xrfm.egg-info/requires.txt -> xrfm-1.0.1/src/xrfm.egg-info
+copying src/xrfm.egg-info/top_level.txt -> xrfm-1.0.1/src/xrfm.egg-info
+copying src/xrfm/agent/__init__.py -> xrfm-1.0.1/src/xrfm/agent
+copying src/xrfm/agent/backend_execution.py -> xrfm-1.0.1/src/xrfm/agent
+copying src/xrfm/agent/backends.py -> xrfm-1.0.1/src/xrfm/agent
+copying src/xrfm/agent/control.py -> xrfm-1.0.1/src/xrfm/agent
+copying src/xrfm/agent/evaluation.py -> xrfm-1.0.1/src/xrfm/agent
+copying src/xrfm/agent/execution.py -> xrfm-1.0.1/src/xrfm/agent
+copying src/xrfm/agent/protocols.py -> xrfm-1.0.1/src/xrfm/agent
+copying src/xrfm/agent/runtime.py -> xrfm-1.0.1/src/xrfm/agent
+copying src/xrfm/agent/safety.py -> xrfm-1.0.1/src/xrfm/agent
+copying src/xrfm/agent/tools.py -> xrfm-1.0.1/src/xrfm/agent
+copying src/xrfm/config/__init__.py -> xrfm-1.0.1/src/xrfm/config
+copying src/xrfm/config/config.default.yaml -> xrfm-1.0.1/src/xrfm/config
+copying src/xrfm/config/loader.py -> xrfm-1.0.1/src/xrfm/config
+copying src/xrfm/config/schema.py -> xrfm-1.0.1/src/xrfm/config
+copying src/xrfm/core/__init__.py -> xrfm-1.0.1/src/xrfm/core
+copying src/xrfm/core/message_passing.py -> xrfm-1.0.1/src/xrfm/core
+copying src/xrfm/core/model.py -> xrfm-1.0.1/src/xrfm/core
+copying src/xrfm/core/state.py -> xrfm-1.0.1/src/xrfm/core
+copying src/xrfm/data/__init__.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/checksums.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/cli.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/contamination.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/dataset.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/dedup.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/document_split.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/language.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/loader.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/manifest.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/manifest_v2.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/mixing.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/normalization.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/packing.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/packing_extended.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/pii.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/pipeline.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/quality.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/reporting.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/schema.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/sharding.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/sources.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/splits.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/tokenization.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/data/tokenized_dataset.py -> xrfm-1.0.1/src/xrfm/data
+copying src/xrfm/dynamics/__init__.py -> xrfm-1.0.1/src/xrfm/dynamics
+copying src/xrfm/dynamics/gru.py -> xrfm-1.0.1/src/xrfm/dynamics
+copying src/xrfm/evaluation/__init__.py -> xrfm-1.0.1/src/xrfm/evaluation
+copying src/xrfm/evaluation/benchmarks.py -> xrfm-1.0.1/src/xrfm/evaluation
+copying src/xrfm/evaluation/perplexity.py -> xrfm-1.0.1/src/xrfm/evaluation
+copying src/xrfm/evaluation/runner.py -> xrfm-1.0.1/src/xrfm/evaluation
+copying src/xrfm/experiment/__init__.py -> xrfm-1.0.1/src/xrfm/experiment
+copying src/xrfm/experiment/tracking.py -> xrfm-1.0.1/src/xrfm/experiment
+copying src/xrfm/inference/__init__.py -> xrfm-1.0.1/src/xrfm/inference
+copying src/xrfm/inference/engine.py -> xrfm-1.0.1/src/xrfm/inference
+copying src/xrfm/inference/generate.py -> xrfm-1.0.1/src/xrfm/inference
+copying src/xrfm/inference/kv_cache.py -> xrfm-1.0.1/src/xrfm/inference
+copying src/xrfm/inference/sampling.py -> xrfm-1.0.1/src/xrfm/inference
+copying src/xrfm/knowledge/__init__.py -> xrfm-1.0.1/src/xrfm/knowledge
+copying src/xrfm/memory/__init__.py -> xrfm-1.0.1/src/xrfm/memory
+copying src/xrfm/memory/associative.py -> xrfm-1.0.1/src/xrfm/memory
+copying src/xrfm/models/__init__.py -> xrfm-1.0.1/src/xrfm/models
+copying src/xrfm/models/embedding.py -> xrfm-1.0.1/src/xrfm/models
+copying src/xrfm/models/gpt.py -> xrfm-1.0.1/src/xrfm/models
+copying src/xrfm/models/attention/__init__.py -> xrfm-1.0.1/src/xrfm/models/attention
+copying src/xrfm/models/attention/multi_head.py -> xrfm-1.0.1/src/xrfm/models/attention
+copying src/xrfm/models/attention/rope.py -> xrfm-1.0.1/src/xrfm/models/attention
+copying src/xrfm/models/layers/__init__.py -> xrfm-1.0.1/src/xrfm/models/layers
+copying src/xrfm/models/layers/rmsnorm.py -> xrfm-1.0.1/src/xrfm/models/layers
+copying src/xrfm/models/layers/swiglu.py -> xrfm-1.0.1/src/xrfm/models/layers
+copying src/xrfm/models/layers/transformer_block.py -> xrfm-1.0.1/src/xrfm/models/layers
+copying src/xrfm/neurons/__init__.py -> xrfm-1.0.1/src/xrfm/neurons
+copying src/xrfm/neurons/modules.py -> xrfm-1.0.1/src/xrfm/neurons
+copying src/xrfm/neurotopo/__init__.py -> xrfm-1.0.1/src/xrfm/neurotopo
+copying src/xrfm/neurotopo/builder.py -> xrfm-1.0.1/src/xrfm/neurotopo
+copying src/xrfm/neurotopo/config.py -> xrfm-1.0.1/src/xrfm/neurotopo
+copying src/xrfm/neurotopo/input_layer.py -> xrfm-1.0.1/src/xrfm/neurotopo
+copying src/xrfm/neurotopo/interfaces.py -> xrfm-1.0.1/src/xrfm/neurotopo
+copying src/xrfm/nt_evaluation/__init__.py -> xrfm-1.0.1/src/xrfm/nt_evaluation
+copying src/xrfm/nt_evaluation/calibration.py -> xrfm-1.0.1/src/xrfm/nt_evaluation
+copying src/xrfm/nt_training/__init__.py -> xrfm-1.0.1/src/xrfm/nt_training
+copying src/xrfm/nt_training/param_match.py -> xrfm-1.0.1/src/xrfm/nt_training
+copying src/xrfm/nt_training/train.py -> xrfm-1.0.1/src/xrfm/nt_training
+copying src/xrfm/optimization/__init__.py -> xrfm-1.0.1/src/xrfm/optimization
+copying src/xrfm/optimization/flash_attention.py -> xrfm-1.0.1/src/xrfm/optimization
+copying src/xrfm/optimization/quantization.py -> xrfm-1.0.1/src/xrfm/optimization
+copying src/xrfm/optimization/speculative_decoding.py -> xrfm-1.0.1/src/xrfm/optimization
+copying src/xrfm/research/neurotopo/__init__.py -> xrfm-1.0.1/src/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/builder.py -> xrfm-1.0.1/src/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/config.py -> xrfm-1.0.1/src/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/input_layer.py -> xrfm-1.0.1/src/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/interfaces.py -> xrfm-1.0.1/src/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/message_passing.py -> xrfm-1.0.1/src/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/model.py -> xrfm-1.0.1/src/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/state.py -> xrfm-1.0.1/src/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/dynamics/__init__.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/dynamics
+copying src/xrfm/research/neurotopo/dynamics/gru.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/dynamics
+copying src/xrfm/research/neurotopo/evaluation/__init__.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/evaluation
+copying src/xrfm/research/neurotopo/evaluation/calibration.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/evaluation
+copying src/xrfm/research/neurotopo/knowledge/__init__.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/knowledge
+copying src/xrfm/research/neurotopo/memory/__init__.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/memory
+copying src/xrfm/research/neurotopo/memory/associative.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/memory
+copying src/xrfm/research/neurotopo/neurons/__init__.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/neurons
+copying src/xrfm/research/neurotopo/neurons/modules.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/neurons
+copying src/xrfm/research/neurotopo/routing/__init__.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/routing
+copying src/xrfm/research/neurotopo/topology/__init__.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/topology
+copying src/xrfm/research/neurotopo/topology/dynamic.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/topology
+copying src/xrfm/research/neurotopo/topology/static_graph.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/topology
+copying src/xrfm/research/neurotopo/training/__init__.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/training
+copying src/xrfm/research/neurotopo/training/param_match.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/training
+copying src/xrfm/research/neurotopo/training/train.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/training
+copying src/xrfm/research/neurotopo/uncertainty/__init__.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/uncertainty
+copying src/xrfm/research/neurotopo/uncertainty/head.py -> xrfm-1.0.1/src/xrfm/research/neurotopo/uncertainty
+copying src/xrfm/routing/__init__.py -> xrfm-1.0.1/src/xrfm/routing
+copying src/xrfm/search/__init__.py -> xrfm-1.0.1/src/xrfm/search
+copying src/xrfm/search/agent.py -> xrfm-1.0.1/src/xrfm/search
+copying src/xrfm/search/indexer.py -> xrfm-1.0.1/src/xrfm/search
+copying src/xrfm/search/retriever.py -> xrfm-1.0.1/src/xrfm/search
+copying src/xrfm/tokenization/__init__.py -> xrfm-1.0.1/src/xrfm/tokenization
+copying src/xrfm/tokenization/bpe.py -> xrfm-1.0.1/src/xrfm/tokenization
+copying src/xrfm/tokenization/decode.py -> xrfm-1.0.1/src/xrfm/tokenization
+copying src/xrfm/tokenization/encode.py -> xrfm-1.0.1/src/xrfm/tokenization
+copying src/xrfm/tokenization/interface.py -> xrfm-1.0.1/src/xrfm/tokenization
+copying src/xrfm/tokenization/vocab.json -> xrfm-1.0.1/src/xrfm/tokenization
+copying src/xrfm/topology/__init__.py -> xrfm-1.0.1/src/xrfm/topology
+copying src/xrfm/topology/dynamic.py -> xrfm-1.0.1/src/xrfm/topology
+copying src/xrfm/topology/static_graph.py -> xrfm-1.0.1/src/xrfm/topology
+copying src/xrfm/training/__init__.py -> xrfm-1.0.1/src/xrfm/training
+copying src/xrfm/training/checkpoint.py -> xrfm-1.0.1/src/xrfm/training
+copying src/xrfm/training/distributed.py -> xrfm-1.0.1/src/xrfm/training
+copying src/xrfm/training/loop.py -> xrfm-1.0.1/src/xrfm/training
+copying src/xrfm/training/metrics.py -> xrfm-1.0.1/src/xrfm/training
+copying src/xrfm/training/mixed_precision.py -> xrfm-1.0.1/src/xrfm/training
+copying src/xrfm/training/optimizer.py -> xrfm-1.0.1/src/xrfm/training
+copying src/xrfm/training/scheduler.py -> xrfm-1.0.1/src/xrfm/training
+copying src/xrfm/training/trainer.py -> xrfm-1.0.1/src/xrfm/training
+copying src/xrfm/uncertainty/__init__.py -> xrfm-1.0.1/src/xrfm/uncertainty
+copying src/xrfm/uncertainty/head.py -> xrfm-1.0.1/src/xrfm/uncertainty
+copying tests/test_agent_api.py -> xrfm-1.0.1/tests
+copying tests/test_agent_runtime.py -> xrfm-1.0.1/tests
+copying tests/test_api.py -> xrfm-1.0.1/tests
+copying tests/test_attention.py -> xrfm-1.0.1/tests
+copying tests/test_audit_verification.py -> xrfm-1.0.1/tests
+copying tests/test_compat_shims.py -> xrfm-1.0.1/tests
+copying tests/test_config.py -> xrfm-1.0.1/tests
+copying tests/test_config_schema.py -> xrfm-1.0.1/tests
+copying tests/test_data_loader.py -> xrfm-1.0.1/tests
+copying tests/test_data_pipeline_phase1.py -> xrfm-1.0.1/tests
+copying tests/test_distributed.py -> xrfm-1.0.1/tests
+copying tests/test_embedding.py -> xrfm-1.0.1/tests
+copying tests/test_evaluation.py -> xrfm-1.0.1/tests
+copying tests/test_inference.py -> xrfm-1.0.1/tests
+copying tests/test_inference_controls.py -> xrfm-1.0.1/tests
+copying tests/test_integration.py -> xrfm-1.0.1/tests
+copying tests/test_model_architecture.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase1.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase10.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase11.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase12.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase13.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase14.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase15.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase16.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase2.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase3.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase4.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase5.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase6.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase7.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase8.py -> xrfm-1.0.1/tests
+copying tests/test_neurotopo_phase9.py -> xrfm-1.0.1/tests
+copying tests/test_optimization.py -> xrfm-1.0.1/tests
+copying tests/test_package.py -> xrfm-1.0.1/tests
+copying tests/test_packing.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_agent.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_agent_control.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_api.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_api_contract.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_api_protection.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_attention_accounting.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_attention_sampling.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_io_bounds.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_provider_security.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_schema_registry.py -> xrfm-1.0.1/tests
+copying tests/test_phase0_training.py -> xrfm-1.0.1/tests
+copying tests/test_regression.py -> xrfm-1.0.1/tests
+copying tests/test_search_engine.py -> xrfm-1.0.1/tests
+copying tests/test_splits.py -> xrfm-1.0.1/tests
+copying tests/test_tokenizer_bpe.py -> xrfm-1.0.1/tests
+copying tests/test_tokenizer_contract.py -> xrfm-1.0.1/tests
+copying tests/test_training.py -> xrfm-1.0.1/tests
+copying tests/test_transformer_block.py -> xrfm-1.0.1/tests
+Writing xrfm-1.0.1/setup.cfg
+Creating tar archive
+removing 'xrfm-1.0.1' (and everything under it)
+* Building wheel from sdist
+* Creating isolated environment: venv+pip...
+* Installing packages in isolated environment:
+  - setuptools>=77.0
+  - wheel
+* Getting build dependencies for wheel...
+running egg_info
+writing src/xrfm.egg-info/PKG-INFO
+writing dependency_links to src/xrfm.egg-info/dependency_links.txt
+writing entry points to src/xrfm.egg-info/entry_points.txt
+writing requirements to src/xrfm.egg-info/requires.txt
+writing top-level names to src/xrfm.egg-info/top_level.txt
+reading manifest file 'src/xrfm.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/xrfm.egg-info/SOURCES.txt'
+* Installed build dependency versions:
+  - setuptools==84.2.1
+  - wheel==0.48.0
+* Building wheel...
+running bdist_wheel
+running build
+running build_py
+creating build/lib/xrfm
+copying src/xrfm/cli.py -> build/lib/xrfm
+copying src/xrfm/__init__.py -> build/lib/xrfm
+creating build/lib/xrfm/uncertainty
+copying src/xrfm/uncertainty/head.py -> build/lib/xrfm/uncertainty
+copying src/xrfm/uncertainty/__init__.py -> build/lib/xrfm/uncertainty
+creating build/lib/xrfm/training
+copying src/xrfm/training/trainer.py -> build/lib/xrfm/training
+copying src/xrfm/training/scheduler.py -> build/lib/xrfm/training
+copying src/xrfm/training/optimizer.py -> build/lib/xrfm/training
+copying src/xrfm/training/mixed_precision.py -> build/lib/xrfm/training
+copying src/xrfm/training/metrics.py -> build/lib/xrfm/training
+copying src/xrfm/training/loop.py -> build/lib/xrfm/training
+copying src/xrfm/training/distributed.py -> build/lib/xrfm/training
+copying src/xrfm/training/checkpoint.py -> build/lib/xrfm/training
+copying src/xrfm/training/__init__.py -> build/lib/xrfm/training
+creating build/lib/xrfm/topology
+copying src/xrfm/topology/static_graph.py -> build/lib/xrfm/topology
+copying src/xrfm/topology/dynamic.py -> build/lib/xrfm/topology
+copying src/xrfm/topology/__init__.py -> build/lib/xrfm/topology
+creating build/lib/xrfm/tokenization
+copying src/xrfm/tokenization/interface.py -> build/lib/xrfm/tokenization
+copying src/xrfm/tokenization/encode.py -> build/lib/xrfm/tokenization
+copying src/xrfm/tokenization/decode.py -> build/lib/xrfm/tokenization
+copying src/xrfm/tokenization/bpe.py -> build/lib/xrfm/tokenization
+copying src/xrfm/tokenization/__init__.py -> build/lib/xrfm/tokenization
+creating build/lib/xrfm/search
+copying src/xrfm/search/retriever.py -> build/lib/xrfm/search
+copying src/xrfm/search/indexer.py -> build/lib/xrfm/search
+copying src/xrfm/search/agent.py -> build/lib/xrfm/search
+copying src/xrfm/search/__init__.py -> build/lib/xrfm/search
+creating build/lib/xrfm/routing
+copying src/xrfm/routing/__init__.py -> build/lib/xrfm/routing
+creating build/lib/xrfm/optimization
+copying src/xrfm/optimization/speculative_decoding.py -> build/lib/xrfm/optimization
+copying src/xrfm/optimization/quantization.py -> build/lib/xrfm/optimization
+copying src/xrfm/optimization/flash_attention.py -> build/lib/xrfm/optimization
+copying src/xrfm/optimization/__init__.py -> build/lib/xrfm/optimization
+creating build/lib/xrfm/nt_training
+copying src/xrfm/nt_training/train.py -> build/lib/xrfm/nt_training
+copying src/xrfm/nt_training/param_match.py -> build/lib/xrfm/nt_training
+copying src/xrfm/nt_training/__init__.py -> build/lib/xrfm/nt_training
+creating build/lib/xrfm/nt_evaluation
+copying src/xrfm/nt_evaluation/calibration.py -> build/lib/xrfm/nt_evaluation
+copying src/xrfm/nt_evaluation/__init__.py -> build/lib/xrfm/nt_evaluation
+creating build/lib/xrfm/neurotopo
+copying src/xrfm/neurotopo/interfaces.py -> build/lib/xrfm/neurotopo
+copying src/xrfm/neurotopo/input_layer.py -> build/lib/xrfm/neurotopo
+copying src/xrfm/neurotopo/config.py -> build/lib/xrfm/neurotopo
+copying src/xrfm/neurotopo/builder.py -> build/lib/xrfm/neurotopo
+copying src/xrfm/neurotopo/__init__.py -> build/lib/xrfm/neurotopo
+creating build/lib/xrfm/neurons
+copying src/xrfm/neurons/modules.py -> build/lib/xrfm/neurons
+copying src/xrfm/neurons/__init__.py -> build/lib/xrfm/neurons
+creating build/lib/xrfm/models
+copying src/xrfm/models/gpt.py -> build/lib/xrfm/models
+copying src/xrfm/models/embedding.py -> build/lib/xrfm/models
+copying src/xrfm/models/__init__.py -> build/lib/xrfm/models
+creating build/lib/xrfm/memory
+copying src/xrfm/memory/associative.py -> build/lib/xrfm/memory
+copying src/xrfm/memory/__init__.py -> build/lib/xrfm/memory
+creating build/lib/xrfm/knowledge
+copying src/xrfm/knowledge/__init__.py -> build/lib/xrfm/knowledge
+creating build/lib/xrfm/inference
+copying src/xrfm/inference/sampling.py -> build/lib/xrfm/inference
+copying src/xrfm/inference/kv_cache.py -> build/lib/xrfm/inference
+copying src/xrfm/inference/generate.py -> build/lib/xrfm/inference
+copying src/xrfm/inference/engine.py -> build/lib/xrfm/inference
+copying src/xrfm/inference/__init__.py -> build/lib/xrfm/inference
+creating build/lib/xrfm/experiment
+copying src/xrfm/experiment/tracking.py -> build/lib/xrfm/experiment
+copying src/xrfm/experiment/__init__.py -> build/lib/xrfm/experiment
+creating build/lib/xrfm/evaluation
+copying src/xrfm/evaluation/runner.py -> build/lib/xrfm/evaluation
+copying src/xrfm/evaluation/perplexity.py -> build/lib/xrfm/evaluation
+copying src/xrfm/evaluation/benchmarks.py -> build/lib/xrfm/evaluation
+copying src/xrfm/evaluation/__init__.py -> build/lib/xrfm/evaluation
+creating build/lib/xrfm/dynamics
+copying src/xrfm/dynamics/gru.py -> build/lib/xrfm/dynamics
+copying src/xrfm/dynamics/__init__.py -> build/lib/xrfm/dynamics
+creating build/lib/xrfm/data
+copying src/xrfm/data/tokenized_dataset.py -> build/lib/xrfm/data
+copying src/xrfm/data/tokenization.py -> build/lib/xrfm/data
+copying src/xrfm/data/splits.py -> build/lib/xrfm/data
+copying src/xrfm/data/sources.py -> build/lib/xrfm/data
+copying src/xrfm/data/sharding.py -> build/lib/xrfm/data
+copying src/xrfm/data/schema.py -> build/lib/xrfm/data
+copying src/xrfm/data/reporting.py -> build/lib/xrfm/data
+copying src/xrfm/data/quality.py -> build/lib/xrfm/data
+copying src/xrfm/data/pipeline.py -> build/lib/xrfm/data
+copying src/xrfm/data/pii.py -> build/lib/xrfm/data
+copying src/xrfm/data/packing_extended.py -> build/lib/xrfm/data
+copying src/xrfm/data/packing.py -> build/lib/xrfm/data
+copying src/xrfm/data/normalization.py -> build/lib/xrfm/data
+copying src/xrfm/data/mixing.py -> build/lib/xrfm/data
+copying src/xrfm/data/manifest_v2.py -> build/lib/xrfm/data
+copying src/xrfm/data/manifest.py -> build/lib/xrfm/data
+copying src/xrfm/data/loader.py -> build/lib/xrfm/data
+copying src/xrfm/data/language.py -> build/lib/xrfm/data
+copying src/xrfm/data/document_split.py -> build/lib/xrfm/data
+copying src/xrfm/data/dedup.py -> build/lib/xrfm/data
+copying src/xrfm/data/dataset.py -> build/lib/xrfm/data
+copying src/xrfm/data/contamination.py -> build/lib/xrfm/data
+copying src/xrfm/data/cli.py -> build/lib/xrfm/data
+copying src/xrfm/data/checksums.py -> build/lib/xrfm/data
+copying src/xrfm/data/__init__.py -> build/lib/xrfm/data
+creating build/lib/xrfm/core
+copying src/xrfm/core/state.py -> build/lib/xrfm/core
+copying src/xrfm/core/model.py -> build/lib/xrfm/core
+copying src/xrfm/core/message_passing.py -> build/lib/xrfm/core
+copying src/xrfm/core/__init__.py -> build/lib/xrfm/core
+creating build/lib/xrfm/config
+copying src/xrfm/config/schema.py -> build/lib/xrfm/config
+copying src/xrfm/config/loader.py -> build/lib/xrfm/config
+copying src/xrfm/config/__init__.py -> build/lib/xrfm/config
+creating build/lib/xrfm/agent
+copying src/xrfm/agent/tools.py -> build/lib/xrfm/agent
+copying src/xrfm/agent/safety.py -> build/lib/xrfm/agent
+copying src/xrfm/agent/runtime.py -> build/lib/xrfm/agent
+copying src/xrfm/agent/protocols.py -> build/lib/xrfm/agent
+copying src/xrfm/agent/execution.py -> build/lib/xrfm/agent
+copying src/xrfm/agent/evaluation.py -> build/lib/xrfm/agent
+copying src/xrfm/agent/control.py -> build/lib/xrfm/agent
+copying src/xrfm/agent/backends.py -> build/lib/xrfm/agent
+copying src/xrfm/agent/backend_execution.py -> build/lib/xrfm/agent
+copying src/xrfm/agent/__init__.py -> build/lib/xrfm/agent
+creating build/lib/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/state.py -> build/lib/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/model.py -> build/lib/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/message_passing.py -> build/lib/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/interfaces.py -> build/lib/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/input_layer.py -> build/lib/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/config.py -> build/lib/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/builder.py -> build/lib/xrfm/research/neurotopo
+copying src/xrfm/research/neurotopo/__init__.py -> build/lib/xrfm/research/neurotopo
+creating build/lib/xrfm/research/neurotopo/uncertainty
+copying src/xrfm/research/neurotopo/uncertainty/head.py -> build/lib/xrfm/research/neurotopo/uncertainty
+copying src/xrfm/research/neurotopo/uncertainty/__init__.py -> build/lib/xrfm/research/neurotopo/uncertainty
+creating build/lib/xrfm/research/neurotopo/training
+copying src/xrfm/research/neurotopo/training/train.py -> build/lib/xrfm/research/neurotopo/training
+copying src/xrfm/research/neurotopo/training/param_match.py -> build/lib/xrfm/research/neurotopo/training
+copying src/xrfm/research/neurotopo/training/__init__.py -> build/lib/xrfm/research/neurotopo/training
+creating build/lib/xrfm/research/neurotopo/topology
+copying src/xrfm/research/neurotopo/topology/static_graph.py -> build/lib/xrfm/research/neurotopo/topology
+copying src/xrfm/research/neurotopo/topology/dynamic.py -> build/lib/xrfm/research/neurotopo/topology
+copying src/xrfm/research/neurotopo/topology/__init__.py -> build/lib/xrfm/research/neurotopo/topology
+creating build/lib/xrfm/research/neurotopo/routing
+copying src/xrfm/research/neurotopo/routing/__init__.py -> build/lib/xrfm/research/neurotopo/routing
+creating build/lib/xrfm/research/neurotopo/neurons
+copying src/xrfm/research/neurotopo/neurons/modules.py -> build/lib/xrfm/research/neurotopo/neurons
+copying src/xrfm/research/neurotopo/neurons/__init__.py -> build/lib/xrfm/research/neurotopo/neurons
+creating build/lib/xrfm/research/neurotopo/memory
+copying src/xrfm/research/neurotopo/memory/associative.py -> build/lib/xrfm/research/neurotopo/memory
+copying src/xrfm/research/neurotopo/memory/__init__.py -> build/lib/xrfm/research/neurotopo/memory
+creating build/lib/xrfm/research/neurotopo/knowledge
+copying src/xrfm/research/neurotopo/knowledge/__init__.py -> build/lib/xrfm/research/neurotopo/knowledge
+creating build/lib/xrfm/research/neurotopo/evaluation
+copying src/xrfm/research/neurotopo/evaluation/calibration.py -> build/lib/xrfm/research/neurotopo/evaluation
+copying src/xrfm/research/neurotopo/evaluation/__init__.py -> build/lib/xrfm/research/neurotopo/evaluation
+creating build/lib/xrfm/research/neurotopo/dynamics
+copying src/xrfm/research/neurotopo/dynamics/gru.py -> build/lib/xrfm/research/neurotopo/dynamics
+copying src/xrfm/research/neurotopo/dynamics/__init__.py -> build/lib/xrfm/research/neurotopo/dynamics
+creating build/lib/xrfm/models/layers
+copying src/xrfm/models/layers/transformer_block.py -> build/lib/xrfm/models/layers
+copying src/xrfm/models/layers/swiglu.py -> build/lib/xrfm/models/layers
+copying src/xrfm/models/layers/rmsnorm.py -> build/lib/xrfm/models/layers
+copying src/xrfm/models/layers/__init__.py -> build/lib/xrfm/models/layers
+creating build/lib/xrfm/models/attention
+copying src/xrfm/models/attention/rope.py -> build/lib/xrfm/models/attention
+copying src/xrfm/models/attention/multi_head.py -> build/lib/xrfm/models/attention
+copying src/xrfm/models/attention/__init__.py -> build/lib/xrfm/models/attention
+running egg_info
+writing src/xrfm.egg-info/PKG-INFO
+writing dependency_links to src/xrfm.egg-info/dependency_links.txt
+writing entry points to src/xrfm.egg-info/entry_points.txt
+writing requirements to src/xrfm.egg-info/requires.txt
+writing top-level names to src/xrfm.egg-info/top_level.txt
+reading manifest file 'src/xrfm.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/xrfm.egg-info/SOURCES.txt'
+copying src/xrfm/py.typed -> build/lib/xrfm
+copying src/xrfm/tokenization/vocab.json -> build/lib/xrfm/tokenization
+copying src/xrfm/config/config.default.yaml -> build/lib/xrfm/config
+installing to build/bdist.linux-x86_64/wheel
+running install
+running install_lib
+creating build/bdist.linux-x86_64/wheel
+creating build/bdist.linux-x86_64/wheel/xrfm
+copying build/lib/xrfm/py.typed -> build/bdist.linux-x86_64/wheel/./xrfm
+creating build/bdist.linux-x86_64/wheel/xrfm/research
+creating build/bdist.linux-x86_64/wheel/xrfm/research/neurotopo
+creating build/bdist.linux-x86_64/wheel/xrfm/research/neurotopo/dynamics
+copying build/lib/xrfm/research/neurotopo/dynamics/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/dynamics
+copying build/lib/xrfm/research/neurotopo/dynamics/gru.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/dynamics
+creating build/bdist.linux-x86_64/wheel/xrfm/research/neurotopo/evaluation
+copying build/lib/xrfm/research/neurotopo/evaluation/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/evaluation
+copying build/lib/xrfm/research/neurotopo/evaluation/calibration.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/evaluation
+creating build/bdist.linux-x86_64/wheel/xrfm/research/neurotopo/knowledge
+copying build/lib/xrfm/research/neurotopo/knowledge/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/knowledge
+creating build/bdist.linux-x86_64/wheel/xrfm/research/neurotopo/memory
+copying build/lib/xrfm/research/neurotopo/memory/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/memory
+copying build/lib/xrfm/research/neurotopo/memory/associative.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/memory
+creating build/bdist.linux-x86_64/wheel/xrfm/research/neurotopo/neurons
+copying build/lib/xrfm/research/neurotopo/neurons/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/neurons
+copying build/lib/xrfm/research/neurotopo/neurons/modules.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/neurons
+creating build/bdist.linux-x86_64/wheel/xrfm/research/neurotopo/routing
+copying build/lib/xrfm/research/neurotopo/routing/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/routing
+creating build/bdist.linux-x86_64/wheel/xrfm/research/neurotopo/topology
+copying build/lib/xrfm/research/neurotopo/topology/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/topology
+copying build/lib/xrfm/research/neurotopo/topology/dynamic.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/topology
+copying build/lib/xrfm/research/neurotopo/topology/static_graph.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/topology
+creating build/bdist.linux-x86_64/wheel/xrfm/research/neurotopo/training
+copying build/lib/xrfm/research/neurotopo/training/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/training
+copying build/lib/xrfm/research/neurotopo/training/param_match.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/training
+copying build/lib/xrfm/research/neurotopo/training/train.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/training
+creating build/bdist.linux-x86_64/wheel/xrfm/research/neurotopo/uncertainty
+copying build/lib/xrfm/research/neurotopo/uncertainty/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/uncertainty
+copying build/lib/xrfm/research/neurotopo/uncertainty/head.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo/uncertainty
+copying build/lib/xrfm/research/neurotopo/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo
+copying build/lib/xrfm/research/neurotopo/builder.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo
+copying build/lib/xrfm/research/neurotopo/config.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo
+copying build/lib/xrfm/research/neurotopo/input_layer.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo
+copying build/lib/xrfm/research/neurotopo/interfaces.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo
+copying build/lib/xrfm/research/neurotopo/message_passing.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo
+copying build/lib/xrfm/research/neurotopo/model.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo
+copying build/lib/xrfm/research/neurotopo/state.py -> build/bdist.linux-x86_64/wheel/./xrfm/research/neurotopo
+creating build/bdist.linux-x86_64/wheel/xrfm/agent
+copying build/lib/xrfm/agent/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/agent
+copying build/lib/xrfm/agent/backend_execution.py -> build/bdist.linux-x86_64/wheel/./xrfm/agent
+copying build/lib/xrfm/agent/backends.py -> build/bdist.linux-x86_64/wheel/./xrfm/agent
+copying build/lib/xrfm/agent/control.py -> build/bdist.linux-x86_64/wheel/./xrfm/agent
+copying build/lib/xrfm/agent/evaluation.py -> build/bdist.linux-x86_64/wheel/./xrfm/agent
+copying build/lib/xrfm/agent/execution.py -> build/bdist.linux-x86_64/wheel/./xrfm/agent
+copying build/lib/xrfm/agent/protocols.py -> build/bdist.linux-x86_64/wheel/./xrfm/agent
+copying build/lib/xrfm/agent/runtime.py -> build/bdist.linux-x86_64/wheel/./xrfm/agent
+copying build/lib/xrfm/agent/safety.py -> build/bdist.linux-x86_64/wheel/./xrfm/agent
+copying build/lib/xrfm/agent/tools.py -> build/bdist.linux-x86_64/wheel/./xrfm/agent
+creating build/bdist.linux-x86_64/wheel/xrfm/config
+copying build/lib/xrfm/config/config.default.yaml -> build/bdist.linux-x86_64/wheel/./xrfm/config
+copying build/lib/xrfm/config/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/config
+copying build/lib/xrfm/config/loader.py -> build/bdist.linux-x86_64/wheel/./xrfm/config
+copying build/lib/xrfm/config/schema.py -> build/bdist.linux-x86_64/wheel/./xrfm/config
+creating build/bdist.linux-x86_64/wheel/xrfm/core
+copying build/lib/xrfm/core/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/core
+copying build/lib/xrfm/core/message_passing.py -> build/bdist.linux-x86_64/wheel/./xrfm/core
+copying build/lib/xrfm/core/model.py -> build/bdist.linux-x86_64/wheel/./xrfm/core
+copying build/lib/xrfm/core/state.py -> build/bdist.linux-x86_64/wheel/./xrfm/core
+creating build/bdist.linux-x86_64/wheel/xrfm/data
+copying build/lib/xrfm/data/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/checksums.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/cli.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/contamination.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/dataset.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/dedup.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/document_split.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/language.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/loader.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/manifest.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/manifest_v2.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/mixing.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/normalization.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/packing.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/packing_extended.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/pii.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/pipeline.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/quality.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/reporting.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/schema.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/sharding.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/sources.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/splits.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/tokenization.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+copying build/lib/xrfm/data/tokenized_dataset.py -> build/bdist.linux-x86_64/wheel/./xrfm/data
+creating build/bdist.linux-x86_64/wheel/xrfm/dynamics
+copying build/lib/xrfm/dynamics/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/dynamics
+copying build/lib/xrfm/dynamics/gru.py -> build/bdist.linux-x86_64/wheel/./xrfm/dynamics
+creating build/bdist.linux-x86_64/wheel/xrfm/evaluation
+copying build/lib/xrfm/evaluation/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/evaluation
+copying build/lib/xrfm/evaluation/benchmarks.py -> build/bdist.linux-x86_64/wheel/./xrfm/evaluation
+copying build/lib/xrfm/evaluation/perplexity.py -> build/bdist.linux-x86_64/wheel/./xrfm/evaluation
+copying build/lib/xrfm/evaluation/runner.py -> build/bdist.linux-x86_64/wheel/./xrfm/evaluation
+creating build/bdist.linux-x86_64/wheel/xrfm/experiment
+copying build/lib/xrfm/experiment/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/experiment
+copying build/lib/xrfm/experiment/tracking.py -> build/bdist.linux-x86_64/wheel/./xrfm/experiment
+creating build/bdist.linux-x86_64/wheel/xrfm/inference
+copying build/lib/xrfm/inference/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/inference
+copying build/lib/xrfm/inference/engine.py -> build/bdist.linux-x86_64/wheel/./xrfm/inference
+copying build/lib/xrfm/inference/generate.py -> build/bdist.linux-x86_64/wheel/./xrfm/inference
+copying build/lib/xrfm/inference/kv_cache.py -> build/bdist.linux-x86_64/wheel/./xrfm/inference
+copying build/lib/xrfm/inference/sampling.py -> build/bdist.linux-x86_64/wheel/./xrfm/inference
+creating build/bdist.linux-x86_64/wheel/xrfm/knowledge
+copying build/lib/xrfm/knowledge/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/knowledge
+creating build/bdist.linux-x86_64/wheel/xrfm/memory
+copying build/lib/xrfm/memory/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/memory
+copying build/lib/xrfm/memory/associative.py -> build/bdist.linux-x86_64/wheel/./xrfm/memory
+creating build/bdist.linux-x86_64/wheel/xrfm/models
+creating build/bdist.linux-x86_64/wheel/xrfm/models/attention
+copying build/lib/xrfm/models/attention/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/models/attention
+copying build/lib/xrfm/models/attention/multi_head.py -> build/bdist.linux-x86_64/wheel/./xrfm/models/attention
+copying build/lib/xrfm/models/attention/rope.py -> build/bdist.linux-x86_64/wheel/./xrfm/models/attention
+creating build/bdist.linux-x86_64/wheel/xrfm/models/layers
+copying build/lib/xrfm/models/layers/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/models/layers
+copying build/lib/xrfm/models/layers/rmsnorm.py -> build/bdist.linux-x86_64/wheel/./xrfm/models/layers
+copying build/lib/xrfm/models/layers/swiglu.py -> build/bdist.linux-x86_64/wheel/./xrfm/models/layers
+copying build/lib/xrfm/models/layers/transformer_block.py -> build/bdist.linux-x86_64/wheel/./xrfm/models/layers
+copying build/lib/xrfm/models/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/models
+copying build/lib/xrfm/models/embedding.py -> build/bdist.linux-x86_64/wheel/./xrfm/models
+copying build/lib/xrfm/models/gpt.py -> build/bdist.linux-x86_64/wheel/./xrfm/models
+creating build/bdist.linux-x86_64/wheel/xrfm/neurons
+copying build/lib/xrfm/neurons/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/neurons
+copying build/lib/xrfm/neurons/modules.py -> build/bdist.linux-x86_64/wheel/./xrfm/neurons
+creating build/bdist.linux-x86_64/wheel/xrfm/neurotopo
+copying build/lib/xrfm/neurotopo/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/neurotopo
+copying build/lib/xrfm/neurotopo/builder.py -> build/bdist.linux-x86_64/wheel/./xrfm/neurotopo
+copying build/lib/xrfm/neurotopo/config.py -> build/bdist.linux-x86_64/wheel/./xrfm/neurotopo
+copying build/lib/xrfm/neurotopo/input_layer.py -> build/bdist.linux-x86_64/wheel/./xrfm/neurotopo
+copying build/lib/xrfm/neurotopo/interfaces.py -> build/bdist.linux-x86_64/wheel/./xrfm/neurotopo
+creating build/bdist.linux-x86_64/wheel/xrfm/nt_evaluation
+copying build/lib/xrfm/nt_evaluation/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/nt_evaluation
+copying build/lib/xrfm/nt_evaluation/calibration.py -> build/bdist.linux-x86_64/wheel/./xrfm/nt_evaluation
+creating build/bdist.linux-x86_64/wheel/xrfm/nt_training
+copying build/lib/xrfm/nt_training/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/nt_training
+copying build/lib/xrfm/nt_training/param_match.py -> build/bdist.linux-x86_64/wheel/./xrfm/nt_training
+copying build/lib/xrfm/nt_training/train.py -> build/bdist.linux-x86_64/wheel/./xrfm/nt_training
+creating build/bdist.linux-x86_64/wheel/xrfm/optimization
+copying build/lib/xrfm/optimization/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/optimization
+copying build/lib/xrfm/optimization/flash_attention.py -> build/bdist.linux-x86_64/wheel/./xrfm/optimization
+copying build/lib/xrfm/optimization/quantization.py -> build/bdist.linux-x86_64/wheel/./xrfm/optimization
+copying build/lib/xrfm/optimization/speculative_decoding.py -> build/bdist.linux-x86_64/wheel/./xrfm/optimization
+creating build/bdist.linux-x86_64/wheel/xrfm/routing
+copying build/lib/xrfm/routing/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/routing
+creating build/bdist.linux-x86_64/wheel/xrfm/search
+copying build/lib/xrfm/search/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/search
+copying build/lib/xrfm/search/agent.py -> build/bdist.linux-x86_64/wheel/./xrfm/search
+copying build/lib/xrfm/search/indexer.py -> build/bdist.linux-x86_64/wheel/./xrfm/search
+copying build/lib/xrfm/search/retriever.py -> build/bdist.linux-x86_64/wheel/./xrfm/search
+creating build/bdist.linux-x86_64/wheel/xrfm/tokenization
+copying build/lib/xrfm/tokenization/vocab.json -> build/bdist.linux-x86_64/wheel/./xrfm/tokenization
+copying build/lib/xrfm/tokenization/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/tokenization
+copying build/lib/xrfm/tokenization/bpe.py -> build/bdist.linux-x86_64/wheel/./xrfm/tokenization
+copying build/lib/xrfm/tokenization/decode.py -> build/bdist.linux-x86_64/wheel/./xrfm/tokenization
+copying build/lib/xrfm/tokenization/encode.py -> build/bdist.linux-x86_64/wheel/./xrfm/tokenization
+copying build/lib/xrfm/tokenization/interface.py -> build/bdist.linux-x86_64/wheel/./xrfm/tokenization
+creating build/bdist.linux-x86_64/wheel/xrfm/topology
+copying build/lib/xrfm/topology/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/topology
+copying build/lib/xrfm/topology/dynamic.py -> build/bdist.linux-x86_64/wheel/./xrfm/topology
+copying build/lib/xrfm/topology/static_graph.py -> build/bdist.linux-x86_64/wheel/./xrfm/topology
+creating build/bdist.linux-x86_64/wheel/xrfm/training
+copying build/lib/xrfm/training/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/training
+copying build/lib/xrfm/training/checkpoint.py -> build/bdist.linux-x86_64/wheel/./xrfm/training
+copying build/lib/xrfm/training/distributed.py -> build/bdist.linux-x86_64/wheel/./xrfm/training
+copying build/lib/xrfm/training/loop.py -> build/bdist.linux-x86_64/wheel/./xrfm/training
+copying build/lib/xrfm/training/metrics.py -> build/bdist.linux-x86_64/wheel/./xrfm/training
+copying build/lib/xrfm/training/mixed_precision.py -> build/bdist.linux-x86_64/wheel/./xrfm/training
+copying build/lib/xrfm/training/optimizer.py -> build/bdist.linux-x86_64/wheel/./xrfm/training
+copying build/lib/xrfm/training/scheduler.py -> build/bdist.linux-x86_64/wheel/./xrfm/training
+copying build/lib/xrfm/training/trainer.py -> build/bdist.linux-x86_64/wheel/./xrfm/training
+creating build/bdist.linux-x86_64/wheel/xrfm/uncertainty
+copying build/lib/xrfm/uncertainty/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm/uncertainty
+copying build/lib/xrfm/uncertainty/head.py -> build/bdist.linux-x86_64/wheel/./xrfm/uncertainty
+copying build/lib/xrfm/__init__.py -> build/bdist.linux-x86_64/wheel/./xrfm
+copying build/lib/xrfm/cli.py -> build/bdist.linux-x86_64/wheel/./xrfm
+running install_egg_info
+Copying src/xrfm.egg-info to build/bdist.linux-x86_64/wheel/./xrfm-1.0.1-py3.13.egg-info
+running install_scripts
+creating build/bdist.linux-x86_64/wheel/xrfm-1.0.1.dist-info/WHEEL
+creating '/home/user/xr-foundation-model-audit/dist/.tmp-nqna6w96/xrfm-1.0.1-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+adding 'xrfm/__init__.py'
+adding 'xrfm/cli.py'
+adding 'xrfm/py.typed'
+adding 'xrfm/agent/__init__.py'
+adding 'xrfm/agent/backend_execution.py'
+adding 'xrfm/agent/backends.py'
+adding 'xrfm/agent/control.py'
+adding 'xrfm/agent/evaluation.py'
+adding 'xrfm/agent/execution.py'
+adding 'xrfm/agent/protocols.py'
+adding 'xrfm/agent/runtime.py'
+adding 'xrfm/agent/safety.py'
+adding 'xrfm/agent/tools.py'
+adding 'xrfm/config/__init__.py'
+adding 'xrfm/config/config.default.yaml'
+adding 'xrfm/config/loader.py'
+adding 'xrfm/config/schema.py'
+adding 'xrfm/core/__init__.py'
+adding 'xrfm/core/message_passing.py'
+adding 'xrfm/core/model.py'
+adding 'xrfm/core/state.py'
+adding 'xrfm/data/__init__.py'
+adding 'xrfm/data/checksums.py'
+adding 'xrfm/data/cli.py'
+adding 'xrfm/data/contamination.py'
+adding 'xrfm/data/dataset.py'
+adding 'xrfm/data/dedup.py'
+adding 'xrfm/data/document_split.py'
+adding 'xrfm/data/language.py'
+adding 'xrfm/data/loader.py'
+adding 'xrfm/data/manifest.py'
+adding 'xrfm/data/manifest_v2.py'
+adding 'xrfm/data/mixing.py'
+adding 'xrfm/data/normalization.py'
+adding 'xrfm/data/packing.py'
+adding 'xrfm/data/packing_extended.py'
+adding 'xrfm/data/pii.py'
+adding 'xrfm/data/pipeline.py'
+adding 'xrfm/data/quality.py'
+adding 'xrfm/data/reporting.py'
+adding 'xrfm/data/schema.py'
+adding 'xrfm/data/sharding.py'
+adding 'xrfm/data/sources.py'
+adding 'xrfm/data/splits.py'
+adding 'xrfm/data/tokenization.py'
+adding 'xrfm/data/tokenized_dataset.py'
+adding 'xrfm/dynamics/__init__.py'
+adding 'xrfm/dynamics/gru.py'
+adding 'xrfm/evaluation/__init__.py'
+adding 'xrfm/evaluation/benchmarks.py'
+adding 'xrfm/evaluation/perplexity.py'
+adding 'xrfm/evaluation/runner.py'
+adding 'xrfm/experiment/__init__.py'
+adding 'xrfm/experiment/tracking.py'
+adding 'xrfm/inference/__init__.py'
+adding 'xrfm/inference/engine.py'
+adding 'xrfm/inference/generate.py'
+adding 'xrfm/inference/kv_cache.py'
+adding 'xrfm/inference/sampling.py'
+adding 'xrfm/knowledge/__init__.py'
+adding 'xrfm/memory/__init__.py'
+adding 'xrfm/memory/associative.py'
+adding 'xrfm/models/__init__.py'
+adding 'xrfm/models/embedding.py'
+adding 'xrfm/models/gpt.py'
+adding 'xrfm/models/attention/__init__.py'
+adding 'xrfm/models/attention/multi_head.py'
+adding 'xrfm/models/attention/rope.py'
+adding 'xrfm/models/layers/__init__.py'
+adding 'xrfm/models/layers/rmsnorm.py'
+adding 'xrfm/models/layers/swiglu.py'
+adding 'xrfm/models/layers/transformer_block.py'
+adding 'xrfm/neurons/__init__.py'
+adding 'xrfm/neurons/modules.py'
+adding 'xrfm/neurotopo/__init__.py'
+adding 'xrfm/neurotopo/builder.py'
+adding 'xrfm/neurotopo/config.py'
+adding 'xrfm/neurotopo/input_layer.py'
+adding 'xrfm/neurotopo/interfaces.py'
+adding 'xrfm/nt_evaluation/__init__.py'
+adding 'xrfm/nt_evaluation/calibration.py'
+adding 'xrfm/nt_training/__init__.py'
+adding 'xrfm/nt_training/param_match.py'
+adding 'xrfm/nt_training/train.py'
+adding 'xrfm/optimization/__init__.py'
+adding 'xrfm/optimization/flash_attention.py'
+adding 'xrfm/optimization/quantization.py'
+adding 'xrfm/optimization/speculative_decoding.py'
+adding 'xrfm/research/neurotopo/__init__.py'
+adding 'xrfm/research/neurotopo/builder.py'
+adding 'xrfm/research/neurotopo/config.py'
+adding 'xrfm/research/neurotopo/input_layer.py'
+adding 'xrfm/research/neurotopo/interfaces.py'
+adding 'xrfm/research/neurotopo/message_passing.py'
+adding 'xrfm/research/neurotopo/model.py'
+adding 'xrfm/research/neurotopo/state.py'
+adding 'xrfm/research/neurotopo/dynamics/__init__.py'
+adding 'xrfm/research/neurotopo/dynamics/gru.py'
+adding 'xrfm/research/neurotopo/evaluation/__init__.py'
+adding 'xrfm/research/neurotopo/evaluation/calibration.py'
+adding 'xrfm/research/neurotopo/knowledge/__init__.py'
+adding 'xrfm/research/neurotopo/memory/__init__.py'
+adding 'xrfm/research/neurotopo/memory/associative.py'
+adding 'xrfm/research/neurotopo/neurons/__init__.py'
+adding 'xrfm/research/neurotopo/neurons/modules.py'
+adding 'xrfm/research/neurotopo/routing/__init__.py'
+adding 'xrfm/research/neurotopo/topology/__init__.py'
+adding 'xrfm/research/neurotopo/topology/dynamic.py'
+adding 'xrfm/research/neurotopo/topology/static_graph.py'
+adding 'xrfm/research/neurotopo/training/__init__.py'
+adding 'xrfm/research/neurotopo/training/param_match.py'
+adding 'xrfm/research/neurotopo/training/train.py'
+adding 'xrfm/research/neurotopo/uncertainty/__init__.py'
+adding 'xrfm/research/neurotopo/uncertainty/head.py'
+adding 'xrfm/routing/__init__.py'
+adding 'xrfm/search/__init__.py'
+adding 'xrfm/search/agent.py'
+adding 'xrfm/search/indexer.py'
+adding 'xrfm/search/retriever.py'
+adding 'xrfm/tokenization/__init__.py'
+adding 'xrfm/tokenization/bpe.py'
+adding 'xrfm/tokenization/decode.py'
+adding 'xrfm/tokenization/encode.py'
+adding 'xrfm/tokenization/interface.py'
+adding 'xrfm/tokenization/vocab.json'
+adding 'xrfm/topology/__init__.py'
+adding 'xrfm/topology/dynamic.py'
+adding 'xrfm/topology/static_graph.py'
+adding 'xrfm/training/__init__.py'
+adding 'xrfm/training/checkpoint.py'
+adding 'xrfm/training/distributed.py'
+adding 'xrfm/training/loop.py'
+adding 'xrfm/training/metrics.py'
+adding 'xrfm/training/mixed_precision.py'
+adding 'xrfm/training/optimizer.py'
+adding 'xrfm/training/scheduler.py'
+adding 'xrfm/training/trainer.py'
+adding 'xrfm/uncertainty/__init__.py'
+adding 'xrfm/uncertainty/head.py'
+adding 'xrfm-1.0.1.dist-info/licenses/LICENSE'
+adding 'xrfm-1.0.1.dist-info/METADATA'
+adding 'xrfm-1.0.1.dist-info/WHEEL'
+adding 'xrfm-1.0.1.dist-info/entry_points.txt'
+adding 'xrfm-1.0.1.dist-info/top_level.txt'
+adding 'xrfm-1.0.1.dist-info/RECORD'
+removing build/bdist.linux-x86_64/wheel
+Successfully built xrfm-1.0.1.tar.gz and xrfm-1.0.1-py3-none-any.whl
+wheel top-level: ['xrfm', 'xrfm-1.0.1.dist-info']
+Processing ./dist/xrfm-1.0.1-py3-none-any.whl
+Installing collected packages: xrfm
+  Attempting uninstall: xrfm
+    Found existing installation: xrfm 1.0.1
+    Not uninstalling xrfm at /usr/local/lib/python3.13/site-packages, outside environment /home/user/.cache/xrfm-agt005-pkgvenv
+    Can't uninstall 'xrfm'. No files were found to uninstall.
+Successfully installed xrfm-1.0.1
+
+[notice] A new release of pip is available: 26.2.1 -> 26.2.2
+[notice] To update, run: /home/user/.cache/xrfm-agt005-pkgvenv/bin/python -m pip install --upgrade pip
+clean install: 1.0.1
+config loads from /: 128
+agent imports from /: 0
+xrfm 1.0.1
+python 3.13.16
+default preset : XR Foundation Model
+default model  : d_model=128 n_layers=4 n_heads=4 d_ff=512 max_seq_len=256 vocab=2048

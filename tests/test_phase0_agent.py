@@ -501,7 +501,7 @@ def test_native_provider_tool_call_id_and_capabilities_are_honest(monkeypatch: p
         requests.append(request)
         return Response()
 
-    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    monkeypatch.setattr("xrfm.agent.backends._open_provider_request", fake_urlopen)
     backend = OpenAICompatibleBackend("http://provider.invalid", "test-model")
     decision = backend.chat([], [ToolSpec("echo", "test", {"type": "object"})])
     assert decision.tool_calls[0].call_id == "provider-call-42"

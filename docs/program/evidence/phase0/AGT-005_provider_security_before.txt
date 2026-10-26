@@ -1,0 +1,27 @@
+F.                                                                       [100%]
+=================================== FAILURES ===================================
+______________ test_provider_redirect_cannot_receive_credentials _______________
+
+    def test_provider_redirect_cannot_receive_credentials() -> None:
+        with _running_server(_RedirectHandler) as redirector, _running_server(_CaptureHandler) as receiver:
+            redirector.redirect_target = f"http://127.0.0.1:{receiver.server_port}/credential-canary"
+            backend = OpenAICompatibleBackend(
+                f"http://127.0.0.1:{redirector.server_port}",
+                "test-model",
+                api_key="test-provider-canary",
+            )
+            error: Exception | None = None
+            try:
+                backend.chat([], [])
+            except Exception as exc:
+                error = exc
+>       assert receiver.received_authorizations == []
+E       AssertionError: assert ['Bearer test...vider-canary'] == []
+E         
+E         Left contains one more item: 'Bearer test-provider-canary'
+E         Use -v to get more diff
+
+tests/test_phase0_provider_security.py:93: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_phase0_provider_security.py::test_provider_redirect_cannot_receive_credentials
+1 failed, 1 passed in 5.76s
