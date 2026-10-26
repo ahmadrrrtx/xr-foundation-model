@@ -70,7 +70,13 @@ class AgentRuntime:
                 yield event
                 return state
             state.step += 1
-            yield emit(AgentPhase.CONTEXT, "Context assembled", step=state.step, message_count=len(state.messages))
+            yield emit(
+                AgentPhase.CONTEXT,
+                "Context assembled",
+                step=state.step,
+                message_count=len(state.messages),
+                schema_version=self.executor.registry.schema_version,
+            )
             specs = self.executor.registry.specs()
             reason = stop_reason()
             if reason is not None:

@@ -1,0 +1,53 @@
+{
+  "fetched_at": "2026-10-26T07:27:39.360676+00:00",
+  "authentication": "none (public GitHub API)",
+  "run_id": 40285217550,
+  "run_number": 26,
+  "head_sha": "f6597012b33dc8c3604e5f9145c9880bb0087fa8",
+  "branch": "phase-0-stabilization",
+  "status": "completed",
+  "conclusion": "success",
+  "url": "https://github.com/ahmadrrrtx/xr-foundation-model/actions/runs/40285217550",
+  "jobs": [
+    {
+      "name": "Dependency & Agent Security",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Lint & Format",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Package & Clean Install",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run Tests (3.10)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run Tests (3.11)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run Tests (3.12)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Training Pipeline Smoke Test",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Type Check (mypy)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ]
+}

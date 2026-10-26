@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from collections.abc import Iterator
@@ -24,6 +25,10 @@ class JSONLimits:
     max_items: int = 1_000
     max_depth: int = 32
     max_string_bytes: int = 16_384
+
+
+_SCHEMA_URI = "https://json-schema.org/draft/2020-12/schema"
+_REGISTRY_LIMITS = JSONLimits(max_bytes=1_000_000, max_items=10_000, max_depth=32, max_string_bytes=100_000)
 
 
 def enforce_json_bounds(value: Any, limits: JSONLimits = JSONLimits(), path: str = "value") -> None:
@@ -117,6 +122,22 @@ class ToolRegistry:
 
     def descriptions(self) -> list[dict[str, Any]]:
         return [spec.to_dict() for spec in self.specs()]
+
+    def schema_manifest(self) -> dict[str, Any]:
+        """Return a bounded manifest of schema/spec metadata, sorted by tool name."""
+        tools = sorted(self.descriptions(), key=lambda item: item["name"])
+        payload: dict[str, Any] = {"schema_draft": "2020-12", "schema_uri": _SCHEMA_URI, "tools": tools}
+        enforce_json_bounds(payload, limits=_REGISTRY_LIMITS, path="tool registry")
+        canonical = json.dumps(
+            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
+        ).encode("utf-8")
+        digest = hashlib.sha256(canonical).hexdigest()
+        return {**payload, "version": f"sha256:{digest}"}
+
+    @property
+    def schema_version(self) -> str:
+        """Content-address schema/spec metadata; callable code is not hashed."""
+        return str(self.schema_manifest()["version"])
 
 
 class SafeFilesystemTools:

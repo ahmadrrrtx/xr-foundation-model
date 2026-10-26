@@ -1,0 +1,56 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+_____ test_schema_registry_identity_is_deterministic_and_order_independent _____
+
+    def test_schema_registry_identity_is_deterministic_and_order_independent() -> None:
+        alpha = _spec("alpha")
+        beta = _spec("beta")
+        first = ToolRegistry()
+        second = ToolRegistry()
+        first.register(alpha, _echo)
+        first.register(beta, _echo)
+        second.register(beta, _echo)
+        second.register(alpha, _echo)
+    
+>       assert first.schema_version == second.schema_version
+               ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'ToolRegistry' object has no attribute 'schema_version'
+
+tests/test_phase0_schema_registry.py:48: AttributeError
+______ test_schema_registry_identity_tracks_schema_and_execution_metadata ______
+
+    def test_schema_registry_identity_tracks_schema_and_execution_metadata() -> None:
+        base = _spec()
+>       baseline = _registry(base).schema_version
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'ToolRegistry' object has no attribute 'schema_version'
+
+tests/test_phase0_schema_registry.py:59: AttributeError
+___________________ test_schema_registry_manifest_is_bounded ___________________
+
+    def test_schema_registry_manifest_is_bounded() -> None:
+        registry = _registry(replace(_spec(), environment={"note": "x" * 100_001}))
+        with pytest.raises(ToolError, match="tool registry.*bound"):
+>           _ = registry.schema_version
+                ^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'ToolRegistry' object has no attribute 'schema_version'
+
+tests/test_phase0_schema_registry.py:79: AttributeError
+_____________ test_runtime_context_emits_schema_registry_identity ______________
+
+    def test_runtime_context_emits_schema_registry_identity() -> None:
+        registry = ToolRegistry()
+        runtime = AgentRuntime(ScriptedBackend(), ToolExecutor(registry))
+        state = runtime.run("hello")
+        context = next(event for event in state.events if event.phase is AgentPhase.CONTEXT)
+>       assert context.data["schema_version"] == registry.schema_version
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'schema_version'
+
+tests/test_phase0_schema_registry.py:87: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_phase0_schema_registry.py::test_schema_registry_identity_is_deterministic_and_order_independent
+FAILED tests/test_phase0_schema_registry.py::test_schema_registry_identity_tracks_schema_and_execution_metadata
+FAILED tests/test_phase0_schema_registry.py::test_schema_registry_manifest_is_bounded
+FAILED tests/test_phase0_schema_registry.py::test_runtime_context_emits_schema_registry_identity
+4 failed in 2.69s
