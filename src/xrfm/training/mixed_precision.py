@@ -51,7 +51,12 @@ class MixedPrecisionLoader:
             return
 
         if precision == "auto":
-            supports_bf16 = bool(getattr(torch.cuda, "is_bf16_supported", lambda: False)())
+            try:
+                supports_bf16 = bool(torch.cuda.is_bf16_supported(including_emulation=False))
+            except TypeError:
+                supports_bf16 = bool(getattr(torch.cuda, "is_bf16_supported", lambda: False)())
+                if supports_bf16 and torch.cuda.is_available() and torch.cuda.get_device_capability()[0] < 8:
+                    supports_bf16 = False
             self.precision = "bf16" if supports_bf16 else "fp16"
         else:
             self.precision = precision

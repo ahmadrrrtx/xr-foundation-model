@@ -48,6 +48,7 @@ training:
   weight_decay: 0.1
   gradient_clip: 1.0
   mixed_precision: true
+  precision: "fp16"
   checkpoint_every: 500
   resume_from: null
   use_ddp: false

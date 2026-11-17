@@ -39,8 +39,8 @@ model:
   check_input_bounds: false
 
 training:
-  batch_size: 8
-  grad_accum_steps: 4
+  batch_size: 4
+  grad_accum_steps: 8
   max_steps: 2500
   warmup_steps: 125
   learning_rate: 0.0006
@@ -48,6 +48,7 @@ training:
   weight_decay: 0.1
   gradient_clip: 1.0
   mixed_precision: true
+  precision: "fp16"
   checkpoint_every: 500
   resume_from: null
   use_ddp: false

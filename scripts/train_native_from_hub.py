@@ -112,6 +112,7 @@ def run_cuda_exact_resume_probe(dataset_manifest: str, device_str: str) -> dict[
     probe_cfg.training.warmup_steps = 2
     probe_cfg.training.checkpoint_every = 6
     probe_cfg.training.mixed_precision = device_str.startswith("cuda")
+    probe_cfg.training.precision = "fp16" if device_str.startswith("cuda") else "auto"
     probe_cfg.training.device = device_str
     probe_cfg.training.num_workers = 0
     probe_cfg.training.pin_memory = False
@@ -247,6 +248,8 @@ def main() -> int:
     print(f"[2/6] Hardware probe: {gpu_info}", flush=True)
 
     resume_probe = run_cuda_exact_resume_probe(manifest_path, device_str)
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     print(f"[3/6] Exact-resume probe: {resume_probe}", flush=True)
     if not resume_probe["exact_match"]:
         raise RuntimeError(f"Exact-resume probe failed: {resume_probe}")
@@ -274,6 +277,7 @@ def main() -> int:
     )
     if not torch.cuda.is_available():
         cfg.training.mixed_precision = False
+        cfg.training.precision = "auto"
         cfg.training.pin_memory = False
         cfg.training.num_workers = 0
         cfg.training.prefetch_factor = None
