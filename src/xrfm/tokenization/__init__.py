@@ -12,14 +12,17 @@ contract is :class:`Tokenizer` (historical name ``TokenizerInterface``).
 from xrfm.tokenization.bpe import BPETokenizer, BytePairEncoder
 from xrfm.tokenization.decode import decode_ids, decode_text
 from xrfm.tokenization.encode import encode_text
+from xrfm.tokenization.hf_bridge import HFTokenizerAdapter, train_hf_candidate_tokenizer
 from xrfm.tokenization.interface import Tokenizer, TokenizerInterface
 
 __all__ = [
     "BPETokenizer",
     "BytePairEncoder",
+    "HFTokenizerAdapter",
     "Tokenizer",
     "TokenizerInterface",
     "decode_ids",
     "decode_text",
     "encode_text",
+    "train_hf_candidate_tokenizer",
 ]

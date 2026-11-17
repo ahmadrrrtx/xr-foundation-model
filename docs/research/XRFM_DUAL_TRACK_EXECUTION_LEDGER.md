@@ -4,8 +4,9 @@
 **Initialized:** 2026-11-17  
 **Baseline Audited Commit:** `90674742d8e6a5caf65336e4b64c949696e33bc0`  
 **Companion Governance Ledger:** `docs/program/03_EXECUTION_LEDGER.md` (maintained in sync; `G1` remains honest `FAIL` until physical CUDA/second-GPU target verification runs on Kaggle).  
-**Active Phase:** **Phase 1 COMPLETE (`GATE-1 = PASS`) → Ready for Phase 2 (`GATE-2`: Track A 32K Tokenizer Tournament & Pretraining Shards) & Phase 4 (`GATE-4`: Track B Base Bake-Off)**  
-**Latest Remote Commit (`origin/main`):** `666fea2` (`GATE-0` pushed; `GATE-1` committing & pushing now)  
+**Active Phase:** **Phase 2 COMPLETE (`GATE-2 = PASS`) → Entering Phase 3 (`GATE-3`: Track A `XRFM Native` Pretraining on Kaggle GPU) & Phase 4 (`GATE-4`: Track B `XRFM CoderSec` Base Bake-Off & SFT Corpus)**  
+**Latest Remote Commit (`origin/main`):** `e2adc8f` (`GATE-1` pushed; `GATE-2` committing & pushing now)  
+**Published HF Artifacts:** [`ahmadrrrtx/xrfm-native-shards-v1`](https://huggingface.co/datasets/ahmadrrrtx/xrfm-native-shards-v1) (`commit=1652affc...`, `xrfm-ds-1dcd55b6f903a728`, `20,080,975` tokens)  
 **Compute Spent to Date:** `0.0 GPU-h` · `$0.00` Hugging Face credits (`~$4.00` reserve 100% untouched).
 
 ---
@@ -24,8 +25,8 @@
 |---|---|---|---|---|
 | **`GATE-0`** | Phase 0: Repo Truth Alignment & Core P0/P1 Fixes | **PASS** | All P0-01..P0-08 work units `DONE`; 560/560 tests (`464` core + `96` neurotopo) + `ruff`/`black`/`mypy`/`bandit`/`ci_smoke_test` 100% green; README quickstart works out-of-the-box | `docs/program/evidence/phase0_dual_track/` |
 | **`GATE-1`** | Phase 1: Shared Governance, 7-Lang LID & Frozen Eval | **PASS** | Enforced SPDX registry, 7-lang + `ur-Latn` LID `100%` (macro-F1 `1.000` $\ge 0.95$), Banded LSH, `L+1` causal shards, frozen eval & 100% synthetic leak catch; **574/574 tests pass** | `docs/program/evidence/phase1_dual_track/` |
-| **`GATE-2`** | Phase 2: Track A 32K Tokenizer Tournament & Shards | **READY** | Lossless UTF-8 roundtrip, `<0.5%` byte fallback, $\le 2.0\times$ fertility parity on `ur/ar/hi` | `GATE-1` satisfied |
-| **`GATE-3`** | Phase 3: Track A (`XRFM Native`) Pretraining | **PENDING** | Monotonic `BPB` decrease across all 7 langs + code on Kaggle `2× T4` | Requires `GATE-2` |
+| **`GATE-2`** | Phase 2: Track A 32K Tokenizer Tournament & Shards | **PASS** | `T4` (`32,768` Script-Protected Byte-BPE) WON (`ur=0.702x, ar=1.103x, hi=1.047x`, `0.0%` fallback, `100%` lossless); `20.08M`-token `uint16` `L+1` shards published to `ahmadrrrtx/xrfm-native-shards-v1`; **579/579 tests pass** | `docs/program/evidence/phase2_dual_track/` |
+| **`GATE-3`** | Phase 3: Track A (`XRFM Native`) Pretraining | **READY** | Monotonic `BPB` decrease across all 7 langs + code on Kaggle `2× T4` | `GATE-2` satisfied |
 | **`GATE-4`** | Phase 4: Track B Base Bake-Off & 40K SFT Corpus | **READY** | `Qwen3-1.7B` vs `Qwen2.5-Coder-1.5B` baselines logged; 0%-contaminated AST/safety-verified SFT | `GATE-1` satisfied |
 | **`GATE-5`** | Phase 5: Track B (`XRFM CoderSec`) QLoRA & Ablations | **PENDING** | Beats unadapted base on Defensive Sec + Multilingual/Roman-Urdu with $<1.5\%$ code regression | Requires `GATE-4` |
 | **`GATE-6`** | Phase 6: Full Cross-Track Eval & Red-Teaming | **PENDING** | EvalPlus, CyberSecEval 2, Belebele, Roman-Urdu perturbation & over-refusal gates met | Requires `GATE-3`, `GATE-5` |
@@ -62,6 +63,18 @@
 
 ---
 
+## Phase 2 Work Units (`GATE-2` Detailed Checklist)
+
+| ID | Work Unit | Audit / Roadmap Requirement | Target Files | Status | Verification / Evidence |
+|---|---|---|---|---|---|
+| **`P2-01`** | **Regression-First Phase 2 Tokenizer & Fertility Test Suite** | `F-01`, `F-02`, `GATE-2` | `tests/test_phase2_tokenizer_tournament.py` | **DONE** | Wrote 4 acceptance test suites covering atomic special-token parsing (`F-02`), fast word-freq BPE (`F-01`), HF adapter contract, and live 32K `GATE-2` fertility/byte-fallback verification; confirmed failing pre-fix |
+| **`P2-02`** | **Refactor `BytePairEncoder` + Add `HFByteBPETokenizer` Bridge & Fertility Harness** | `F-01`, `F-02`, `XRFM_RESEARCH_REVIEW.md` §3 | `src/xrfm/tokenization/bpe.py`, `src/xrfm/tokenization/hf_bridge.py`, `src/xrfm/tokenization/tournament.py` | **DONE** | Implemented word-freq fast BPE (`<0.1s` on 50KB), atomic special-token parsing (`F-02`), `HFTokenizerAdapter`, and `evaluate_tokenizer_candidate` |
+| **`P2-03`** | **Stream Balanced 8-Domain Corpus & Execute 4-Way Tokenizer Tournament (`T1..T4`)** | `XRFM_IMPLEMENTATION_ROADMAP.md` §Phase 2 | `scripts/run_tokenizer_tournament.py`, `docs/experiments/tokenizer_tournament_v1.json`, `src/xrfm/tokenization/tokenizer_32k_multilingual.json` | **DONE** | Streamed `15,455` decontaminated docs (`24 MB` across 8 domains); `T1/T2` failed Hindi (`2.236x/2.152x`), `T4` (`32,768` Script-Protected Byte-BPE) WON (`ur=0.702x`, `ar=1.103x`, `hi=1.047x`, `0.0%` fallback, `100%` lossless) |
+| **`P2-04`** | **Build & Publish Decontaminated `L+1` Pretraining Shards to HF Hub** | `XRFM_IMPLEMENTATION_ROADMAP.md` §Phase 2.5 | `scripts/build_and_publish_native_shards.py`, `docs/experiments/native_shards_manifest_v1.json`, `src/xrfm/data/tokenized_dataset.py` | **DONE** | Published `xrfm-ds-1dcd55b6f903a728` (`20,080,975` tokens, `9,577` `2049`-len `uint16` seqs across 8 shards + per-lang validation sets) to `ahmadrrrtx/xrfm-native-shards-v1` (`commit=1652affc...`) |
+| **`P2-05`** | **Phase 2 Quality, Security & Pytest Gate (`GATE-2` Sign-Off & Push)** | All Phase 2 items | `docs/program/03_EXECUTION_LEDGER.md`, `docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md` | **DONE** | `ruff`, `ruff format`, `black`, `mypy` (112 files, 0 issues), `bandit`, and **579/579 pytest tests** (`483` core + `96` neurotopo) all pass (`docs/program/evidence/phase2_dual_track/`) |
+
+---
+
 ## Chronological Change Log
 
 | Timestamp (UTC+5) | Work Unit | Action & Outcome | Evidence |
@@ -78,3 +91,6 @@
 | `2026-11-17` | `GIT-PUSH` | Stored GitHub PAT securely in `/home/user/.git-credentials` (`0600`, excluded from workspace & git), committed `GATE-0` as `ahmadrrrtx`, and pushed `666fea2` to `origin/main`. Claimed `P1-01` to begin Phase 1 (`GATE-1`). | `origin/main` commit `666fea2` |
 | `2026-11-17` | `P1-01..05` | Wrote 14-probe `tests/test_phase1_governance_lid.py`; enforced SPDX `tier_a`/`tier_b`/`rag_only`/`eval_only`/`hold` in `sources.py` & `configs/data/sources.yaml`; upgraded `language.py` to 8-class LID (`en, ur, ur-Latn, ar, hi, es, fr, code`) achieving `1.000` macro-F1 on benchmark; replaced $O(N^2)$ near-dedup with `MinHashLSHIndex` (`16 x 8` banded LSH); added `streaming.py`, `tokenizer_fingerprint()` in `TokenizerInfo`, `include_next_token=True` (`L+1` zero boundary loss) in `packing_extended.py`/`tokenized_dataset.py`, `PipelineConfig.from_yaml()` in `pipeline.py`/`cli.py`, and frozen eval contamination suite (`configs/eval/frozen_benchmarks_v1.json`, `multicodersec_seed_v1.jsonl`). | `src/xrfm/data/*`, `configs/data/*`, `configs/eval/*` |
 | `2026-11-17` | `P1-06` | Ran full repository quality, security, smoke, and pytest gates: `ruff`, `ruff format`, `black`, `mypy` (110 files, 0 issues), `bandit`, `ci_smoke_test.py`, and **574/574 pytest tests** (`478` core + `96` neurotopo) passed! Synchronized `docs/program/03_EXECUTION_LEDGER.md` and closed **`GATE-1 = PASS`**. | `docs/program/evidence/phase1_dual_track/` |
+| `2026-11-17` | `GIT-PUSH` | Committed and pushed `GATE-1` (`e2adc8f`) to `origin/main` as `ahmadrrrtx`; verified `HF_TOKEN` (`ahmadrrrtx`, write) and `KAGGLE_API_TOKEN` (`200 OK`) in isolated `/tmp` `0600` runtime store outside workspace; claimed `P2-01` to begin Phase 2 (`GATE-2`). | `origin/main` commit `e2adc8f` |
+| `2026-11-17` | `P2-01..03` | Refactored `BytePairEncoder` (`F-01` word-freq aggregation, `F-02` atomic special-token parsing), added `HFTokenizerAdapter` & `tournament.py`, streamed `15,455` decontaminated docs across 8 domains (`24 MB`), and ran the 4-way tournament (`T1..T4`). `T4` (`32,768` Script-Protected Byte-BPE) won cleanly (`ur=0.702x, ar=1.103x, hi=1.047x`, `0.0%` fallback, `100%` lossless), beating `T1/T2` (`hi > 2.15x`). | `docs/experiments/tokenizer_tournament_v1.json`, `src/xrfm/tokenization/tokenizer_32k_multilingual.json` |
+| `2026-11-17` | `P2-04..05` | Built low-memory `HfFileSystem` + `PyArrow` streaming shard pipeline (`build_and_publish_native_shards.py`), generated `20,080,975` decontaminated tokens (`9,577` `2049`-len `uint16` causal rows across 8 shards + 8 per-language validation sets), published to `ahmadrrrtx/xrfm-native-shards-v1` (`commit=1652affc...`), and passed `ruff`, `black`, `mypy` (112 files), `bandit`, and **579/579 pytest tests**. Closed **`GATE-2 = PASS`**. | `docs/experiments/native_shards_manifest_v1.json`, `docs/program/evidence/phase2_dual_track/` |

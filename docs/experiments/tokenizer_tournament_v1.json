@@ -1,0 +1,527 @@
+{
+  "experiment": "xrfm_phase2_tokenizer_tournament_v1",
+  "timestamp_utc": "2026-11-17T19:34:31Z",
+  "corpus_stream_seconds": 36.57,
+  "corpus_total_documents": 15455,
+  "corpus_total_utf8_bytes": 25179114,
+  "stream_sources": {
+    "en": {
+      "repo": "HuggingFaceFW/fineweb-edu",
+      "license": "ODC-By-1.0",
+      "target_bytes": 7046430,
+      "collected_bytes": 7047888,
+      "collected_docs": 2205,
+      "contaminated_dropped": 0
+    },
+    "code": {
+      "repo": "OpenCoder-LLM/opc-sft-stage2",
+      "license": "CC-BY-4.0",
+      "target_bytes": 6039797,
+      "collected_bytes": 6040074,
+      "collected_docs": 9703,
+      "contaminated_dropped": 0
+    },
+    "ur": {
+      "repo": "HuggingFaceFW/fineweb-2",
+      "license": "ODC-By-1.0",
+      "target_bytes": 2768240,
+      "collected_bytes": 2769307,
+      "collected_docs": 688,
+      "contaminated_dropped": 0
+    },
+    "ur-Latn": {
+      "repo": "ai4bharat/sangraha",
+      "license": "CC-BY-4.0",
+      "target_bytes": 1761607,
+      "collected_bytes": 1766537,
+      "collected_docs": 720,
+      "contaminated_dropped": 0
+    },
+    "ar": {
+      "repo": "HuggingFaceFW/fineweb-2",
+      "license": "ODC-By-1.0",
+      "target_bytes": 2516582,
+      "collected_bytes": 2520965,
+      "collected_docs": 580,
+      "contaminated_dropped": 0
+    },
+    "hi": {
+      "repo": "HuggingFaceFW/fineweb-2",
+      "license": "ODC-By-1.0",
+      "target_bytes": 2516582,
+      "collected_bytes": 2517129,
+      "collected_docs": 539,
+      "contaminated_dropped": 0
+    },
+    "es": {
+      "repo": "HuggingFaceFW/fineweb-2",
+      "license": "ODC-By-1.0",
+      "target_bytes": 1258291,
+      "collected_bytes": 1258381,
+      "collected_docs": 502,
+      "contaminated_dropped": 0
+    },
+    "fr": {
+      "repo": "HuggingFaceFW/fineweb-2",
+      "license": "ODC-By-1.0",
+      "target_bytes": 1258291,
+      "collected_bytes": 1258833,
+      "collected_docs": 518,
+      "contaminated_dropped": 0
+    }
+  },
+  "legacy_control": {
+    "candidate_id": "legacy_2k_control",
+    "vocab_size": 2048,
+    "fingerprint": "sha256:d5ae973533fb20c0e43eb7e65005889751c530ff591db7e33794cafcdaaba778",
+    "roundtrip_exact_rate": 1.0,
+    "mean_natural_fertility": 7.8968,
+    "max_non_latin_parity_ratio": 4.5579,
+    "max_latin_parity_ratio": 1.1272,
+    "max_byte_fallback_rate": 0.946256,
+    "gate2_pass": false,
+    "per_language": {
+      "en": {
+        "words": 55,
+        "utf8_bytes": 532,
+        "tokens": 214,
+        "fertility_tok_per_word": 3.8909,
+        "bytes_per_token": 2.486,
+        "byte_fallback_rate": 0.0,
+        "fertility_ratio_vs_en": 1.0
+      },
+      "ur": {
+        "words": 89,
+        "utf8_bytes": 794,
+        "tokens": 794,
+        "fertility_tok_per_word": 8.9213,
+        "bytes_per_token": 1.0,
+        "byte_fallback_rate": 0.891688,
+        "fertility_ratio_vs_en": 2.2929
+      },
+      "ur-Latn": {
+        "words": 72,
+        "utf8_bytes": 447,
+        "tokens": 216,
+        "fertility_tok_per_word": 3.0,
+        "bytes_per_token": 2.0694,
+        "byte_fallback_rate": 0.0,
+        "fertility_ratio_vs_en": 0.771
+      },
+      "ar": {
+        "words": 58,
+        "utf8_bytes": 762,
+        "tokens": 762,
+        "fertility_tok_per_word": 13.1379,
+        "bytes_per_token": 1.0,
+        "byte_fallback_rate": 0.923885,
+        "fertility_ratio_vs_en": 3.3766
+      },
+      "hi": {
+        "words": 64,
+        "utf8_bytes": 1135,
+        "tokens": 1135,
+        "fertility_tok_per_word": 17.7344,
+        "bytes_per_token": 1.0,
+        "byte_fallback_rate": 0.946256,
+        "fertility_ratio_vs_en": 4.5579
+      },
+      "es": {
+        "words": 57,
+        "utf8_bytes": 484,
+        "tokens": 250,
+        "fertility_tok_per_word": 4.386,
+        "bytes_per_token": 1.936,
+        "byte_fallback_rate": 0.056,
+        "fertility_ratio_vs_en": 1.1272
+      },
+      "fr": {
+        "words": 58,
+        "utf8_bytes": 488,
+        "tokens": 244,
+        "fertility_tok_per_word": 4.2069,
+        "bytes_per_token": 2.0,
+        "byte_fallback_rate": 0.155738,
+        "fertility_ratio_vs_en": 1.0812
+      },
+      "code": {
+        "words": 64,
+        "utf8_bytes": 609,
+        "tokens": 370,
+        "fertility_tok_per_word": 5.7812,
+        "bytes_per_token": 1.6459,
+        "byte_fallback_rate": 0.0,
+        "fertility_ratio_vs_en": 1.4858
+      }
+    }
+  },
+  "candidates": [
+    {
+      "candidate_id": "T1",
+      "vocab_size": 32768,
+      "fingerprint": "sha256:b0bbb3cc4afd6892e10f7603af26b93940a7072ca7a20e7a6db165af4536e1a2",
+      "roundtrip_exact_rate": 1.0,
+      "mean_natural_fertility": 2.236,
+      "max_non_latin_parity_ratio": 2.236,
+      "max_latin_parity_ratio": 0.9564,
+      "max_byte_fallback_rate": 0.0,
+      "gate2_pass": false,
+      "per_language": {
+        "en": {
+          "words": 55,
+          "utf8_bytes": 532,
+          "tokens": 113,
+          "fertility_tok_per_word": 2.0545,
+          "bytes_per_token": 4.708,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.0
+        },
+        "ur": {
+          "words": 89,
+          "utf8_bytes": 794,
+          "tokens": 123,
+          "fertility_tok_per_word": 1.382,
+          "bytes_per_token": 6.4553,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.6727
+        },
+        "ur-Latn": {
+          "words": 72,
+          "utf8_bytes": 447,
+          "tokens": 123,
+          "fertility_tok_per_word": 1.7083,
+          "bytes_per_token": 3.6341,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.8315
+        },
+        "ar": {
+          "words": 58,
+          "utf8_bytes": 762,
+          "tokens": 126,
+          "fertility_tok_per_word": 2.1724,
+          "bytes_per_token": 6.0476,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.0574
+        },
+        "hi": {
+          "words": 64,
+          "utf8_bytes": 1135,
+          "tokens": 294,
+          "fertility_tok_per_word": 4.5938,
+          "bytes_per_token": 3.8605,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 2.236
+        },
+        "es": {
+          "words": 57,
+          "utf8_bytes": 484,
+          "tokens": 112,
+          "fertility_tok_per_word": 1.9649,
+          "bytes_per_token": 4.3214,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.9564
+        },
+        "fr": {
+          "words": 58,
+          "utf8_bytes": 488,
+          "tokens": 103,
+          "fertility_tok_per_word": 1.7759,
+          "bytes_per_token": 4.7379,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.8644
+        },
+        "code": {
+          "words": 64,
+          "utf8_bytes": 609,
+          "tokens": 263,
+          "fertility_tok_per_word": 4.1094,
+          "bytes_per_token": 2.3156,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 2.0002
+        }
+      },
+      "description": "32K Standard Byte-Level BPE",
+      "algorithm": "byte_bpe",
+      "script_protected": false,
+      "train_seconds": 6.143
+    },
+    {
+      "candidate_id": "T2",
+      "vocab_size": 32768,
+      "fingerprint": "sha256:6dc298f895850db31b66c0bc89aae020bd3d24f536a419990c7dcc69a6abc5ae",
+      "roundtrip_exact_rate": 1.0,
+      "mean_natural_fertility": 2.3851,
+      "max_non_latin_parity_ratio": 2.1519,
+      "max_latin_parity_ratio": 0.9806,
+      "max_byte_fallback_rate": 0.015385,
+      "gate2_pass": false,
+      "per_language": {
+        "en": {
+          "words": 55,
+          "utf8_bytes": 532,
+          "tokens": 123,
+          "fertility_tok_per_word": 2.2364,
+          "bytes_per_token": 4.3252,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.0
+        },
+        "ur": {
+          "words": 89,
+          "utf8_bytes": 794,
+          "tokens": 134,
+          "fertility_tok_per_word": 1.5056,
+          "bytes_per_token": 5.9254,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.6732
+        },
+        "ur-Latn": {
+          "words": 72,
+          "utf8_bytes": 447,
+          "tokens": 139,
+          "fertility_tok_per_word": 1.9306,
+          "bytes_per_token": 3.2158,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.8633
+        },
+        "ar": {
+          "words": 58,
+          "utf8_bytes": 762,
+          "tokens": 130,
+          "fertility_tok_per_word": 2.2414,
+          "bytes_per_token": 5.8615,
+          "byte_fallback_rate": 0.015385,
+          "fertility_ratio_vs_en": 1.0022
+        },
+        "hi": {
+          "words": 64,
+          "utf8_bytes": 1135,
+          "tokens": 308,
+          "fertility_tok_per_word": 4.8125,
+          "bytes_per_token": 3.6851,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 2.1519
+        },
+        "es": {
+          "words": 57,
+          "utf8_bytes": 484,
+          "tokens": 125,
+          "fertility_tok_per_word": 2.193,
+          "bytes_per_token": 3.872,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.9806
+        },
+        "fr": {
+          "words": 58,
+          "utf8_bytes": 488,
+          "tokens": 103,
+          "fertility_tok_per_word": 1.7759,
+          "bytes_per_token": 4.7379,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.7941
+        },
+        "code": {
+          "words": 64,
+          "utf8_bytes": 609,
+          "tokens": 273,
+          "fertility_tok_per_word": 4.2656,
+          "bytes_per_token": 2.2308,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.9074
+        }
+      },
+      "description": "32K Byte-Fallback Unigram",
+      "algorithm": "unigram",
+      "script_protected": false,
+      "train_seconds": 34.525
+    },
+    {
+      "candidate_id": "T3",
+      "vocab_size": 49152,
+      "fingerprint": "sha256:5b98a9dd6138c61ac5d0f268c27adb09b0ed57a1090bcf1a01539628c97696fb",
+      "roundtrip_exact_rate": 1.0,
+      "mean_natural_fertility": 1.7624,
+      "max_non_latin_parity_ratio": 1.1379,
+      "max_latin_parity_ratio": 1.0518,
+      "max_byte_fallback_rate": 0.0,
+      "gate2_pass": true,
+      "per_language": {
+        "en": {
+          "words": 55,
+          "utf8_bytes": 532,
+          "tokens": 100,
+          "fertility_tok_per_word": 1.8182,
+          "bytes_per_token": 5.32,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.0
+        },
+        "ur": {
+          "words": 89,
+          "utf8_bytes": 794,
+          "tokens": 117,
+          "fertility_tok_per_word": 1.3146,
+          "bytes_per_token": 6.7863,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.723
+        },
+        "ur-Latn": {
+          "words": 72,
+          "utf8_bytes": 447,
+          "tokens": 122,
+          "fertility_tok_per_word": 1.6944,
+          "bytes_per_token": 3.6639,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.9319
+        },
+        "ar": {
+          "words": 58,
+          "utf8_bytes": 762,
+          "tokens": 120,
+          "fertility_tok_per_word": 2.069,
+          "bytes_per_token": 6.35,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.1379
+        },
+        "hi": {
+          "words": 64,
+          "utf8_bytes": 1135,
+          "tokens": 121,
+          "fertility_tok_per_word": 1.8906,
+          "bytes_per_token": 9.3802,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.0398
+        },
+        "es": {
+          "words": 57,
+          "utf8_bytes": 484,
+          "tokens": 109,
+          "fertility_tok_per_word": 1.9123,
+          "bytes_per_token": 4.4404,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.0518
+        },
+        "fr": {
+          "words": 58,
+          "utf8_bytes": 488,
+          "tokens": 95,
+          "fertility_tok_per_word": 1.6379,
+          "bytes_per_token": 5.1368,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.9008
+        },
+        "code": {
+          "words": 64,
+          "utf8_bytes": 609,
+          "tokens": 248,
+          "fertility_tok_per_word": 3.875,
+          "bytes_per_token": 2.4556,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 2.1312
+        }
+      },
+      "description": "48K Script-Protected Byte-Level BPE",
+      "algorithm": "byte_bpe",
+      "script_protected": true,
+      "train_seconds": 6.526
+    },
+    {
+      "candidate_id": "T4",
+      "vocab_size": 32768,
+      "fingerprint": "sha256:fd958e8cb7b49fc7f4201f5be821d95cdd94406f1610a80326e7cc4f7c1b0238",
+      "roundtrip_exact_rate": 1.0,
+      "mean_natural_fertility": 1.9059,
+      "max_non_latin_parity_ratio": 1.1035,
+      "max_latin_parity_ratio": 1.0088,
+      "max_byte_fallback_rate": 0.0,
+      "gate2_pass": true,
+      "per_language": {
+        "en": {
+          "words": 55,
+          "utf8_bytes": 532,
+          "tokens": 110,
+          "fertility_tok_per_word": 2.0,
+          "bytes_per_token": 4.8364,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.0
+        },
+        "ur": {
+          "words": 89,
+          "utf8_bytes": 794,
+          "tokens": 125,
+          "fertility_tok_per_word": 1.4045,
+          "bytes_per_token": 6.352,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.7023
+        },
+        "ur-Latn": {
+          "words": 72,
+          "utf8_bytes": 447,
+          "tokens": 124,
+          "fertility_tok_per_word": 1.7222,
+          "bytes_per_token": 3.6048,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.8611
+        },
+        "ar": {
+          "words": 58,
+          "utf8_bytes": 762,
+          "tokens": 128,
+          "fertility_tok_per_word": 2.2069,
+          "bytes_per_token": 5.9531,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.1035
+        },
+        "hi": {
+          "words": 64,
+          "utf8_bytes": 1135,
+          "tokens": 134,
+          "fertility_tok_per_word": 2.0938,
+          "bytes_per_token": 8.4701,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.0469
+        },
+        "es": {
+          "words": 57,
+          "utf8_bytes": 484,
+          "tokens": 115,
+          "fertility_tok_per_word": 2.0175,
+          "bytes_per_token": 4.2087,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 1.0088
+        },
+        "fr": {
+          "words": 58,
+          "utf8_bytes": 488,
+          "tokens": 110,
+          "fertility_tok_per_word": 1.8966,
+          "bytes_per_token": 4.4364,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 0.9483
+        },
+        "code": {
+          "words": 64,
+          "utf8_bytes": 609,
+          "tokens": 262,
+          "fertility_tok_per_word": 4.0938,
+          "bytes_per_token": 2.3244,
+          "byte_fallback_rate": 0.0,
+          "fertility_ratio_vs_en": 2.0469
+        }
+      },
+      "description": "32K Script-Protected Byte-Level BPE (Grapheme + Digit + Indent)",
+      "algorithm": "byte_bpe",
+      "script_protected": true,
+      "train_seconds": 6.615
+    }
+  ],
+  "winner": {
+    "candidate_id": "T4",
+    "artifact_path": "src/xrfm/tokenization/tokenizer_32k_multilingual.json",
+    "vocab_size": 32768,
+    "fingerprint": "sha256:fd958e8cb7b49fc7f4201f5be821d95cdd94406f1610a80326e7cc4f7c1b0238",
+    "mean_natural_fertility": 1.9059,
+    "max_non_latin_parity_ratio": 1.1035,
+    "max_latin_parity_ratio": 1.0088,
+    "max_byte_fallback_rate": 0.0,
+    "selection_rationale": "T4 (32K Script-Protected Byte-Level BPE (Grapheme + Digit + Indent)) satisfies all GATE-2 bounds at 32,768 vocab while preserving Devanagari/Perso-Arabic combining marks, single-digit splits, and code indentation, saving ~10.5M embedding/LM-head parameters on xrfm-native-85m vs 49,152 vocab (T3)."
+  }
+}

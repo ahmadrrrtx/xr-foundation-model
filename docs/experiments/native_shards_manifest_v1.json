@@ -1,0 +1,214 @@
+{
+  "dataset_id": "xrfm-ds-1dcd55b6f903a728",
+  "hf_repo_id": "ahmadrrrtx/xrfm-native-shards-v1",
+  "hf_commit": "1652affcb1e95455a6af27b72ab424116bb9884f",
+  "tokenizer_fingerprint": "bd75e544fe833380",
+  "vocab_size": 32768,
+  "sequence_length": 2048,
+  "stored_row_length": 2049,
+  "num_shards": 8,
+  "total_sequences": 9577,
+  "tokens_total": 20080975,
+  "tokens_train": 19613696,
+  "tokens_val": 467279,
+  "contaminated_removed": 0,
+  "elapsed_seconds": 449.96,
+  "per_language": {
+    "en": {
+      "source": "fineweb_edu",
+      "train_docs": 8117,
+      "train_tokens": 7099278,
+      "packed_sequences_2048": 3466,
+      "val_docs": 80,
+      "contaminated_removed": 0
+    },
+    "code": {
+      "source": "opencoder_stage2_permissive",
+      "train_docs": 5536,
+      "train_tokens": 314215,
+      "packed_sequences_2048": 153,
+      "val_docs": 80,
+      "contaminated_removed": 0
+    },
+    "ur": {
+      "source": "fineweb2_multilingual",
+      "train_docs": 3946,
+      "train_tokens": 2820478,
+      "packed_sequences_2048": 1377,
+      "val_docs": 80,
+      "contaminated_removed": 0
+    },
+    "ur-Latn": {
+      "source": "sangraha_verified_indic",
+      "train_docs": 2403,
+      "train_tokens": 1784341,
+      "packed_sequences_2048": 871,
+      "val_docs": 80,
+      "contaminated_removed": 0
+    },
+    "ar": {
+      "source": "fineweb2_multilingual",
+      "train_docs": 2014,
+      "train_tokens": 2532502,
+      "packed_sequences_2048": 1236,
+      "val_docs": 77,
+      "contaminated_removed": 0
+    },
+    "hi": {
+      "source": "fineweb2_multilingual",
+      "train_docs": 3374,
+      "train_tokens": 2517881,
+      "packed_sequences_2048": 1229,
+      "val_docs": 80,
+      "contaminated_removed": 0
+    },
+    "es": {
+      "source": "fineweb2_multilingual",
+      "train_docs": 1642,
+      "train_tokens": 1261516,
+      "packed_sequences_2048": 615,
+      "val_docs": 80,
+      "contaminated_removed": 0
+    },
+    "fr": {
+      "source": "fineweb2_multilingual",
+      "train_docs": 1836,
+      "train_tokens": 1291131,
+      "packed_sequences_2048": 630,
+      "val_docs": 66,
+      "contaminated_removed": 0
+    }
+  },
+  "val_by_language": {
+    "en": {
+      "docs": 80,
+      "utf8_bytes": 313404,
+      "tokens": 74459,
+      "packed_sequences_512": 145,
+      "jsonl": "val_by_language/val_en.jsonl",
+      "npy": "val_by_language/val_en_seq513.npy"
+    },
+    "code": {
+      "docs": 80,
+      "utf8_bytes": 16140,
+      "tokens": 4348,
+      "packed_sequences_512": 8,
+      "jsonl": "val_by_language/val_code.jsonl",
+      "npy": "val_by_language/val_code_seq513.npy"
+    },
+    "ur": {
+      "docs": 80,
+      "utf8_bytes": 339508,
+      "tokens": 58868,
+      "packed_sequences_512": 114,
+      "jsonl": "val_by_language/val_ur.jsonl",
+      "npy": "val_by_language/val_ur_seq513.npy"
+    },
+    "ur-Latn": {
+      "docs": 80,
+      "utf8_bytes": 210295,
+      "tokens": 52464,
+      "packed_sequences_512": 102,
+      "jsonl": "val_by_language/val_ur-Latn.jsonl",
+      "npy": "val_by_language/val_ur-Latn_seq513.npy"
+    },
+    "ar": {
+      "docs": 77,
+      "utf8_bytes": 565815,
+      "tokens": 103334,
+      "packed_sequences_512": 201,
+      "jsonl": "val_by_language/val_ar.jsonl",
+      "npy": "val_by_language/val_ar_seq513.npy"
+    },
+    "hi": {
+      "docs": 80,
+      "utf8_bytes": 440550,
+      "tokens": 56309,
+      "packed_sequences_512": 109,
+      "jsonl": "val_by_language/val_hi.jsonl",
+      "npy": "val_by_language/val_hi_seq513.npy"
+    },
+    "es": {
+      "docs": 80,
+      "utf8_bytes": 215032,
+      "tokens": 58404,
+      "packed_sequences_512": 114,
+      "jsonl": "val_by_language/val_es.jsonl",
+      "npy": "val_by_language/val_es_seq513.npy"
+    },
+    "fr": {
+      "docs": 66,
+      "utf8_bytes": 214752,
+      "tokens": 59093,
+      "packed_sequences_512": 115,
+      "jsonl": "val_by_language/val_fr.jsonl",
+      "npy": "val_by_language/val_fr_seq513.npy"
+    }
+  },
+  "shards": [
+    {
+      "shard_id": 0,
+      "path": "tokens/train_shard-00000-of-00008.npy",
+      "num_sequences": 1198,
+      "num_tokens": 2453504,
+      "sha256": "688b285ed49dd492645e812f4e4353caa91ff761d0a1834d358c07672a90b781",
+      "dtype": "uint16"
+    },
+    {
+      "shard_id": 1,
+      "path": "tokens/train_shard-00001-of-00008.npy",
+      "num_sequences": 1197,
+      "num_tokens": 2451456,
+      "sha256": "ba7e2a4cada28a24cdbd1eadaac70b29877e2897c16d8d2a509c50476892ec9e",
+      "dtype": "uint16"
+    },
+    {
+      "shard_id": 2,
+      "path": "tokens/train_shard-00002-of-00008.npy",
+      "num_sequences": 1197,
+      "num_tokens": 2451456,
+      "sha256": "de0041946a5b9c7c7f0e616f464dd7d4e0b307e8c1f26bdc720d159a65ba570d",
+      "dtype": "uint16"
+    },
+    {
+      "shard_id": 3,
+      "path": "tokens/train_shard-00003-of-00008.npy",
+      "num_sequences": 1197,
+      "num_tokens": 2451456,
+      "sha256": "d5430be8edb85ebef3c1a02ec51456321ac756bb1ede8179f61a04ecd5a4d457",
+      "dtype": "uint16"
+    },
+    {
+      "shard_id": 4,
+      "path": "tokens/train_shard-00004-of-00008.npy",
+      "num_sequences": 1197,
+      "num_tokens": 2451456,
+      "sha256": "5529edfc5fef1b9751cdc85dd87945f3f88e336396cf9ca3f442c6c2ddbf1338",
+      "dtype": "uint16"
+    },
+    {
+      "shard_id": 5,
+      "path": "tokens/train_shard-00005-of-00008.npy",
+      "num_sequences": 1197,
+      "num_tokens": 2451456,
+      "sha256": "e2a716f2b5b12f2160bc43fab4b744dcd897e3ca370a4c109b27d58bf3b30876",
+      "dtype": "uint16"
+    },
+    {
+      "shard_id": 6,
+      "path": "tokens/train_shard-00006-of-00008.npy",
+      "num_sequences": 1197,
+      "num_tokens": 2451456,
+      "sha256": "9dc0de217025274b1a8267909244d1c0ac245b55e2f2dde9efc011af8bd3a060",
+      "dtype": "uint16"
+    },
+    {
+      "shard_id": 7,
+      "path": "tokens/train_shard-00007-of-00008.npy",
+      "num_sequences": 1197,
+      "num_tokens": 2451456,
+      "sha256": "b4b70fedc8ae8076c4225721a265b4791e12e02f0a1d24951f0db086f4b4cfb4",
+      "dtype": "uint16"
+    }
+  ]
+}

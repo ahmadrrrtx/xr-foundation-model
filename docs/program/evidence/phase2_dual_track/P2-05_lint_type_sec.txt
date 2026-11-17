@@ -1,0 +1,5 @@
+178 files already formatted
+All checks passed!
+All done! ✨ 🍰 ✨
+145 files would be left unchanged.
+Success: no issues found in 112 source files

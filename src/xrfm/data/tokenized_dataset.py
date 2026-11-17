@@ -12,6 +12,7 @@ Supports:
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
 from typing import cast
 
@@ -63,6 +64,7 @@ class ShardedTokenDatasetMap(Dataset):
             raise ValueError("Must provide manifest_path or shard_infos")
 
         self.shard_infos = shard_infos
+        self._manifest_dir = os.path.dirname(os.path.abspath(manifest_path)) if manifest_path else None
         self.rank = rank
         self.world_size = world_size
         self.ignore_index = ignore_index
@@ -88,10 +90,15 @@ class ShardedTokenDatasetMap(Dataset):
         if shard_idx in self._shard_arrays:
             return self._shard_arrays[shard_idx]
         info = self.assigned_shards[shard_idx]
+        shard_file = info.path
+        if self._manifest_dir and not os.path.isabs(shard_file) and not os.path.isfile(shard_file):
+            rel_candidate = os.path.join(self._manifest_dir, shard_file)
+            if os.path.isfile(rel_candidate):
+                shard_file = rel_candidate
         if self.mmap:
-            arr = cast(np.ndarray, np.load(info.path, mmap_mode="r"))
+            arr = cast(np.ndarray, np.load(shard_file, mmap_mode="r"))
         else:
-            arr = cast(np.ndarray, np.load(info.path))
+            arr = cast(np.ndarray, np.load(shard_file))
         self._shard_arrays[shard_idx] = arr
         return arr
 
@@ -169,6 +176,7 @@ class ShardedTokenDatasetIterable(IterableDataset):
             raise ValueError("Must provide manifest_path or shard_infos")
 
         self.shard_infos = shard_infos
+        self._manifest_dir = os.path.dirname(os.path.abspath(manifest_path)) if manifest_path else None
         self.rank = rank
         self.world_size = world_size
         self.ignore_index = ignore_index
@@ -225,7 +233,12 @@ class ShardedTokenDatasetIterable(IterableDataset):
         def load_shard(shard_idx: int) -> np.ndarray:
             if shard_idx not in loaded:
                 info = self.assigned_shards[shard_idx]
-                loaded[shard_idx] = np.load(info.path)
+                shard_file = info.path
+                if self._manifest_dir and not os.path.isabs(shard_file) and not os.path.isfile(shard_file):
+                    rel_candidate = os.path.join(self._manifest_dir, shard_file)
+                    if os.path.isfile(rel_candidate):
+                        shard_file = rel_candidate
+                loaded[shard_idx] = np.load(shard_file)
             return loaded[shard_idx]
 
         for global_idx in global_indices_for_worker:

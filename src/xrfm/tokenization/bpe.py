@@ -217,12 +217,16 @@ class BytePairEncoder(TokenizerInterface):
                 "need at least 100 characters for meaningful BPE vocabulary."
             )
 
-        # Words tile the text exactly; each word is a byte-token list.
-        word_splits: list[list[str]] = []
+        # Words tile the text exactly; aggregate unique word frequencies first (`F-01`)
+        # so repeated words across large corpora are only merged once per unique word type!
+        word_freq: Counter[tuple[str, ...]] = Counter()
         for word in self._split_words(raw_text):
-            word_splits.append(self._text_to_byte_tokens(word))
-        word_splits = [w for w in word_splits if w]
-        if not word_splits:
+            if word in self.special_tokens:
+                continue
+            bt = tuple(self._text_to_byte_tokens(word))
+            if bt:
+                word_freq[bt] += 1
+        if not word_freq:
             raise ValueError("Text preprocessing produced no words for training.")
 
         # Special tokens are reserved at the top of the target vocabulary but
@@ -234,10 +238,10 @@ class BytePairEncoder(TokenizerInterface):
         current_vocab_size = len(self.vocab)
 
         while current_vocab_size < merge_limit:
-            pair_counts: Counter = Counter()
-            for split in word_splits:
-                for i in range(len(split) - 1):
-                    pair_counts[(split[i], split[i + 1])] += 1
+            pair_counts: Counter[tuple[str, str]] = Counter()
+            for split_tuple, freq in word_freq.items():
+                for i in range(len(split_tuple) - 1):
+                    pair_counts[(split_tuple[i], split_tuple[i + 1])] += freq
 
             if not pair_counts:
                 break
@@ -247,25 +251,27 @@ class BytePairEncoder(TokenizerInterface):
                 break
 
             merged_str = best_pair[0] + best_pair[1]
+            p0, p1 = best_pair
 
-            # Apply the merge to every word (always — even if the merged
-            # string already exists, so training and encoding stay aligned).
-            new_word_splits = []
-            for split in word_splits:
-                new_split = []
+            new_word_freq: Counter[tuple[str, ...]] = Counter()
+            for split_tuple, freq in word_freq.items():
+                # Fast skip when p0 not in word
+                if p0 not in split_tuple:
+                    new_word_freq[split_tuple] += freq
+                    continue
+                new_split: list[str] = []
                 i = 0
-                while i < len(split):
-                    if i < len(split) - 1 and split[i] == best_pair[0] and split[i + 1] == best_pair[1]:
+                n = len(split_tuple)
+                while i < n:
+                    if i < n - 1 and split_tuple[i] == p0 and split_tuple[i + 1] == p1:
                         new_split.append(merged_str)
                         i += 2
                     else:
-                        new_split.append(split[i])
+                        new_split.append(split_tuple[i])
                         i += 1
-                new_word_splits.append(new_split)
-            word_splits = new_word_splits
+                new_word_freq[tuple(new_split)] += freq
+            word_freq = new_word_freq
 
-            # Record the merge rule and add the token (if not already present
-            # and not reserved for special tokens).
             if merged_str not in self.vocab:
                 new_id = self._find_next_available_id(reserved_ids)
                 self.vocab[merged_str] = new_id
@@ -290,36 +296,23 @@ class BytePairEncoder(TokenizerInterface):
             self._merge_ranks_cache = {pair: rank for rank, pair in enumerate(self.merges)}
         return self._merge_ranks_cache
 
-    # ------------------------------------------------------------------
-    # Encoding / decoding
-    # ------------------------------------------------------------------
+    def _get_special_regex(self) -> re.Pattern[str] | None:
+        if not self.special_tokens:
+            return None
+        key = tuple(sorted(self.special_tokens.keys(), key=len, reverse=True))
+        cached_key = getattr(self, "_special_regex_key", None)
+        if cached_key != key:
+            pattern = "(" + "|".join(re.escape(tok) for tok in key) + ")"
+            self._special_regex_cache = re.compile(pattern)
+            self._special_regex_key = key
+        return self._special_regex_cache
 
-    def encode(self, text: str, **kwargs) -> list[int]:
-        """Encode text into token ids using the learned byte-level BPE.
-
-        Guarantees:
-        - decode(encode(text)) == text for arbitrary Unicode input.
-        - Deterministic for a fixed vocabulary/merge set.
-
-        Args:
-            text: Input text string.
-            **kwargs: Reserved for extensions.
-
-        Returns:
-            List of integer token ids.
-
-        Raises:
-            TypeError: If input is not a string.
-        """
-        if not isinstance(text, str):
-            raise TypeError(f"encode() expects a string, got {type(text)}")
-
-        ranks = self._get_ranks()
-        token_ids: list[int] = []
-
-        for word in self._split_words(text):
+    def _encode_ordinary_span(self, span: str, ranks: dict[tuple[str, str], int]) -> list[int]:
+        if not span:
+            return []
+        ids: list[int] = []
+        for word in self._split_words(span):
             parts = self._text_to_byte_tokens(word)
-            # Repeatedly merge the lowest-rank adjacent pair (standard BPE).
             while len(parts) > 1:
                 best_idx: int | None = None
                 best_rank = float("inf")
@@ -334,8 +327,40 @@ class BytePairEncoder(TokenizerInterface):
                 parts = parts[:best_idx] + [merged] + parts[best_idx + 2 :]
 
             for tok in parts:
-                token_ids.append(self.vocab[tok])
+                ids.append(self.vocab[tok])
+        return ids
 
+    # ------------------------------------------------------------------
+    # Encoding / decoding
+    # ------------------------------------------------------------------
+
+    def encode(self, text: str, allow_special: bool = True, **kwargs) -> list[int]:
+        """Encode text into token ids using the learned byte-level BPE.
+
+        Guarantees:
+        - decode(encode(text)) == text for arbitrary Unicode input.
+        - Registered special tokens (e.g. ``<|eos|>``, ``<|im_start|>``) are
+          matched atomically (`F-02`) when ``allow_special=True``.
+        - Deterministic for a fixed vocabulary/merge set.
+        """
+        if not isinstance(text, str):
+            raise TypeError(f"encode() expects a string, got {type(text)}")
+        if not text:
+            return []
+
+        ranks = self._get_ranks()
+        spec_re = self._get_special_regex() if allow_special else None
+        if spec_re is None:
+            return self._encode_ordinary_span(text, ranks)
+
+        token_ids: list[int] = []
+        for segment in spec_re.split(text):
+            if not segment:
+                continue
+            if segment in self.special_tokens:
+                token_ids.append(self.special_tokens[segment])
+            else:
+                token_ids.extend(self._encode_ordinary_span(segment, ranks))
         return token_ids
 
     def decode(self, tokens: list[int], strict: bool = False, **kwargs) -> str:
@@ -348,28 +373,35 @@ class BytePairEncoder(TokenizerInterface):
 
         Returns:
             Reconstructed text (lossless for ids produced by encode()).
-
-        Raises:
-            TypeError: If input is not a list of integers.
-            ValueError: If strict and an id is not in the vocabulary.
         """
         if not isinstance(tokens, list):
             raise TypeError(f"decode() expects a list of integers, got {type(tokens)}")
 
         id_to_token: dict[int, str] = {v: k for k, v in self.vocab.items()}
-        byte_parts: list[bytes] = []
+        id_to_special: dict[int, str] = {v: k for k, v in self.special_tokens.items()}
+        out_chunks: list[str] = []
+        byte_buf: list[bytes] = []
+
+        def _flush_bytes() -> None:
+            if byte_buf:
+                out_chunks.append(b"".join(byte_buf).decode("utf-8", errors="replace"))
+                byte_buf.clear()
+
         for token_id in tokens:
-            if token_id in id_to_token:
-                byte_parts.append(id_to_token[token_id].encode("latin-1"))
+            if token_id in id_to_special:
+                _flush_bytes()
+                out_chunks.append(id_to_special[token_id])
+            elif token_id in id_to_token:
+                byte_buf.append(id_to_token[token_id].encode("latin-1"))
             else:
                 if strict:
                     raise ValueError(
                         f"Token ID {token_id} not found in vocabulary. Vocabulary size: {self.vocab_size()}."
                     )
-                # Non-strict: render unknown ids visibly but keep byte stream safe.
-                byte_parts.append(f"<{token_id}>".encode())
+                byte_buf.append(f"<{token_id}>".encode())
 
-        return b"".join(byte_parts).decode("utf-8", errors="replace")
+        _flush_bytes()
+        return "".join(out_chunks)
 
     def vocab_size(self) -> int:
         """Return the number of entries in the vocabulary (max id + 1)."""

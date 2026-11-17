@@ -62,9 +62,9 @@ sources:
     license_tier: tier_b
     allowed_uses: [train_track_a, train_track_b]
     version: v2.0.0
-    revision: d291829e6f847052f5b4a76177f62c0d3917f184
+    revision: af9c13333eb981300149d5ca60a8e9d659b276b9
     language: multi
-    languages: [ur, ar, hi, es, fr]
+    languages: [ur, ur-Latn, ar, hi, es, fr]
     enabled: true
     weight: 0.30
     format: hf
@@ -80,14 +80,32 @@ sources:
     license_tier: tier_b
     allowed_uses: [train_track_a, train_track_b]
     version: verified-v1
-    revision: 5e921b81974f13f1c7a7c64d8f2822f4d19f231a
+    revision: 8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8
     language: multi
     languages: [ur, ur-Latn, hi]
     enabled: true
     weight: 0.13
     format: hf
     text_field: text
-    attribution: "Sangraha Verified by AI4Bharat (CC-BY-4.0)"
+    attribution: "Sangraha by AI4Bharat (CC-BY-4.0)"
+
+  opencoder_stage2_permissive:
+    name: opencoder_stage2_permissive
+    type: code
+    uri: hf://OpenCoder-LLM/opc-sft-stage2
+    license: CC-BY-4.0
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    license_tier: tier_b
+    allowed_uses: [train_track_a, train_track_b]
+    version: v2.0
+    revision: 7d28f40d579edd7c24402d17d0c7639f991e6f8d
+    language: code
+    languages: [code]
+    enabled: true
+    weight: 0.12
+    format: hf
+    text_field: code
+    attribution: "OpenCoder opc-sft-stage2 by OpenCoder-LLM (CC-BY-4.0)"
 
   the_stack_v2_permissive:
     name: the_stack_v2_permissive
