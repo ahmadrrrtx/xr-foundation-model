@@ -95,6 +95,7 @@ class Trainer:
         )
         if self._device_override is not None:
             self.loop.device = torch.device(self._device_override)
+            self.loop.model = self.loop.model.to(self.loop.device)
 
     # ------------------------------------------------------------------
     # Public API

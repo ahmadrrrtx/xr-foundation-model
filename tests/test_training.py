@@ -184,7 +184,7 @@ class TestTrainingLoop:
         assert "learning_rate" in metrics
         assert metrics["step"] == 1
 
-    def test_training_loop_runs(self):
+    def test_training_loop_runs(self, tmp_path):
         from xrfm.models.gpt import GPTModel
 
         model = GPTModel()
@@ -193,6 +193,7 @@ class TestTrainingLoop:
             config_path="config/config.yaml",
             model=model,
             dataset=dataset,
+            checkpoint_dir=str(tmp_path),
         )
         result = loop.training_loop(max_steps=2, checkpoint_every=100, log_interval=100)
         assert result["final_step"] == 2

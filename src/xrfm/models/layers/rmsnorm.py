@@ -82,12 +82,12 @@ class RMSNorm(nn.Module):
                 the last dimension (`dim`).
 
         Returns:
-            Normalized tensor with same shape as input.
+            Normalized tensor with same shape and dtype as input.
         """
-        # Compute root mean square over the last dimension.
-        # `mean(x^2, dim=-1, keepdim=True)` computes the mean of squares.
-        # Adding `eps` prevents division by zero.
-        # `torch.sqrt(...)` computes the root mean square.
-        # The division `x / rms` normalizes the input.
-        # The learnable `weight` scales the output (learned during training).
-        return self.weight * x / torch.sqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
+        # Upcast mean-square reduction to float32 so FP16 activations on
+        # Pascal/Turing GPUs (e.g. |x| > 256 -> x^2 > 65504) never overflow
+        # to Inf/NaN, then cast back before multiplying by learnable weight.
+        orig_dtype = x.dtype
+        x_fp32 = x.float()
+        normed = x_fp32 * torch.rsqrt(x_fp32.pow(2).mean(-1, keepdim=True) + self.eps)
+        return self.weight * normed.to(orig_dtype)

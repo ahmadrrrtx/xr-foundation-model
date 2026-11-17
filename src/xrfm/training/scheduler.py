@@ -47,6 +47,7 @@ class SchedulerLoader:
         base_lr: float = 0.001,
         warmup_steps: int = 1000,
         max_steps: int = 50000,
+        min_lr_ratio: float = 0.0,
     ) -> None:
         """Initialize the scheduler loader.
 
@@ -55,6 +56,7 @@ class SchedulerLoader:
             base_lr: Base learning rate (`ConfigLoader` setting).
             warmup_steps: Linear warmup steps (`ConfigLoader` setting; default `1000`).
             max_steps: Maximum training steps (`ConfigLoader` setting; default `50000`).
+            min_lr_ratio: Cosine floor ratio in `[0, 1]` (`min_lr = base_lr * min_lr_ratio`).
 
         Raises:
             ValueError: If `warmup_steps` or `max_steps` is non-positive, or if
@@ -73,41 +75,28 @@ class SchedulerLoader:
             )
         if base_lr <= 0:
             raise ValueError(f"base_lr must be positive, got {base_lr}. Check ConfigLoader settings.")
+        if not (0.0 <= min_lr_ratio <= 1.0):
+            raise ValueError(f"min_lr_ratio must be in [0, 1], got {min_lr_ratio}.")
 
         self.optimizer = optimizer
         self.base_lr = base_lr
         self.warmup_steps = warmup_steps
         self.max_steps = max_steps
+        self.min_lr_ratio = float(min_lr_ratio)
         self.current_step = 0
 
     def get_lr(self, step: int | None = None) -> float:
-        """Compute the current learning rate (`cosine` + `warmup`).
-
-        Mathematical formulation:
-        - Warmup phase (`step <= warmup_steps`):
-          `lr = base_lr * step / warmup_steps`
-        - Cosine decay phase (`step > warmup_steps`):
-          `lr = base_lr * 0.5 * (1 + cos(pi * (step - warmup_steps) / (max_steps - warmup_steps)))`
-
-        Args:
-            step: Current training step (`ConfigLoader` provides `max_steps`);
-                if `None`, uses `self.current_step`.
-
-        Returns:
-            Learning rate (`float`).
-
-        Design notes:
-        - `cosine` decay ensures smooth `lr` reduction (`Kaplan 2020`; `Chinchilla`).
-        - `warmup` prevents early divergence by gradually increasing `lr` (`Meta AI 2024`).
-        - The formula is standard (`Llama 3`, `DeepSeek-V3`, `Qwen2.5` use similar schedules).
-        """
+        """Compute the current learning rate (`cosine` + `warmup` + floor clamp)."""
         step = step if step is not None else self.current_step
         if step < self.warmup_steps:
             # Linear warmup: `lr` increases linearly from `0` to `base_lr`.
             return self.base_lr * step / self.warmup_steps
-        # Cosine annealing: `lr` decays smoothly from `base_lr` to `0`.
-        progress = (step - self.warmup_steps) / (self.max_steps - self.warmup_steps)
-        return self.base_lr * 0.5 * (1.0 + math.cos(math.pi * progress))
+        # Cosine annealing clamped at `progress <= 1.0` so steps beyond `max_steps`
+        # stay at `min_lr` instead of rebounding upward!
+        progress = min(1.0, max(0.0, (step - self.warmup_steps) / (self.max_steps - self.warmup_steps)))
+        min_lr = self.base_lr * self.min_lr_ratio
+        cosine = 0.5 * (1.0 + math.cos(math.pi * progress))
+        return min_lr + (self.base_lr - min_lr) * cosine
 
     def step(self) -> None:
         """Update optimizer learning rate (`scheduler.step()` called after `optimizer.step()`).
@@ -128,12 +117,15 @@ class SchedulerLoader:
     # ------------------------------------------------------------------
     def state_dict(self) -> dict[str, Any]:
         """Return scheduler state for checkpointing."""
-        return {
+        state: dict[str, Any] = {
             "current_step": self.current_step,
             "base_lr": self.base_lr,
             "warmup_steps": self.warmup_steps,
             "max_steps": self.max_steps,
         }
+        if self.min_lr_ratio != 0.0:
+            state["min_lr_ratio"] = self.min_lr_ratio
+        return state
 
     def load_state_dict(self, state_dict: dict[str, Any]) -> None:
         """Restore scheduler state from a checkpoint."""
@@ -144,6 +136,8 @@ class SchedulerLoader:
             self.warmup_steps = int(state_dict["warmup_steps"])
         if "max_steps" in state_dict:
             self.max_steps = int(state_dict["max_steps"])
+        if "min_lr_ratio" in state_dict:
+            self.min_lr_ratio = float(state_dict["min_lr_ratio"])
         # Re-apply the restored schedule to the optimizer's param groups.
         lr = self.get_lr()
         for param_group in self.optimizer.param_groups:

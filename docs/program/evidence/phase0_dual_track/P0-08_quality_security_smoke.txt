@@ -1,0 +1,75 @@
+188 files already formatted
+All checks passed!
+All done! ✨ 🍰 ✨
+156 files would be left unchanged.
+src/xrfm/data/contamination.py:143: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+Success: no issues found in 91 source files
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.13.18
+Run started:2026-11-17 18:26:40.440495+00:00
+
+Test results:
+	No issues identified.
+
+Code scanned:
+	Total lines of code: 2033
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 1
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 3
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 3
+Files skipped (0):
+Dataset length (1) < batch_size (8) with drop_last=True; retrying with drop_last=False.
+CI TRAINING SMOKE: PASS (steps=60, loss 6.24 -> 2.197, ckpt=checkpoint_step_60.pt, resume step=60)
+LOCAL-ONLY DETERMINISTIC DEMO: no trained agent or Urdu-capability claim
+EVENTS
+{"phase": "request", "message": "Request accepted", "data": {}, "timestamp": 1794940006.6085932}
+{"phase": "context", "message": "Context assembled", "data": {"step": 1, "message_count": 1}, "timestamp": 1794940006.608601}
+{"phase": "decide", "message": "Decision produced", "data": {"decision": {"type": "tool_call", "rationale": "The request requires inspecting project files.", "tool_calls": [{"id": "f3c03a24561f", "name": "largest_file", "arguments": {"relative": "."}}], "answer": null, "verification_target": null}}, "timestamp": 1794940006.608747}
+{"phase": "authorize", "message": "Authorizing tool call", "data": {"tool": "largest_file", "call_id": "f3c03a24561f"}, "timestamp": 1794940006.6087587}
+{"phase": "execute", "message": "Executing tool call", "data": {"tool": "largest_file", "call_id": "f3c03a24561f"}, "timestamp": 1794940006.6087618}
+{"phase": "observe", "message": "Tool observation received", "data": {"tool": "largest_file", "ok": true, "denied": false}, "timestamp": 1794940009.2570734}
+{"phase": "verify", "message": "Observation available for verification", "data": {"observation_count": 1}, "timestamp": 1794940009.257125}
+{"phase": "context", "message": "Context assembled", "data": {"step": 2, "message_count": 3}, "timestamp": 1794940009.2571335}
+{"phase": "decide", "message": "Decision produced", "data": {"decision": {"type": "answer", "rationale": "The filesystem observation is sufficient to answer the request.", "tool_calls": [], "answer": "I inspected the project safely. The result was: {\"tool\": \"largest_file\", \"ok\": true, \"output\": {\"relative\": \"artifacts/legacy_unverified/checkpoint_step_500.pt\", \"bytes\": \"76805341\", \"suffix\": \".pt\"}}", "verification_target": null}}, "timestamp": 1794940009.2572508}
+{"phase": "verify", "message": "Final answer accepted", "data": {"answer_length": 200}, "timestamp": 1794940009.2572558}
+{"phase": "complete", "message": "Execution complete", "data": {}, "timestamp": 1794940009.257258}
+FINAL
+I inspected the project safely. The result was: {"tool": "largest_file", "ok": true, "output": {"relative": "artifacts/legacy_unverified/checkpoint_step_500.pt", "bytes": "76805341", "suffix": ".pt"}}
+AUDIT
+[
+  {
+    "event": "authorization",
+    "tool": "largest_file",
+    "details": {
+      "call_id": "f3c03a24561f",
+      "allowed": "True",
+      "reason": "authorized"
+    },
+    "timestamp": 1794940006.6098225
+  },
+  {
+    "event": "execution_result",
+    "tool": "largest_file",
+    "details": {
+      "call_id": "f3c03a24561f",
+      "ok": "True",
+      "denied": "False",
+      "duration_ms": "2648.257",
+      "error": "None"
+    },
+    "timestamp": 1794940009.257059
+  }
+]

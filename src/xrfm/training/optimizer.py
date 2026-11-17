@@ -24,7 +24,49 @@ Design principles (Phase 5 architecture freeze):
 
 from typing import Any
 
+import torch
+import torch.nn as nn
 import torch.optim as optim
+
+
+def build_decay_param_groups(
+    model_or_params: nn.Module | Any,
+    weight_decay: float,
+) -> list[dict[str, Any]]:
+    """Partition parameters into decayed (>=2D matrices) and non-decayed (<2D norms/biases).
+
+    Follows standard transformer optimization practice (Karpathy nanoGPT, Llama 3,
+    Qwen): 1-D scale parameters (``RMSNorm``, ``LayerNorm``) and linear biases
+    receive ``weight_decay = 0.0`` while 2-D+ projection/embedding matrices
+    receive ``weight_decay``. Deduplicates shared/weight-tied parameters cleanly.
+    """
+    if isinstance(model_or_params, nn.Module):
+        iterable = (p for p in model_or_params.parameters() if p.requires_grad)
+    else:
+        params_list = list(model_or_params)
+        if params_list and isinstance(params_list[0], dict):
+            return params_list
+        iterable = (p for p in params_list if getattr(p, "requires_grad", True))
+
+    seen: set[int] = set()
+    decay_params: list[torch.nn.Parameter] = []
+    no_decay_params: list[torch.nn.Parameter] = []
+    for p in iterable:
+        pid = id(p)
+        if pid in seen:
+            continue
+        seen.add(pid)
+        if p.dim() >= 2:
+            decay_params.append(p)
+        else:
+            no_decay_params.append(p)
+
+    groups: list[dict[str, Any]] = []
+    if decay_params:
+        groups.append({"params": decay_params, "weight_decay": weight_decay})
+    if no_decay_params:
+        groups.append({"params": no_decay_params, "weight_decay": 0.0})
+    return groups if groups else [{"params": [], "weight_decay": weight_decay}]
 
 
 class OptimizerLoader:
@@ -73,11 +115,11 @@ class OptimizerLoader:
         if eps <= 0:
             raise ValueError(f"eps must be positive, got {eps}. Check AdamW initialization.")
 
-        # Initialize AdamW optimizer (`torch.optim.AdamW`).
-        # `AdamW` decouples `weight_decay` from gradient updates (`Loshchilov & Hutter 2019`),
-        # which improves generalization compared to `L2` regularization (coupled to gradient).
+        # Initialize AdamW optimizer (`torch.optim.AdamW`) with decoupled
+        # weight decay excluded from 1-D norms and biases.
+        grouped_params = build_decay_param_groups(model_params, weight_decay=weight_decay)
         self.optimizer = optim.AdamW(
-            model_params,
+            grouped_params,
             lr=learning_rate,
             betas=betas,
             eps=eps,

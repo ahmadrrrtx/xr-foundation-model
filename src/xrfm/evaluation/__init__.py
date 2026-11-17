@@ -18,6 +18,7 @@ from xrfm.evaluation.benchmarks import (
     run_evaluation_suite,
 )
 from xrfm.evaluation.perplexity import (
+    compute_bits_per_byte,
     compute_perplexity,
     compute_perplexity_strided,
     evaluate_checkpoint,
@@ -29,6 +30,7 @@ __all__ = [
     "EvaluationRunner",
     "TextCompletionAccuracy",
     "TopKAccuracy",
+    "compute_bits_per_byte",
     "compute_perplexity",
     "compute_perplexity_strided",
     "evaluate",

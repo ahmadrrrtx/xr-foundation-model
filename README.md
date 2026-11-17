@@ -2,14 +2,12 @@
 
 **Version:** 1.0.1 (single source: `xrfm.__version__`)
 **License:** MIT
-**Status:** Research / experimental. A from-scratch decoder-only language
-model in pure PyTorch. After the 2026-09 forensic audit (`docs/audit/`) the
-codebase is *trainable, reproducible, and measurable at small scale* — it is
-**not** a production foundation model and makes no capability claims beyond
-what its training runs demonstrate (see `docs/audit/FINAL_AUDIT.md` and
-`XRFM_FINAL_REPORT.md`).
+**Status:** Research / active stabilization (`docs/program/03_EXECUTION_LEDGER.md` and `docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md`). XRFM is an open-source research codebase in pure PyTorch with **strictly separated dual-track model lineages**:
 
-Phase 1 (2026-09-18) completed the **data foundation**: a serious, reproducible, scalable, auditable pipeline for future 125M–1B+ pretraining.
+1. **Track A — `XRFM Native` (`src/xrfm/models/`):** Original decoder-only transformer (`XRFMModel`: GQA/MHA, cached FP32-safe RoPE, FP32-safe RMSNorm, SwiGLU, native `is_causal=True` SDPA, activation checkpointing) trained **100% from random initialization** on license-clean multilingual (`en, ur, ur-Latn, ar, hi, es, fr`) and code corpora.
+2. **Track B — `XRFM CoderSec` *(planned Phase 4–5 specialist track)*:** Parameter-efficient QLoRA + Citation-Grounded Defensive Security RAG built on explicitly attributed Apache-2.0 open base models (`Qwen/Qwen3-1.7B` / `Qwen/Qwen2.5-Coder-1.5B-Instruct`). Third-party pretrained weights are **never** loaded into `XRFMModel` or misrepresented as trained from scratch.
+
+It is **not** yet a production foundation model and makes **zero** capability claims beyond what reproducible evaluation artifacts demonstrate (`docs/research/XRFM_FULL_REPOSITORY_AUDIT.md`, `docs/program/03_EXECUTION_LEDGER.md`).
 
 ## What XRFM Is Today
 
@@ -214,18 +212,13 @@ multi-GPU/DDP execution, `benchmark/` microbenchmarks, large source candidates.
 **Planned (not implemented):** large-scale pretraining on billion-token
 corpus (pipeline ready, corpus selection pending), cluster-scale benchmarks.
 
-## Honest Limitations (as of 2026-09-18)
+## Honest Limitations (as of 2026-11-17)
 
-- Data pipeline Phase 1 completed on golden dataset (~1K tokens) and verified with training step; large-scale billion-token corpus not yet built (architecture ready, candidate sources documented)
-- Trained at most on ~2 M tokens of public-domain prose+code on CPU-only
-  sandboxes previously; Phase 1 adds pipeline but not yet large model training
-- The legacy `checkpoints/checkpoint_step_500.pt` (vocab 50304) is **not**
-  compatible with the current tokenizer and is kept only as evidence.
-- `training/distributed.py` (DDP/FSDP) is validated only in single-process
-  mode; multi-GPU training has not been exercised (sharding logic tested for 1,2,4,8 ranks)
-- The pre-Phase-0 import paths (`model.*`, `tokenizer.*`, ...) still work
-  inside a repo checkout via deprecation shims; they are **not** installed
-  with the wheel and will be removed no earlier than v2.0.
+- Data pipeline Phase 1 completed on golden dataset (~1K tokens) and verified with training step; large-scale multilingual + code shards (Phase 2) and Track B QLoRA specialist runs (Phases 4–5) are governed by `docs/research/XRFM_IMPLEMENTATION_ROADMAP.md` and `docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md`.
+- The packaged default `vocab.json` (2,048 English tokens) is for smoke testing only; the Phase 2 32,768-vocab multilingual + code tokenizer tournament (`en, ur, ur-Latn, ar, hi, es, fr`) replaces raw-byte fallback before Track A pretraining.
+- The legacy pre-audit checkpoint (`vocab_size=50304`) is quarantined in `artifacts/legacy_unverified/checkpoint_step_500.pt` solely as historical audit evidence and is never loaded by runtime paths.
+- `training/distributed.py` (DDP/FSDP) is validated in single-process CPU mode; target-hardware CUDA/2×T4 validation is tracked explicitly before `G1` sign-off.
+- The pre-Phase-0 import paths (`model.*`, `tokenizer.*`, ...) still work inside a repo checkout via deprecation shims; they are **not** installed with the wheel and will be removed no earlier than v2.0.
 
 ## Documentation
 

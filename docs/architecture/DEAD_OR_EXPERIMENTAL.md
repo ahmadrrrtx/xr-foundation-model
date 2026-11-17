@@ -17,7 +17,7 @@ Rule applied: historical research code is not blindly deleted; each item gets an
 | INT8/INT4 quantization utilities | `optimization/quantization.py` | Standalone utilities (exported, tested, round-trip verified) | **Keep (documented utility)** | Not used by default paths; a valid opt-in utility. |
 | `scripts/torchrun_launch.sh` | `scripts/` | Environment-validation launcher | **Keep (documented)** | Reference entrypoint for future multi-GPU runs; validates env without training. |
 | `config/config.legacy-v1.yaml` | `config/` | Intentional historical artifact | **Keep (documented)** | Preserves the pre-audit config as evidence (audit rule: don't destroy historical work). |
-| `checkpoints/checkpoint_step_500.pt` | `checkpoints/` | Legacy pre-audit checkpoint (vocab 50304, empty optimizer state) | **Keep (documented evidence)** | Cannot be used with the current tokenizer; retained for the audit trail. |
+| `artifacts/legacy_unverified/checkpoint_step_500.pt` | `artifacts/legacy_unverified/` *(quarantined out of `checkpoints/` in Phase 0)* | Legacy pre-audit checkpoint (vocab 50304, empty optimizer state) | **Quarantined (documented evidence)** | Moved out of active `checkpoints/` glob discovery (`api/main.py`) while retaining SHA-identical audit evidence. |
 
 ## 2. Experimental Markers Added
 
@@ -26,10 +26,8 @@ Docstrings of `GradientAccumulator`, `KVCache`, and `SpeculativeDecoder` now car
 > **EXPERIMENTAL (v1.1):** not used by the production training/inference paths.
 > See `docs/architecture/DEAD_OR_EXPERIMENTAL.md`.
 
-## 3. Non-Changes (deliberate)
+## 3. Non-Changes & Phase 0 Deduplication
 
-- No production code was deleted. The only removals in this mission were
-  genuinely dead variables/imports found by mypy/ruff (`reduce_loss` import,
-  unused assignments).
-- `vercel_app/`, `webui/`, `deployment/huggingface_space/` remain as shipped
-  (previous mission fixed the API import they depend on).
+- No production library code was deleted.
+- Duplicate `vercel_app/` (100% byte-for-byte identical to `webui/`) was consolidated into `webui/` (`api/main.py` mounts `webui/`) as the single UI asset source of truth.
+- `webui/` and `deployment/huggingface_space/` remain as shipped.

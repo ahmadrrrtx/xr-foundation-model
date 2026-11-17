@@ -1,31 +1,55 @@
 """
-Perplexity evaluation for XRFM (v0.7.0).
+Perplexity and Bits-Per-Byte (BPB) evaluation for XRFM (v0.7.0+).
 
-Computes intrinsic language model quality via token-level perplexity:
-    PPL = exp(average cross-entropy loss over all predicted tokens)
-
-Uses next-token prediction with shifted targets, strided evaluation
-for long sequences, and proper aggregation across batches.
+Computes intrinsic language model quality via:
+1. Token-level perplexity: ``PPL = exp(average cross-entropy loss over non-ignored tokens)``
+2. Tokenizer-agnostic Bits-Per-Byte (``BPB``):
+       ``BPB = total_nll_nats / (total_utf8_bytes * ln(2))``
+   Essential for fair cross-tokenizer and multilingual evaluation across
+   English, Urdu, Roman Urdu, Arabic, Hindi, Spanish, French, and code.
 
 Conceptual references (not copied):
 - Jelinek et al. (1977) — Perplexity as exponential of cross-entropy
-- Brown et al. (1992) — Class-based n-gram models
 - Hoffmann et al. (2022) — Chinchilla evaluation methodology
-- HuggingFace evaluate — perplexity implementation pattern
+- Gao et al. (2020) — Pile Bits-Per-Byte (BPB) normalization
 
 Implementation is original.
 """
 
+from __future__ import annotations
+
 import logging
 import math
+from collections.abc import Iterable
+from typing import Any
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from xrfm.models.gpt import GPTModel
 
 logger = logging.getLogger("xrfm.evaluation")
+
+
+def _get_model_device(model: nn.Module) -> torch.device:
+    """Return the device hosting ``model``'s parameters (defaults to CPU)."""
+    try:
+        return next(model.parameters()).device
+    except StopIteration:
+        return torch.device("cpu")
+
+
+def _unpack_eval_batch(
+    batch: Any,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor | None]:
+    """Accept ``(input_ids, target_ids)`` or ``(input_ids, target_ids, mask)``."""
+    if not isinstance(batch, (tuple, list)) or len(batch) not in (2, 3):
+        raise ValueError("Evaluation dataloader must yield (input_ids, target_ids) or (input_ids, target_ids, mask).")
+    inp, tgt = batch[0], batch[1]
+    mask = batch[2] if len(batch) == 3 else None
+    return inp, tgt, mask
 
 
 def compute_perplexity(
@@ -36,44 +60,20 @@ def compute_perplexity(
 ) -> dict[str, float]:
     """Compute perplexity over a dataset using next-token prediction.
 
-    For each batch of token IDs (input_ids, target_ids), the model
-    predicts next-token logits. Cross-entropy loss is accumulated
-    across all tokens, then exponentiated to produce perplexity.
-
-    Mathematical definition:
-        PPL = exp( -1/N * sum_i log P(token_i | context_i) )
-        PPL = exp( cross_entropy_loss )
-
-    Lower perplexity = better model. Random baseline: PPL ≈ vocab_size.
-
-    Args:
-        model: GPTModel to evaluate.
-        dataloader: DataLoader yielding (input_ids, target_ids) batches
-            where target_ids are shifted by 1 for next-token prediction.
-        max_batches: If set, only evaluate this many batches (for quick checks).
-        ignore_index: Target value to exclude from the loss (padding).
-            Forensic-audit fix (F-39): padded positions are no longer counted
-            in perplexity.
-
-    Returns:
-        Dict with:
-            "perplexity": float — perplexity score
-            "loss": float — average cross-entropy loss per token
-            "total_tokens": int — number of non-ignored tokens evaluated
-            "total_batches": int — number of batches processed
-
-    Raises:
-        ValueError: If dataloader is empty or yields malformed batches.
-        RuntimeError: If any batch produces NaN/Inf logits.
+    Automatically moves CPU batches to the model's device and supports both
+    2-tuple ``(input_ids, target_ids)`` and 3-tuple ``(input_ids, target_ids, mask)``
+    dataloaders.
     """
     model.eval()
+    device = _get_model_device(model)
     total_loss: float = 0.0
     total_tokens: int = 0
     batch_count: int = 0
 
     with torch.no_grad():
-        for batch_input_ids, batch_target_ids in dataloader:
-            # Validate batch
+        for raw_batch in dataloader:
+            batch_input_ids, batch_target_ids, batch_mask = _unpack_eval_batch(raw_batch)
+
             if batch_input_ids.dim() != 2:
                 raise ValueError(
                     f"Expected 2D input batch, got {batch_input_ids.dim()}D. Check DataLoader configuration."
@@ -83,31 +83,32 @@ def compute_perplexity(
                     f"Target shape {batch_target_ids.shape} must match input shape {batch_input_ids.shape}"
                 )
 
-            # Count only non-ignored positions (padding excluded, F-39).
-            valid = (batch_target_ids != ignore_index).sum().item()
+            valid = int((batch_target_ids != ignore_index).sum().item())
             if valid == 0:
                 continue
 
-            # Forward pass
-            logits, _ = model(batch_input_ids)
+            if batch_input_ids.device != device:
+                batch_input_ids = batch_input_ids.to(device)
+            if batch_mask is not None and batch_mask.device != device:
+                batch_mask = batch_mask.to(device)
 
-            # Validate logits
+            logits, _ = model(batch_input_ids, mask=batch_mask)
+            if batch_target_ids.device != logits.device:
+                batch_target_ids = batch_target_ids.to(logits.device)
+
             if torch.isnan(logits).any() or torch.isinf(logits).any():
                 raise RuntimeError(
                     f"NaN or Inf in model logits at batch {batch_count}. Check model weights and numerical stability."
                 )
 
-            # Cross-entropy loss: logits predict target_ids at each position
-            # logits shape: (batch, seq, vocab_size) → (batch*seq, vocab_size)
-            # targets shape: (batch, seq) → (batch*seq,)
             loss = F.cross_entropy(
-                logits.view(-1, logits.shape[-1]),
+                logits.float().view(-1, logits.shape[-1]),
                 batch_target_ids.view(-1),
-                reduction="sum",  # Accumulate total NLL across all tokens
+                reduction="sum",
                 ignore_index=ignore_index,
             )
 
-            total_loss += loss.item()
+            total_loss += float(loss.item())
             total_tokens += valid
             batch_count += 1
 
@@ -117,9 +118,7 @@ def compute_perplexity(
     if total_tokens == 0:
         raise ValueError("No tokens evaluated. Dataloader may be empty. Check dataset and batch configuration.")
 
-    # Average negative log-likelihood per token
     avg_loss = total_loss / total_tokens
-    # Perplexity = exp(average cross-entropy)
     perplexity = math.exp(avg_loss)
 
     logger.info(
@@ -144,26 +143,7 @@ def compute_perplexity_strided(
     stride: int = 512,
     max_seq_len: int = 1024,
 ) -> dict[str, float]:
-    """Compute perplexity with strided sliding window over a long sequence.
-
-    For texts longer than max_seq_len, slides a window of size max_seq_len
-    with stride across the token sequence. Each window is evaluated as a
-    single batch. Overlapping regions are counted once per total context.
-
-    This matches the evaluation methodology used in Chinchilla, Llama,
-    and HuggingFace evaluate — it prevents information leakage between
-    windows by never predicting tokens that appeared as context in the
-    same window.
-
-    Args:
-        model: GPTModel to evaluate.
-        token_ids: 1D tensor of token IDs for the full text.
-        stride: Step size between windows. Smaller = more overlap, slower.
-        max_seq_len: Window size. Must be <= model.max_seq_len.
-
-    Returns:
-        Dict with perplexity, loss, total_tokens, total_windows.
-    """
+    """Compute perplexity with strided sliding window over a long sequence."""
     if stride <= 0:
         raise ValueError(f"stride must be positive, got {stride}")
     if max_seq_len <= 0:
@@ -172,6 +152,7 @@ def compute_perplexity_strided(
         raise ValueError(f"max_seq_len ({max_seq_len}) exceeds model.max_seq_len ({model.max_seq_len})")
 
     model.eval()
+    device = _get_model_device(model)
     total_nll: float = 0.0
     total_predicted_tokens: int = 0
     seq_length = len(token_ids)
@@ -183,22 +164,22 @@ def compute_perplexity_strided(
             end_loc = min(begin_loc + max_seq_len, seq_length)
             window_count += 1
 
-            # Window of token IDs
-            window_ids = token_ids[begin_loc:end_loc].unsqueeze(0)  # (1, window_len)
+            window_ids = token_ids[begin_loc:end_loc].unsqueeze(0)
+            if window_ids.device != device:
+                window_ids = window_ids.to(device)
 
-            # Forward pass
             logits, _ = model(window_ids)
+            labels_src = (
+                window_ids
+                if window_ids.device == logits.device
+                else token_ids[begin_loc:end_loc].unsqueeze(0).to(logits.device)
+            )
 
-            # Shift for next-token prediction
-            # logits[:, t, :] predicts token at position t+1
             shift_logits = logits[:, :-1, :].contiguous()
-            shift_labels = window_ids[:, 1:].contiguous()
+            shift_labels = labels_src[:, 1:].contiguous()
 
-            # Only count loss for tokens beyond the previous window
-            # to avoid double-counting overlapped tokens
             trg_len = shift_labels.shape[1]
             if prev_end_loc > begin_loc:
-                # Overlap region: skip already-evaluated prefix
                 overlap = prev_end_loc - begin_loc
                 shift_logits = shift_logits[:, overlap:, :]
                 shift_labels = shift_labels[:, overlap:]
@@ -209,14 +190,16 @@ def compute_perplexity_strided(
                 continue
 
             loss = F.cross_entropy(
-                shift_logits.reshape(-1, shift_logits.shape[-1]),
+                shift_logits.float().reshape(-1, shift_logits.shape[-1]),
                 shift_labels.reshape(-1),
                 reduction="sum",
             )
 
-            total_nll += loss.item()
+            total_nll += float(loss.item())
             total_predicted_tokens += trg_len
             prev_end_loc = end_loc
+            if end_loc == seq_length:
+                break
 
     if total_predicted_tokens == 0:
         return {
@@ -246,24 +229,124 @@ def compute_perplexity_strided(
     }
 
 
+def compute_bits_per_byte(
+    model: GPTModel,
+    texts: Iterable[str],
+    tokenizer: Any,
+    stride: int | None = None,
+    max_seq_len: int | None = None,
+) -> dict[str, float]:
+    """Compute tokenizer-independent Bits-Per-Byte (BPB) over raw UTF-8 texts.
+
+    Formula:
+        ``BPB = sum_nll_nats / (total_utf8_bytes * ln(2))``
+
+    When ``bos_token_id`` is available on ``tokenizer``, it is prepended as
+    conditioning context so all ``K`` content tokens of each string are scored
+    fairly against ``len(text.encode('utf-8'))`` bytes. Otherwise ``K - 1``
+    continuation tokens are scored.
+
+    Args:
+        model: ``XRFMModel`` / ``GPTModel`` to evaluate.
+        texts: Non-empty iterable of evaluation strings (any Unicode script).
+        tokenizer: Tokenizer exposing ``encode(str) -> list[int]`` and optional
+            ``bos_token_id`` / ``bos_id``.
+        stride: Sliding window stride (defaults to ``max_seq_len // 2``).
+        max_seq_len: Sliding window width (defaults to ``model.max_seq_len``).
+
+    Returns:
+        Dict with ``bpb``, ``total_nll_nats``, ``avg_token_loss``,
+        ``total_bytes``, ``total_tokens``, ``bytes_per_token``.
+    """
+    resolved_max_len = model.max_seq_len if max_seq_len is None else max_seq_len
+    if resolved_max_len <= 1 or resolved_max_len > model.max_seq_len:
+        raise ValueError(f"max_seq_len ({resolved_max_len}) must be in [2, model.max_seq_len={model.max_seq_len}]")
+    resolved_stride = max(1, resolved_max_len // 2) if stride is None else stride
+    if resolved_stride <= 0:
+        raise ValueError(f"stride must be positive, got {resolved_stride}")
+
+    bos_id = getattr(tokenizer, "bos_token_id", getattr(tokenizer, "bos_id", None))
+
+    model.eval()
+    device = _get_model_device(model)
+    total_nll_nats: float = 0.0
+    total_bytes: int = 0
+    total_scored_tokens: int = 0
+
+    with torch.no_grad():
+        for text in texts:
+            if not text:
+                continue
+            utf8_bytes = len(text.encode("utf-8"))
+            ids = list(tokenizer.encode(text))
+            if not ids:
+                continue
+            if bos_id is not None and 0 <= int(bos_id) < model.embedding.vocab_size:
+                seq = [int(bos_id)] + ids
+            elif len(ids) >= 2:
+                seq = ids
+            else:
+                continue
+
+            token_tensor = torch.tensor(seq, dtype=torch.long)
+            seq_length = len(token_tensor)
+            prev_end_loc = 0
+            for begin_loc in range(0, seq_length, resolved_stride):
+                end_loc = min(begin_loc + resolved_max_len, seq_length)
+                window_ids = token_tensor[begin_loc:end_loc].unsqueeze(0)
+                if window_ids.device != device:
+                    window_ids = window_ids.to(device)
+                logits, _ = model(window_ids)
+                labels_src = (
+                    window_ids
+                    if window_ids.device == logits.device
+                    else token_tensor[begin_loc:end_loc].unsqueeze(0).to(logits.device)
+                )
+
+                shift_logits = logits[:, :-1, :].contiguous()
+                shift_labels = labels_src[:, 1:].contiguous()
+                if prev_end_loc > begin_loc:
+                    overlap = prev_end_loc - begin_loc
+                    shift_logits = shift_logits[:, overlap:, :]
+                    shift_labels = shift_labels[:, overlap:]
+
+                trg_len = int(shift_labels.shape[1])
+                if trg_len > 0:
+                    loss = F.cross_entropy(
+                        shift_logits.float().reshape(-1, shift_logits.shape[-1]),
+                        shift_labels.reshape(-1),
+                        reduction="sum",
+                    )
+                    total_nll_nats += float(loss.item())
+                    total_scored_tokens += trg_len
+
+                prev_end_loc = end_loc
+                if end_loc == seq_length:
+                    break
+
+            total_bytes += utf8_bytes
+
+    if total_bytes == 0 or total_scored_tokens == 0:
+        raise ValueError("No non-empty texts with scorable tokens provided to compute_bits_per_byte.")
+
+    bpb = total_nll_nats / (total_bytes * math.log(2.0))
+    avg_token_loss = total_nll_nats / total_scored_tokens
+    return {
+        "bpb": bpb,
+        "total_nll_nats": total_nll_nats,
+        "avg_token_loss": avg_token_loss,
+        "total_bytes": total_bytes,
+        "total_tokens": total_scored_tokens,
+        "bytes_per_token": total_bytes / total_scored_tokens,
+    }
+
+
 def evaluate_checkpoint(
     model: GPTModel,
     dataloader: DataLoader,
     max_batches: int | None = None,
 ) -> dict[str, float]:
-    """Convenience wrapper for full checkpoint evaluation.
-
-    Returns perplexity and additional diagnostics.
-
-    Args:
-        model: GPTModel with loaded checkpoint weights.
-        dataloader: Validation/test DataLoader.
-        max_batches: Optional batch limit.
-
-    Returns:
-        Dict with perplexity, loss, tokens_per_second estimate,
-        total_tokens, and total_batches.
-    """
+    """Convenience wrapper for full checkpoint evaluation."""
     import time
 
     start = time.perf_counter()

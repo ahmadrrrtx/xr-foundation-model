@@ -1,15 +1,10 @@
 """
-Benchmark framework for XRFM (v0.7.0).
+Benchmark framework for XRFM (v0.7.0+).
 
 Provides an extensible abstract base class for running standardized
-evaluation benchmarks on GPTModel instances.
-
-Built-in benchmarks:
-- TextCompletionAccuracy: Measures next-token prediction accuracy
-  on held-out text (how often the model picks the correct next token).
-
-The framework is designed to be extended with standard benchmarks
-(MMLU, HellaSwag, etc.) without rewriting the evaluation harness.
+evaluation benchmarks on GPTModel instances, with automatic device placement,
+3-tuple ``(input_ids, target_ids, mask)`` batch support, and ``ignore_index``
+padding exclusion.
 
 Conceptual references (not copied):
 - EleutherAI lm-evaluation-harness — benchmark framework design
@@ -19,28 +14,32 @@ Conceptual references (not copied):
 Implementation is original.
 """
 
+from __future__ import annotations
+
 import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 
+from xrfm.evaluation.perplexity import _unpack_eval_batch
 from xrfm.models.gpt import GPTModel
 
 logger = logging.getLogger("xrfm.evaluation")
 
 
+def _get_model_device(model: nn.Module) -> torch.device:
+    """Return the device hosting ``model``'s parameters (defaults to CPU)."""
+    try:
+        return next(model.parameters()).device
+    except StopIteration:
+        return torch.device("cpu")
+
+
 class Benchmark(ABC):
-    """Abstract base class for evaluation benchmarks.
-
-    Each benchmark defines:
-    - A name and description
-    - A compute() method that runs the benchmark on a model
-    - A set of metrics returned as a dict
-
-    Subclasses implement compute() to perform task-specific evaluation.
-    """
+    """Abstract base class for evaluation benchmarks."""
 
     def __init__(self, name: str, description: str = "") -> None:
         self.name = name
@@ -48,15 +47,7 @@ class Benchmark(ABC):
 
     @abstractmethod
     def compute(self, model: GPTModel, **kwargs) -> dict[str, float]:
-        """Run the benchmark and return metrics.
-
-        Args:
-            model: GPTModel to evaluate (should be in eval mode).
-            **kwargs: Benchmark-specific parameters.
-
-        Returns:
-            Dict mapping metric names to float values.
-        """
+        """Run the benchmark and return metrics."""
         ...
 
     def __repr__(self) -> str:
@@ -64,24 +55,7 @@ class Benchmark(ABC):
 
 
 class TextCompletionAccuracy(Benchmark):
-    """Next-token prediction accuracy on held-out text.
-
-    Measures how often the model's most-probable next token matches
-    the actual next token in the dataset. Higher accuracy means the
-    model better predicts the held-out text.
-
-    This is a simple intrinsic benchmark — it measures the model's
-    ability to continue text it hasn't seen during training.
-
-    Accuracy = (# correct top-1 predictions) / (total tokens evaluated)
-
-    Reference range for small models (10M–100M params):
-    - Random: 1/vocab_size ≈ 0.002%
-    - Weak: 1–5%
-    - Moderate: 5–15%
-    - Strong: 15–30%
-    - Very strong: 30%+ (unlikely at XRFM scale without training)
-    """
+    """Next-token prediction accuracy on held-out text (excluding ``ignore_index`` padding)."""
 
     def __init__(self) -> None:
         super().__init__(
@@ -94,33 +68,37 @@ class TextCompletionAccuracy(Benchmark):
         model: GPTModel,
         dataloader: DataLoader,
         max_batches: int | None = None,
+        ignore_index: int = -100,
         **kwargs,
     ) -> dict[str, float]:
-        """Compute next-token prediction accuracy.
-
-        Args:
-            model: GPTModel to evaluate.
-            dataloader: DataLoader yielding (input_ids, target_ids) batches.
-            max_batches: Optional batch limit.
-
-        Returns:
-            Dict with "accuracy", "total_correct", "total_tokens".
-        """
+        """Compute next-token prediction accuracy excluding ``ignore_index`` targets."""
         model.eval()
+        device = _get_model_device(model)
         total_correct: int = 0
         total_tokens: int = 0
 
         with torch.no_grad():
-            for batch_idx, (batch_input_ids, batch_target_ids) in enumerate(dataloader):
-                # Forward pass
-                logits, _ = model(batch_input_ids)
+            for batch_idx, raw_batch in enumerate(dataloader):
+                batch_input_ids, batch_target_ids, batch_mask = _unpack_eval_batch(raw_batch)
+                valid_mask = batch_target_ids != ignore_index
+                num_tokens = int(valid_mask.sum().item())
+                if num_tokens == 0:
+                    if max_batches is not None and batch_idx + 1 >= max_batches:
+                        break
+                    continue
 
-                # Predicted token = argmax over vocab at each position
-                predictions = logits.argmax(dim=-1)  # (batch, seq)
+                if batch_input_ids.device != device:
+                    batch_input_ids = batch_input_ids.to(device)
+                if batch_mask is not None and batch_mask.device != device:
+                    batch_mask = batch_mask.to(device)
 
-                # Compare with targets
-                correct = (predictions == batch_target_ids).sum().item()
-                num_tokens = batch_target_ids.numel()
+                logits, _ = model(batch_input_ids, mask=batch_mask)
+                predictions = logits.argmax(dim=-1)
+                if batch_target_ids.device != predictions.device:
+                    batch_target_ids = batch_target_ids.to(predictions.device)
+                    valid_mask = valid_mask.to(predictions.device)
+
+                correct = int(((predictions == batch_target_ids) & valid_mask).sum().item())
 
                 total_correct += correct
                 total_tokens += num_tokens
@@ -147,14 +125,7 @@ class TextCompletionAccuracy(Benchmark):
 
 
 class TopKAccuracy(Benchmark):
-    """Top-k next-token prediction accuracy.
-
-    Measures whether the correct next token appears in the model's
-    top-k predictions. Top-5 accuracy is commonly reported alongside
-    top-1 for language model evaluation.
-
-    Reference: Brown et al. (2020) — GPT-3 reports Top-1 and Top-5.
-    """
+    """Top-k next-token prediction accuracy (excluding ``ignore_index`` padding)."""
 
     def __init__(self, k: int = 5) -> None:
         if k <= 0:
@@ -170,36 +141,44 @@ class TopKAccuracy(Benchmark):
         model: GPTModel,
         dataloader: DataLoader,
         max_batches: int | None = None,
+        ignore_index: int = -100,
         **kwargs,
     ) -> dict[str, float]:
-        """Compute top-k accuracy.
-
-        Args:
-            model: GPTModel to evaluate.
-            dataloader: DataLoader yielding (input_ids, target_ids) batches.
-            max_batches: Optional batch limit.
-
-        Returns:
-            Dict with "top{k}_accuracy", "total_correct", "total_tokens".
-        """
+        """Compute top-k accuracy excluding ``ignore_index`` targets."""
         model.eval()
+        device = _get_model_device(model)
         total_correct: int = 0
         total_tokens: int = 0
 
         with torch.no_grad():
-            for batch_idx, (batch_input_ids, batch_target_ids) in enumerate(dataloader):
-                logits, _ = model(batch_input_ids)
+            for batch_idx, raw_batch in enumerate(dataloader):
+                batch_input_ids, batch_target_ids, batch_mask = _unpack_eval_batch(raw_batch)
+                valid_mask = batch_target_ids != ignore_index
+                num_tokens = int(valid_mask.sum().item())
+                if num_tokens == 0:
+                    if max_batches is not None and batch_idx + 1 >= max_batches:
+                        break
+                    continue
 
-                # Get top-k indices at each position
-                _, topk_indices = torch.topk(logits, k=self.k, dim=-1)
-                # topk_indices: (batch, seq, k)
+                if batch_input_ids.device != device:
+                    batch_input_ids = batch_input_ids.to(device)
+                if batch_mask is not None and batch_mask.device != device:
+                    batch_mask = batch_mask.to(device)
 
-                # Check if target is in top-k
-                targets_expanded = batch_target_ids.unsqueeze(-1)  # (batch, seq, 1)
-                correct = (topk_indices == targets_expanded).any(dim=-1).sum().item()
+                logits, _ = model(batch_input_ids, mask=batch_mask)
+                eff_k = min(self.k, logits.shape[-1])
+                _, topk_indices = torch.topk(logits, k=eff_k, dim=-1)
+
+                if batch_target_ids.device != topk_indices.device:
+                    batch_target_ids = batch_target_ids.to(topk_indices.device)
+                    valid_mask = valid_mask.to(topk_indices.device)
+
+                targets_expanded = batch_target_ids.unsqueeze(-1)
+                in_topk = (topk_indices == targets_expanded).any(dim=-1)
+                correct = int((in_topk & valid_mask).sum().item())
 
                 total_correct += correct
-                total_tokens += targets_expanded.numel()
+                total_tokens += num_tokens
 
                 if max_batches is not None and batch_idx + 1 >= max_batches:
                     break
@@ -227,33 +206,22 @@ def run_evaluation_suite(
     model: GPTModel,
     dataloader: DataLoader,
     max_batches: int | None = None,
+    ignore_index: int = -100,
 ) -> dict[str, Any]:
-    """Run the full evaluation suite: perplexity + benchmarks.
-
-    Args:
-        model: GPTModel to evaluate.
-        dataloader: Validation/test DataLoader.
-        max_batches: Optional batch limit for quick evaluation.
-
-    Returns:
-        Dict with all metric results keyed by benchmark name.
-    """
+    """Run the full evaluation suite: perplexity + benchmarks."""
     from xrfm.evaluation.perplexity import compute_perplexity
 
     logger.info("Starting evaluation suite...")
     results: dict[str, Any] = {}
 
-    # 1. Perplexity
-    ppl = compute_perplexity(model, dataloader, max_batches=max_batches)
+    ppl = compute_perplexity(model, dataloader, max_batches=max_batches, ignore_index=ignore_index)
     results["perplexity"] = ppl
 
-    # 2. Top-1 accuracy
     acc1 = TextCompletionAccuracy()
-    results["top1_accuracy"] = acc1.compute(model, dataloader, max_batches=max_batches)
+    results["top1_accuracy"] = acc1.compute(model, dataloader, max_batches=max_batches, ignore_index=ignore_index)
 
-    # 3. Top-5 accuracy
     acc5 = TopKAccuracy(k=5)
-    results["top5_accuracy"] = acc5.compute(model, dataloader, max_batches=max_batches)
+    results["top5_accuracy"] = acc5.compute(model, dataloader, max_batches=max_batches, ignore_index=ignore_index)
 
     logger.info(
         "Evaluation complete: PPL=%.2f, Top-1=%.4f, Top-5=%.4f",

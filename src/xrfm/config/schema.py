@@ -84,6 +84,11 @@ class ModelConfig:
     use_swiglu: bool = True
     use_bias: bool = True
     pad_token_id: int | None = None
+    n_kv_heads: int | None = None
+    rope_theta: float = 10000.0
+    norm_eps: float = 1e-6
+    gradient_checkpointing: bool = False
+    check_input_bounds: bool = True
 
     def validate(self) -> None:
         """Raise :class:`ConfigError` on any invalid field or combination."""
@@ -108,6 +113,23 @@ class ModelConfig:
                 "d_model",
                 f"({self.d_model}) must be divisible by model.n_heads ({self.n_heads})",
             )
+        if self.n_kv_heads is not None:
+            if not isinstance(self.n_kv_heads, int) or isinstance(self.n_kv_heads, bool) or self.n_kv_heads <= 0:
+                raise _err("model", "n_kv_heads", f"must be a positive int or None, got {self.n_kv_heads!r}")
+            if self.n_kv_heads > self.n_heads or (self.n_heads % self.n_kv_heads != 0):
+                raise _err(
+                    "model",
+                    "n_kv_heads",
+                    f"({self.n_kv_heads}) must divide model.n_heads ({self.n_heads})",
+                )
+        if not isinstance(self.rope_theta, (int, float)) or isinstance(self.rope_theta, bool) or self.rope_theta <= 0:
+            raise _err("model", "rope_theta", f"must be > 0, got {self.rope_theta!r}")
+        if not isinstance(self.norm_eps, (int, float)) or isinstance(self.norm_eps, bool) or self.norm_eps <= 0:
+            raise _err("model", "norm_eps", f"must be > 0, got {self.norm_eps!r}")
+        if not isinstance(self.gradient_checkpointing, bool):
+            raise _err("model", "gradient_checkpointing", f"must be a bool, got {self.gradient_checkpointing!r}")
+        if not isinstance(self.check_input_bounds, bool):
+            raise _err("model", "check_input_bounds", f"must be a bool, got {self.check_input_bounds!r}")
 
     def __post_init__(self) -> None:
         self.validate()
@@ -155,6 +177,8 @@ class TrainingConfig:
     persistent_workers: bool = False
     device: str | None = None
     deterministic: bool = False
+    min_lr_ratio: float = 0.0
+    gradient_checkpointing: bool = False
 
     def validate(self) -> None:
         for name in (
@@ -204,6 +228,18 @@ class TrainingConfig:
             raise _err("training", "resume_from", f"must be a str or None, got {self.resume_from!r}")
         if self.device is not None and not isinstance(self.device, str):
             raise _err("training", "device", f"must be a str or None, got {self.device!r}")
+        if (
+            not isinstance(self.min_lr_ratio, (int, float))
+            or isinstance(self.min_lr_ratio, bool)
+            or not (0.0 <= self.min_lr_ratio <= 1.0)
+        ):
+            raise _err("training", "min_lr_ratio", f"must be in [0, 1], got {self.min_lr_ratio!r}")
+        if not isinstance(self.gradient_checkpointing, bool):
+            raise _err(
+                "training",
+                "gradient_checkpointing",
+                f"must be a bool, got {self.gradient_checkpointing!r}",
+            )
         # Cross-field: warmup cannot exceed the run length.
         if self.warmup_steps >= self.max_steps:
             raise _err(

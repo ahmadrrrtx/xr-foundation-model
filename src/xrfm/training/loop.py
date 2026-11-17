@@ -130,6 +130,19 @@ class TrainingLoop:
         self.config: XRFMConfig | None = full_cfg
         self.config_path = config if isinstance(config, str) else config_path
 
+        # Resolve target device FIRST and move model BEFORE DDP/FSDP wrapping
+        # (and before constructing the optimizer, so parameter storage lives on
+        # the actual training device).
+        if train_cfg.device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            self.device = torch.device(str(train_cfg.device))
+
+        if train_cfg.gradient_checkpointing and hasattr(model, "gradient_checkpointing"):
+            model.gradient_checkpointing = True  # type: ignore[assignment]
+
+        model = model.to(self.device)
+
         # Wrap model for distributed if applicable
         self.model = model
         if is_distributed():
@@ -156,7 +169,7 @@ class TrainingLoop:
         self._resolved_batch_size: int | None = None
         self._resolved_drop_last: bool | None = None
 
-        # Optimizer on raw model params
+        # Optimizer on raw model (excludes 1-D norms and biases from weight decay)
         raw_model = get_raw_model(self.model)
         if optimizer is not None:
             if not isinstance(optimizer, OptimizerLoader):
@@ -164,7 +177,7 @@ class TrainingLoop:
             self.optimizer = optimizer
         else:
             self.optimizer = OptimizerLoader(
-                raw_model.parameters(),
+                raw_model,
                 learning_rate=train_cfg.learning_rate,
                 weight_decay=train_cfg.weight_decay,
             )
@@ -180,6 +193,7 @@ class TrainingLoop:
                 base_lr=train_cfg.learning_rate,
                 warmup_steps=train_cfg.warmup_steps,
                 max_steps=train_cfg.max_steps,
+                min_lr_ratio=train_cfg.min_lr_ratio,
             )
 
         self.checkpoint_loader = CheckpointLoader(checkpoint_dir)
@@ -210,11 +224,6 @@ class TrainingLoop:
         self.pin_memory: bool = train_cfg.pin_memory
         self.prefetch_factor: int | None = train_cfg.prefetch_factor
         self.persistent_workers: bool = train_cfg.persistent_workers
-        # None -> auto (CUDA if available else CPU).
-        if train_cfg.device is None:
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        else:
-            self.device = torch.device(str(train_cfg.device))
         # Deterministic execution (only meaningful where supported; warn-only
         # so unsupported ops degrade gracefully instead of crashing).
         self.deterministic: bool = train_cfg.deterministic

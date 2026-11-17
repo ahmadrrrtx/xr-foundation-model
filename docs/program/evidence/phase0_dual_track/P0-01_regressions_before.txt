@@ -1,0 +1,152 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.0.3, pluggy-1.7.0 -- /usr/local/bin/python3.13
+cachedir: .pytest_cache
+rootdir: /home/user/xr-foundation-model
+configfile: pyproject.toml
+plugins: platformdirs-4.14.5, anyio-4.16.0
+collecting ... collected 16 items
+
+tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_rope_preserves_input_dtype_and_caches_tables[dtype0] FAILED [  6%]
+tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_rope_preserves_input_dtype_and_caches_tables[dtype1] FAILED [ 12%]
+tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_rope_preserves_input_dtype_and_caches_tables[dtype2] FAILED [ 18%]
+tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_rope_dynamically_extends_cache_past_initial_max_seq_len FAILED [ 25%]
+tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_rmsnorm_fp16_does_not_overflow_large_activations FAILED [ 31%]
+tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_full_model_bf16_forward_backward_succeeds FAILED [ 37%]
+tests/test_phase0_defects.py::TestAttentionGQAAndSwiGLU::test_unmasked_attention_dispatches_sdpa_with_none_mask FAILED [ 43%]
+tests/test_phase0_defects.py::TestAttentionGQAAndSwiGLU::test_gqa_kv_cache_matches_full_sequence_forward FAILED [ 50%]
+tests/test_phase0_defects.py::TestAttentionGQAAndSwiGLU::test_use_swiglu_false_builds_standard_gelu_ffn FAILED [ 56%]
+tests/test_phase0_defects.py::TestTrainingFixes::test_training_loop_excludes_1d_norms_and_biases_from_weight_decay FAILED [ 62%]
+tests/test_phase0_defects.py::TestTrainingFixes::test_training_loop_moves_model_to_device_before_ddp_wrapping FAILED [ 68%]
+tests/test_phase0_defects.py::TestTrainingFixes::test_scheduler_clamps_cosine_decay_past_max_steps_and_honors_min_lr_ratio FAILED [ 75%]
+tests/test_phase0_defects.py::TestEvaluationFixes::test_accuracy_benchmarks_ignore_minus_100_padding_and_accept_3_tuple_batches FAILED [ 81%]
+tests/test_phase0_defects.py::TestEvaluationFixes::test_evaluation_moves_cpu_batches_to_model_device FAILED [ 87%]
+tests/test_phase0_defects.py::TestEvaluationFixes::test_compute_bits_per_byte_multilingual_roundtrip FAILED [ 93%]
+tests/test_phase0_defects.py::test_readme_quickstart_tiny_yaml_matches_pretrained_tokenizer FAILED [100%]
+
+=================================== FAILURES ===================================
+_ TestMixedPrecisionLayers.test_rope_preserves_input_dtype_and_caches_tables[dtype0] _
+tests/test_phase0_defects.py:69: in test_rope_preserves_input_dtype_and_caches_tables
+    assert q_rot.dtype == dtype, f"RoPE changed Q dtype from {dtype} to {q_rot.dtype}"
+E   AssertionError: RoPE changed Q dtype from torch.float16 to torch.float32
+E   assert torch.float32 == torch.float16
+E    +  where torch.float32 = tensor([[[[ 3.1519e-01,  1.2505e-02, -9.4873e-01,  ...,  1.3281e+00,\n            1.0059e+00,  2.4551e+00],\n          [-5.3823e-02,  1.6493e+00,  2.8386e-01,  ...,  8.6259e-01,\n            1.8405e-01,  4.4719e-01],\n          [ 3.5846e-02,  4.3260e-01,  5.0000e-01,  ..., -1.0950e+00,\n           -3.0923e-01,  9.9801e-01],\n          ...,\n          [-7.4048e-01, -1.4878e+00,  5.5980e-01,  ...,  7.0411e-01,\n            3.3177e-01, -1.9267e+00],\n          [-9.0069e-01, -7.3350e-01, -2.1141e-01,  ...,  1.0906e+00,\n            3.2314e-02, -2.5866e-01],\n          [ 1.4243e-02,  5.7371e-01,  1.5855e+00,  ..., -1.2453e-02,\n           -1.2397e-01,  4.3776e-01]],\n\n         [[ 1.1211e+00, -4.9536e-01, -1.1969e-03,  ..., -1.6152e+00,\n            1.9248e+00,  1.0077e-01],\n          [ 2.6394e-01,  1.3330e-01, -6.7291e-01,  ..., -4.0953e-02,\n           -4.3344e-02, -1.9861e+00],\n          [-1.9168e-01, -1.0171e+00,  4.6683e-01,  ..., -1.1964e+00,\n            1.4665e+00,  2.9301e+00],\n          ...,\n          [-7.5763e-01, -9.7458e-01, -7.6929e-01,  ...,  8.7851e-01,\n            6.2547e-01,  4.3500e-01],\n          [-8.9783e-01,  4.2575e-01,  2.0201e-01,  ...,  7.4195e-01,\n           -1.5093e-02,  1....2.9247e-01, -1.0833e+00, -1.8535e+00,  ...,  3.3822e-01,\n           -1.1682e+00, -2.5838e+00],\n          [-3.8888e-01,  2.2147e-01,  2.1886e-01,  ...,  6.6175e-02,\n           -2.8921e-02,  8.8658e-01],\n          ...,\n          [-1.3502e+00,  6.3443e-01,  6.9766e-01,  ...,  3.1657e-02,\n            1.5634e-01, -7.3113e-01],\n          [-1.0718e-01, -4.8937e-01,  1.6322e-01,  ..., -1.1986e+00,\n            2.6156e+00, -7.9167e-01],\n          [ 7.8899e-01,  3.5042e-01, -9.5500e-01,  ..., -1.0568e+00,\n            2.2525e-01, -1.0135e+00]],\n\n         [[-3.0786e-01, -1.2231e-01, -7.3340e-01,  ...,  6.2598e-01,\n            7.7393e-01, -2.2327e-01],\n          [ 6.1724e-01, -1.6419e+00,  1.9043e+00,  ...,  1.4970e-02,\n            1.1302e+00,  1.0722e+00],\n          [ 4.0860e-01,  1.2654e-01,  1.9319e-02,  ...,  2.1640e+00,\n           -5.5832e-01,  7.2708e-03],\n          ...,\n          [-7.3577e-01, -2.4607e+00,  1.3226e+00,  ...,  2.2495e-01,\n           -1.1435e+00, -5.5072e-01],\n          [-9.5214e-02,  4.8714e-01,  2.2614e+00,  ...,  6.1200e-01,\n            1.3507e+00,  1.9592e-02],\n          [ 1.6010e-01,  5.6895e-01,  8.9964e-02,  ..., -1.0973e+00,\n            1.1534e+00,  3.4925e-01]]]]).dtype
+_ TestMixedPrecisionLayers.test_rope_preserves_input_dtype_and_caches_tables[dtype1] _
+tests/test_phase0_defects.py:69: in test_rope_preserves_input_dtype_and_caches_tables
+    assert q_rot.dtype == dtype, f"RoPE changed Q dtype from {dtype} to {q_rot.dtype}"
+E   AssertionError: RoPE changed Q dtype from torch.bfloat16 to torch.float32
+E   assert torch.float32 == torch.bfloat16
+E    +  where torch.float32 = tensor([[[[-5.0000e-01,  1.7109e+00,  1.0938e+00,  ...,  1.2344e+00,\n           -1.0859e+00, -2.0020e-01],\n          [ 1.2235e+00, -1.5781e-01, -3.3250e-01,  ...,  8.2450e-02,\n            1.2425e+00, -4.4716e-01],\n          [ 3.8349e-01,  1.5054e+00, -9.4478e-01,  ..., -1.0160e+00,\n            1.0706e+00,  8.2047e-02],\n          ...,\n          [-2.1188e+00,  3.9793e-01,  1.8156e-01,  ..., -5.0229e-01,\n            3.1415e-01, -1.7774e-01],\n          [ 1.1754e+00, -8.6851e-01, -1.3483e-02,  ...,  4.6574e-01,\n            2.0770e+00,  1.4688e+00],\n          [-5.4354e-01, -1.0474e+00,  3.7209e-01,  ...,  2.8716e-01,\n            9.0459e-01,  1.5721e+00]],\n\n         [[ 3.9648e-01, -4.0820e-01, -1.2266e+00,  ..., -5.8594e-01,\n           -3.2812e-01, -5.2734e-01],\n          [-3.7687e-01,  7.9012e-01, -1.1363e+00,  ..., -1.8622e-01,\n            7.9308e-01,  2.2374e-01],\n          [ 1.9359e+00,  1.4248e-01,  6.4366e-01,  ..., -9.3236e-01,\n           -1.9658e-01, -5.3454e-01],\n          ...,\n          [-1.2641e+00,  5.5221e-01,  8.7989e-01,  ..., -1.3921e-01,\n            1.2064e+00, -1.4528e-01],\n          [-2.4594e-01, -6.2650e-02,  2.5826e-01,  ..., -2.0381e-02,\n           -4.3248e-01, -9....6.3712e-02,  1.3470e+00,  1.5834e-01,  ..., -4.1930e-01,\n           -6.5978e-01,  1.7393e-01],\n          [-1.7517e-01,  1.3850e-01, -1.4395e+00,  ..., -3.8842e-01,\n            7.8075e-01, -2.7013e-02],\n          ...,\n          [-5.3257e-01,  8.4847e-01,  9.3477e-01,  ...,  7.8840e-01,\n           -1.3237e+00, -4.5890e-01],\n          [-9.4149e-01, -7.8183e-01,  3.6866e-01,  ..., -2.0038e-01,\n           -1.0953e+00, -7.2733e-01],\n          [ 9.6528e-01,  1.6515e+00,  1.3903e+00,  ...,  8.4783e-01,\n           -2.2744e-01,  7.4138e-01]],\n\n         [[-1.2656e+00,  1.9653e-02, -1.0469e+00,  ..., -3.8281e-01,\n           -2.7539e-01,  1.0625e+00],\n          [ 6.8884e-01,  2.5962e-01,  2.4037e-01,  ..., -1.5625e+00,\n           -1.8237e-01,  6.2437e-02],\n          [ 8.0505e-01,  5.2198e-03, -2.4241e-01,  ..., -3.3416e-01,\n           -8.6346e-01, -8.9497e-01],\n          ...,\n          [-6.9483e-02,  1.3788e-01, -4.5787e-01,  ...,  3.1880e-01,\n           -6.8194e-02, -5.0993e-01],\n          [-7.4596e-01,  2.0585e-01,  4.6365e-01,  ..., -1.0866e+00,\n            2.2897e+00,  5.1093e-01],\n          [ 3.3786e-01, -7.0955e-01,  2.0496e-01,  ..., -1.3934e+00,\n           -4.8119e-01, -1.8710e+00]]]]).dtype
+_ TestMixedPrecisionLayers.test_rope_preserves_input_dtype_and_caches_tables[dtype2] _
+tests/test_phase0_defects.py:71: in test_rope_preserves_input_dtype_and_caches_tables
+    assert hasattr(rope, "_cos_cached") and rope._cos_cached is not None
+E   AssertionError: assert (False)
+E    +  where False = hasattr(RoPE(), '_cos_cached')
+_ TestMixedPrecisionLayers.test_rope_dynamically_extends_cache_past_initial_max_seq_len _
+tests/test_phase0_defects.py:80: in test_rope_dynamically_extends_cache_past_initial_max_seq_len
+    assert q_rot.dtype == torch.float16
+E   assert torch.float32 == torch.float16
+E    +  where torch.float32 = tensor([[[[-0.4643,  0.4939, -0.3289, -0.5336, -0.9493, -0.0200, -0.9029,\n           -0.2268,  0.0204, -0.2538, -0.2528, -0.6309, -0.3823,  1.3104,\n            0.2486,  0.4597],\n          [ 0.6135, -0.7477, -0.7596,  0.3484,  0.8357, -0.3491, -0.4413,\n            2.4124,  0.0296,  0.6730, -0.7789,  0.0648, -0.8734,  0.6274,\n           -0.8118,  1.0224],\n          [-0.5527,  0.4980,  0.0521,  1.5416,  0.5009, -0.3957,  0.4479,\n           -0.1227,  0.1333, -0.4742, -0.2779, -1.9274, -1.5391, -0.1474,\n            1.2039,  0.2426],\n          [ 0.5578,  0.6097, -0.0703,  1.4840, -0.7689, -0.2878,  0.0153,\n            0.5397,  0.3172,  1.6736,  0.6041, -1.0834, -0.7906, -0.1476,\n            1.7316, -0.0486],\n          [-0.8430,  0.4159,  0.3167, -0.1284, -1.7535,  0.3341,  0.3513,\n           -1.1812, -1.7043, -0.8483, -0.5983,  1.4526, -0.6745,  0.6854,\n            0.7113, -1.7296],\n          [-1.1179, -0.8748, -2.7837, -0.3228,  0.2275, -0.2716, -1.0701,\n            0.9705,  0.6114, -1.3629,  0.0049,  0.6219, -1.1385, -1.5025,\n            0.4093,  0.2271],\n          [ 1.1243, -0.6645, -1.2927,  0.6697, -0.3605,  1.1597,  0.6172,\n           -0.6823,  0.5600,  1.3108, -0.5591,  1.1454, ....4012,  0.6251,  0.9945,\n            1.8976,  1.3336,  0.4473, -0.2762, -0.5938,  0.4938, -0.1312,\n           -0.6288,  0.9776],\n          [-0.5084, -0.6560, -0.6094, -1.4590, -1.3161, -0.5915, -1.5703,\n            0.0476, -0.8333,  1.0189,  1.6319, -0.9108, -0.9786,  0.4740,\n           -1.2804, -0.6532],\n          [-1.0171, -1.4214,  1.1882, -0.2113, -0.3728,  0.8717, -0.3749,\n           -0.7151,  0.9896, -1.3479, -0.8280,  1.1138,  0.4267, -1.9806,\n           -0.3872, -0.0793],\n          [ 1.6928, -0.7505,  0.7610,  0.1130,  0.8446, -0.7608, -1.4288,\n           -2.0928, -0.2079,  2.0695, -0.1408,  1.5569, -1.4818,  0.4886,\n            0.5649,  0.2655],\n          [-0.1847,  0.7108,  1.1449,  0.4539,  0.0446, -1.5007,  0.7355,\n            0.9313, -1.2768, -0.2552,  1.2146, -0.9111, -0.4150, -0.2764,\n           -0.2715,  0.9203],\n          [ 0.1770,  1.2426, -0.1052,  1.9264, -1.3511,  0.2638, -0.3957,\n            1.1400,  0.4414, -0.8920,  1.8336, -0.0399, -0.7279, -0.3006,\n            1.2309,  0.5773],\n          [ 1.2700,  0.0980, -0.3630, -0.4341,  1.2279, -0.6277, -0.2208,\n            0.5412,  1.9338,  0.8535,  2.4400,  1.5270, -1.1063, -0.6682,\n            0.8864, -0.9657]]]]).dtype
+E    +  and   torch.float16 = torch.float16
+_ TestMixedPrecisionLayers.test_rmsnorm_fp16_does_not_overflow_large_activations _
+tests/test_phase0_defects.py:90: in test_rmsnorm_fp16_does_not_overflow_large_activations
+    assert torch.allclose(out.float(), torch.ones_like(out, dtype=torch.float32), atol=1e-2)
+E   assert False
+E    +  where False = <built-in method allclose of type object at 0x7f4f8dc08da0>(tensor([[[0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         ...,\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.]],\n\n        [[0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         ...,\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.]]], grad_fn=<ToCopyBackward0>), tensor([[[1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         ...,\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.]],\n\n        [[1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         ...,\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.]]]), atol=0.01)
+E    +    where <built-in method allclose of type object at 0x7f4f8dc08da0> = torch.allclose
+E    +    and   tensor([[[0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         ...,\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.]],\n\n        [[0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         ...,\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.]]], grad_fn=<ToCopyBackward0>) = <built-in method float of Tensor object at 0x7f4f6d4c7f20>()
+E    +      where <built-in method float of Tensor object at 0x7f4f6d4c7f20> = tensor([[[0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         ...,\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.]],\n\n        [[0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         ...,\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.]]], dtype=torch.float16,\n       grad_fn=<DivBackward0>).float
+E    +    and   tensor([[[1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         ...,\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.]],\n\n        [[1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         ...,\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.],\n         [1., 1., 1.,  ..., 1., 1., 1.]]]) = <built-in method ones_like of type object at 0x7f4f8dc08da0>(tensor([[[0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         ...,\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.]],\n\n        [[0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         ...,\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.],\n         [0., 0., 0.,  ..., 0., 0., 0.]]], dtype=torch.float16,\n       grad_fn=<DivBackward0>), dtype=torch.float32)
+E    +      where <built-in method ones_like of type object at 0x7f4f8dc08da0> = torch.ones_like
+E    +      and   torch.float32 = torch.float32
+___ TestMixedPrecisionLayers.test_full_model_bf16_forward_backward_succeeds ____
+tests/test_phase0_defects.py:93: in test_full_model_bf16_forward_backward_succeeds
+    cfg = ModelConfig(
+E   TypeError: ModelConfig.__init__() got an unexpected keyword argument 'n_kv_heads'. Did you mean 'n_heads'?
+_ TestAttentionGQAAndSwiGLU.test_unmasked_attention_dispatches_sdpa_with_none_mask _
+tests/test_phase0_defects.py:136: in test_unmasked_attention_dispatches_sdpa_with_none_mask
+    assert captured["mask"] is None, "Unmasked full-sequence attention materialized a dense mask!"
+E   AssertionError: Unmasked full-sequence attention materialized a dense mask!
+E   assert tensor([[0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],\n        [0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],\n        [0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],\n        [0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],\n        [0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf],\n        [0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf],\n        [0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf],\n        [0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf],\n        [0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf],\n        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf],\n        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf],\n        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]]) is None
+__ TestAttentionGQAAndSwiGLU.test_gqa_kv_cache_matches_full_sequence_forward ___
+tests/test_phase0_defects.py:140: in test_gqa_kv_cache_matches_full_sequence_forward
+    cfg = ModelConfig(
+E   TypeError: ModelConfig.__init__() got an unexpected keyword argument 'n_kv_heads'. Did you mean 'n_heads'?
+___ TestAttentionGQAAndSwiGLU.test_use_swiglu_false_builds_standard_gelu_ffn ___
+tests/test_phase0_defects.py:176: in test_use_swiglu_false_builds_standard_gelu_ffn
+    assert not isinstance(m_gelu.blocks[0].ffn, SwiGLU)
+E   assert not True
+E    +  where True = isinstance(SwiGLU(\n  (W_1): Linear(in_features=32, out_features=128, bias=True)\n  (W_2): Linear(in_features=32, out_features=128, bias=True)\n  (W_3): Linear(in_features=128, out_features=32, bias=True)\n), SwiGLU)
+E    +    where SwiGLU(\n  (W_1): Linear(in_features=32, out_features=128, bias=True)\n  (W_2): Linear(in_features=32, out_features=128, bias=True)\n  (W_3): Linear(in_features=128, out_features=32, bias=True)\n) = TransformerBlock(\n  (norm1): RMSNorm()\n  (norm2): RMSNorm()\n  (attn): MultiHeadAttention(\n    (W_q): Linear(in_features=32, out_features=32, bias=True)\n    (W_k): Linear(in_features=32, out_features=32, bias=True)\n    (W_v): Linear(in_features=32, out_features=32, bias=True)\n    (W_o): Linear(in_features=32, out_features=32, bias=True)\n    (dropout): Dropout(p=0.0, inplace=False)\n    (rope): RoPE()\n  )\n  (ffn): SwiGLU(\n    (W_1): Linear(in_features=32, out_features=128, bias=True)\n    (W_2): Linear(in_features=32, out_features=128, bias=True)\n    (W_3): Linear(in_features=128, out_features=32, bias=True)\n  )\n  (dropout): Dropout(p=0.0, inplace=False)\n).ffn
+_ TestTrainingFixes.test_training_loop_excludes_1d_norms_and_biases_from_weight_decay _
+tests/test_phase0_defects.py:203: in test_training_loop_excludes_1d_norms_and_biases_from_weight_decay
+    assert len(groups) == 2, "Expected decay and no_decay parameter groups"
+E   AssertionError: Expected decay and no_decay parameter groups
+E   assert 1 == 2
+E    +  where 1 = len([{'amsgrad': False, 'betas': (0.9, 0.999), 'capturable': False, 'decoupled_weight_decay': True, ...}])
+_ TestTrainingFixes.test_training_loop_moves_model_to_device_before_ddp_wrapping _
+tests/test_phase0_defects.py:232: in test_training_loop_moves_model_to_device_before_ddp_wrapping
+    assert observed_devices == ["meta"], f"Model was wrapped before moving to target device: {observed_devices}"
+E   AssertionError: Model was wrapped before moving to target device: ['cpu']
+E   assert ['cpu'] == ['meta']
+E     
+E     At index 0 diff: 'cpu' != 'meta'
+E     
+E     Full diff:
+E       [
+E     -     'meta',
+E     +     'cpu',
+E       ]
+_ TestTrainingFixes.test_scheduler_clamps_cosine_decay_past_max_steps_and_honors_min_lr_ratio _
+tests/test_phase0_defects.py:237: in test_scheduler_clamps_cosine_decay_past_max_steps_and_honors_min_lr_ratio
+    sched = SchedulerLoader(opt, base_lr=1e-3, warmup_steps=10, max_steps=100, min_lr_ratio=0.1)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: SchedulerLoader.__init__() got an unexpected keyword argument 'min_lr_ratio'
+_ TestEvaluationFixes.test_accuracy_benchmarks_ignore_minus_100_padding_and_accept_3_tuple_batches _
+tests/test_phase0_defects.py:261: in test_accuracy_benchmarks_ignore_minus_100_padding_and_accept_3_tuple_batches
+    top1 = TextCompletionAccuracy().compute(model, loader)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/xrfm/evaluation/benchmarks.py:114: in compute
+    for batch_idx, (batch_input_ids, batch_target_ids) in enumerate(dataloader):
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ValueError: too many values to unpack (expected 2)
+____ TestEvaluationFixes.test_evaluation_moves_cpu_batches_to_model_device _____
+tests/test_phase0_defects.py:284: in test_evaluation_moves_cpu_batches_to_model_device
+    patch("xrfm.evaluation.perplexity._get_model_device", return_value=torch.device("meta")),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.13/unittest/mock.py:1503: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.13/unittest/mock.py:1473: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'xrfm.evaluation.perplexity' from '/home/user/xr-foundation-model/src/xrfm/evaluation/perplexity.py'> does not have the attribute '_get_model_device'
+____ TestEvaluationFixes.test_compute_bits_per_byte_multilingual_roundtrip _____
+tests/test_phase0_defects.py:299: in test_compute_bits_per_byte_multilingual_roundtrip
+    from xrfm.evaluation import compute_bits_per_byte
+E   ImportError: cannot import name 'compute_bits_per_byte' from 'xrfm.evaluation' (/home/user/xr-foundation-model/src/xrfm/evaluation/__init__.py)
+________ test_readme_quickstart_tiny_yaml_matches_pretrained_tokenizer _________
+tests/test_phase0_defects.py:323: in test_readme_quickstart_tiny_yaml_matches_pretrained_tokenizer
+    assert cfg.model.vocab_size == tok.vocab_size(), (
+E   AssertionError: config/tiny.yaml vocab_size (1024) != BPETokenizer.pretrained().vocab_size() (2048)
+E   assert 1024 == 2048
+E    +  where 1024 = ModelConfig(vocab_size=1024, d_model=64, n_layers=2, n_heads=4, d_ff=256, max_seq_len=128, dropout=0.1, use_rope=True, use_rmsnorm=True, use_swiglu=True, use_bias=True, pad_token_id=None).vocab_size
+E    +    where ModelConfig(vocab_size=1024, d_model=64, n_layers=2, n_heads=4, d_ff=256, max_seq_len=128, dropout=0.1, use_rope=True, use_rmsnorm=True, use_swiglu=True, use_bias=True, pad_token_id=None) = XRFMConfig(model=ModelConfig(vocab_size=1024, d_model=64, n_layers=2, n_heads=4, d_ff=256, max_seq_len=128, dropout=0.1, use_rope=True, use_rmsnorm=True, use_swiglu=True, use_bias=True, pad_token_id=None), training=TrainingConfig(batch_size=8, max_steps=200, warmup_steps=20, learning_rate=0.0006, weight_decay=0.1, gradient_clip=1.0, mixed_precision=False, precision='auto', max_optimizer_skips=10, checkpoint_every=50, resume_from=None, grad_accum_steps=1, use_ddp=False, use_fsdp=False, seed=42, error_if_nonfinite=False, ignore_index=-100, eval_every=0, num_workers=0, pin_memory=False, prefetch_factor=None, persistent_workers=False, device=None, deterministic=False), data=DatasetConfig(name='corpus', path='data/datasets/corpus.txt', max_seq_len=128, train_ratio=0.9, val_ratio=0.05, test_ratio=0.05, shuffle=True, seed=42, dedup=True), project='XR Foundation Model').model
+E    +  and   2048 = vocab_size()
+E    +    where vocab_size = BytePairEncoder(vocab_size=2048).vocab_size
+=========================== short test summary info ============================
+FAILED tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_rope_preserves_input_dtype_and_caches_tables[dtype0]
+FAILED tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_rope_preserves_input_dtype_and_caches_tables[dtype1]
+FAILED tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_rope_preserves_input_dtype_and_caches_tables[dtype2]
+FAILED tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_rope_dynamically_extends_cache_past_initial_max_seq_len
+FAILED tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_rmsnorm_fp16_does_not_overflow_large_activations
+FAILED tests/test_phase0_defects.py::TestMixedPrecisionLayers::test_full_model_bf16_forward_backward_succeeds
+FAILED tests/test_phase0_defects.py::TestAttentionGQAAndSwiGLU::test_unmasked_attention_dispatches_sdpa_with_none_mask
+FAILED tests/test_phase0_defects.py::TestAttentionGQAAndSwiGLU::test_gqa_kv_cache_matches_full_sequence_forward
+FAILED tests/test_phase0_defects.py::TestAttentionGQAAndSwiGLU::test_use_swiglu_false_builds_standard_gelu_ffn
+FAILED tests/test_phase0_defects.py::TestTrainingFixes::test_training_loop_excludes_1d_norms_and_biases_from_weight_decay
+FAILED tests/test_phase0_defects.py::TestTrainingFixes::test_training_loop_moves_model_to_device_before_ddp_wrapping
+FAILED tests/test_phase0_defects.py::TestTrainingFixes::test_scheduler_clamps_cosine_decay_past_max_steps_and_honors_min_lr_ratio
+FAILED tests/test_phase0_defects.py::TestEvaluationFixes::test_accuracy_benchmarks_ignore_minus_100_padding_and_accept_3_tuple_batches
+FAILED tests/test_phase0_defects.py::TestEvaluationFixes::test_evaluation_moves_cpu_batches_to_model_device
+FAILED tests/test_phase0_defects.py::TestEvaluationFixes::test_compute_bits_per_byte_multilingual_roundtrip
+FAILED tests/test_phase0_defects.py::test_readme_quickstart_tiny_yaml_matches_pretrained_tokenizer
+============================== 16 failed in 2.55s ==============================

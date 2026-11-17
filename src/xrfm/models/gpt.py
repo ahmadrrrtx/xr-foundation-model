@@ -111,6 +111,8 @@ class XRFMModel(nn.Module):
         self.weight_tied = weight_tied
         self.max_seq_len = model_cfg.max_seq_len
         self.dropout_p = model_cfg.dropout
+        self.gradient_checkpointing = bool(model_cfg.gradient_checkpointing)
+        self.check_input_bounds = bool(model_cfg.check_input_bounds)
         # bias=None -> read from config (model.use_bias); modern LLMs use False.
         if bias is None:
             bias = bool(model_cfg.use_bias)
@@ -135,14 +137,23 @@ class XRFMModel(nn.Module):
                     dropout=model_cfg.dropout,
                     use_rmsnorm=model_cfg.use_rmsnorm,
                     use_rope=model_cfg.use_rope,
+                    use_swiglu=model_cfg.use_swiglu,
                     bias=self.use_bias,
+                    n_kv_heads=model_cfg.n_kv_heads,
+                    max_seq_len=model_cfg.max_seq_len,
+                    rope_theta=model_cfg.rope_theta,
+                    norm_eps=model_cfg.norm_eps,
                 )
                 for _ in range(model_cfg.n_layers)
             ]
         )
 
         # Final norm
-        self.norm_final = RMSNorm(model_cfg.d_model) if model_cfg.use_rmsnorm else nn.LayerNorm(model_cfg.d_model)
+        self.norm_final: nn.Module = (
+            RMSNorm(model_cfg.d_model, eps=model_cfg.norm_eps)
+            if model_cfg.use_rmsnorm
+            else nn.LayerNorm(model_cfg.d_model, eps=model_cfg.norm_eps)
+        )
 
         # LM head (weight-tied with embedding by default)
         self.lm_head = nn.Linear(model_cfg.d_model, model_cfg.vocab_size, bias=False)
@@ -170,21 +181,37 @@ class XRFMModel(nn.Module):
         if input_ids.dim() == 1:
             input_ids = input_ids.unsqueeze(0)
 
-        # Check vocabulary bounds
-        if (input_ids >= self.embedding.vocab_size).any():
+        # Check vocabulary bounds (controllable via check_input_bounds=False
+        # in performance-critical CUDA loops where the dataloader/tokenizer
+        # already guarantees bounded token IDs, avoiding per-step host sync).
+        if self.check_input_bounds and ((input_ids < 0).any() or (input_ids >= self.embedding.vocab_size).any()):
             max_id = int(input_ids.max().item())
-            raise IndexError(f"Token ID {max_id} exceeds vocab size ({self.embedding.vocab_size})")
+            min_id = int(input_ids.min().item())
+            bound_id = min_id if min_id < 0 else max_id
+            raise IndexError(f"Token ID {bound_id} exceeds vocab size ({self.embedding.vocab_size})")
 
         batch_size, seq_len = input_ids.shape
 
         # Embedding
         x = self.embedding(input_ids)
 
-        # Pass through transformer blocks with KV cache
+        # Pass through transformer blocks with KV cache / optional activation checkpointing
+        use_ckpt = self.gradient_checkpointing and self.training and not use_cache
         present_key_values: list[tuple[torch.Tensor, torch.Tensor]] = []
         for i, block in enumerate(self.blocks):
             past_kv = past_key_values[i] if (past_key_values is not None and i < len(past_key_values)) else None
-            x, present_kv = block(x, mask=mask, past_kv=past_kv, use_cache=use_cache)
+            if use_ckpt and past_kv is None:
+                from torch.utils.checkpoint import checkpoint
+
+                x = checkpoint(
+                    lambda hidden, m, blk=block: blk(hidden, mask=m, past_kv=None, use_cache=False)[0],
+                    x,
+                    mask,
+                    use_reentrant=False,
+                )
+                present_kv = None
+            else:
+                x, present_kv = block(x, mask=mask, past_kv=past_kv, use_cache=use_cache)
             if use_cache and present_kv is not None:
                 present_key_values.append(present_kv)
 

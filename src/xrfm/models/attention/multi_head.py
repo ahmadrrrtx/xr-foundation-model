@@ -1,16 +1,21 @@
 """
-Multi-Head Attention for XRFM (v0.6.0).
+Multi-Head and Grouped-Query Attention (MHA / GQA) for XRFM (v0.6.0+).
 
-Manual multi-head self-attention with KV cache support for efficient
-autoregressive inference. Supports RoPE, masking, and dropout.
+Manual multi-head / grouped-query self-attention with KV cache support for
+efficient autoregressive inference. Supports RoPE, native ``is_causal=True``
+FlashAttention/MemEfficient SDPA when unmasked, explicit causal+padding mask
+composition when masked, and dropout.
 
 Conceptual references (not copied):
 - Vaswani et al. (2017) — Attention Is All You Need
+- Ainslie et al. (2023) — GQA: Training Generalized Multi-Query Transformer Models
 - Meta AI (2024) — Llama 3 attention + KV cache design
 - DeepSeek-AI (2024) — DeepSeek-V3 attention patterns
 
 Implementation is original.
 """
+
+from __future__ import annotations
 
 import math
 
@@ -21,16 +26,33 @@ import torch.nn.functional as F
 from xrfm.models.attention.rope import RoPE
 
 
-class MultiHeadAttention(nn.Module):
-    """Manual multi-head self-attention with KV cache support.
+def _repeat_kv(hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:
+    """Repeat KV heads to match Query heads for Grouped-Query Attention (GQA).
 
-    Splits input into heads, computes scaled dot-product attention,
-    and supports incremental generation via past_kv parameter.
+    Args:
+        hidden_states: ``(batch, n_kv_heads, seq, d_head)``.
+        n_rep: ``n_heads // n_kv_heads``.
+
+    Returns:
+        ``(batch, n_heads, seq, d_head)``.
+    """
+    if n_rep == 1:
+        return hidden_states
+    batch, n_kv_heads, slen, d_head = hidden_states.shape
+    return (
+        hidden_states[:, :, None, :, :]
+        .expand(batch, n_kv_heads, n_rep, slen, d_head)
+        .reshape(batch, n_kv_heads * n_rep, slen, d_head)
+    )
+
+
+class MultiHeadAttention(nn.Module):
+    """Multi-Head / Grouped-Query Self-Attention with KV cache support.
 
     Shape conventions:
         Input:  (batch, seq, d_model)
         Output: (batch, seq, d_model)
-        K/V:    (batch, n_heads, seq, d_head)
+        Cached K/V: (batch, n_kv_heads, seq, d_head)
     """
 
     def __init__(
@@ -40,6 +62,9 @@ class MultiHeadAttention(nn.Module):
         dropout: float = 0.1,
         use_rope: bool = True,
         bias: bool = True,
+        n_kv_heads: int | None = None,
+        max_seq_len: int = 2048,
+        rope_theta: float = 10000.0,
     ) -> None:
         super().__init__()
 
@@ -52,16 +77,23 @@ class MultiHeadAttention(nn.Module):
         if not (0.0 <= dropout < 1.0):
             raise ValueError(f"dropout must be in [0, 1), got {dropout}")
 
+        resolved_kv_heads = n_heads if n_kv_heads is None else n_kv_heads
+        if resolved_kv_heads <= 0 or resolved_kv_heads > n_heads or (n_heads % resolved_kv_heads != 0):
+            raise ValueError(f"n_kv_heads ({resolved_kv_heads}) must be positive and divide n_heads ({n_heads})")
+
         self.d_model = d_model
         self.n_heads = n_heads
+        self.n_kv_heads = resolved_kv_heads
+        self.n_rep = n_heads // resolved_kv_heads
         self.d_head = d_model // n_heads
+        self.kv_dim = self.n_kv_heads * self.d_head
         self.dropout_p = dropout
         self.use_rope = use_rope
 
-        # Q/K/V/O projections (bias configurable; modern LLMs use bias=False)
+        # Q/K/V/O projections (K/V project to n_kv_heads * d_head for GQA; equals d_model when MHA)
         self.W_q = nn.Linear(d_model, d_model, bias=bias)
-        self.W_k = nn.Linear(d_model, d_model, bias=bias)
-        self.W_v = nn.Linear(d_model, d_model, bias=bias)
+        self.W_k = nn.Linear(d_model, self.kv_dim, bias=bias)
+        self.W_v = nn.Linear(d_model, self.kv_dim, bias=bias)
         self.W_o = nn.Linear(d_model, d_model, bias=bias)
         self.bias = bias
         self.dropout = nn.Dropout(p=dropout)
@@ -69,7 +101,7 @@ class MultiHeadAttention(nn.Module):
         self._init_weights()
 
         # RoPE applied to Q/K after head splitting
-        self.rope = RoPE(d_model=d_model // n_heads) if use_rope else None
+        self.rope = RoPE(d_model=self.d_head, max_seq_len=max_seq_len, base=rope_theta) if use_rope else None
 
     def _init_weights(self) -> None:
         for layer in (self.W_q, self.W_k, self.W_v, self.W_o):
@@ -84,23 +116,7 @@ class MultiHeadAttention(nn.Module):
         past_kv: tuple[torch.Tensor, torch.Tensor] | None = None,
         use_cache: bool = False,
     ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor] | None]:
-        """Compute multi-head self-attention with optional KV cache.
-
-        When use_cache=True and past_kv is provided:
-            - Only the new token's K/V are computed
-            - They are concatenated with cached K/V from previous steps
-            - Q attends to the full (cached + new) K/V sequence
-
-        Args:
-            x: Input (batch, seq, d_model).
-            mask: Optional attention mask.
-            past_kv: Tuple of (K_cached, V_cached) from previous step, or None.
-            use_cache: Whether to return present KV for caching.
-
-        Returns:
-            (output, present_kv) where output is (batch, seq, d_model) and
-            present_kv is (K_full, V_full) or None if use_cache=False.
-        """
+        """Compute self-attention with optional KV cache and GQA."""
         if x.dim() != 3:
             raise ValueError(f"Expected 3D input (batch, seq, d_model), got {x.dim()}D")
         batch_size, seq_len, d_model_in = x.shape
@@ -112,18 +128,17 @@ class MultiHeadAttention(nn.Module):
         K = self.W_k(x)
         V = self.W_v(x)
 
-        # Split into heads: (batch, seq, d_model) -> (batch, n_heads, seq, d_head)
+        # Split into heads: Q -> (B, n_heads, seq, d_head), K/V -> (B, n_kv_heads, seq, d_head)
         Q = Q.view(batch_size, seq_len, self.n_heads, self.d_head).transpose(1, 2)
-        K = K.view(batch_size, seq_len, self.n_heads, self.d_head).transpose(1, 2)
-        V = V.view(batch_size, seq_len, self.n_heads, self.d_head).transpose(1, 2)
+        K = K.view(batch_size, seq_len, self.n_kv_heads, self.d_head).transpose(1, 2)
+        V = V.view(batch_size, seq_len, self.n_kv_heads, self.d_head).transpose(1, 2)
 
         # Apply RoPE before concatenating with cache.
-        # When using cache, positions are offset by cache length.
         cache_len = past_kv[0].shape[2] if (past_kv is not None and past_kv[0].numel() > 0) else 0
         if self.use_rope and self.rope is not None:
             Q, K = self.rope(Q, K, seq_len, offset=cache_len)
 
-        # Concatenate with cached K/V if provided
+        # Concatenate with cached K/V (stored compactly at n_kv_heads!)
         if past_kv is not None and past_kv[0].numel() > 0:
             K_cache, V_cache = past_kv
             K_full = torch.cat([K_cache, K], dim=2)
@@ -132,66 +147,79 @@ class MultiHeadAttention(nn.Module):
             K_full = K
             V_full = V
 
-        # Build present KV for caching
         present_kv: tuple[torch.Tensor, torch.Tensor] | None = None
         if use_cache:
             present_kv = (K_full, V_full)
 
-        # ------------------------------------------------------------------
-        # Attention mask contract: masks are 0/1 (1=attend), never a
-        # replacement for causality. 2-D masks are normally (B, kv) padding
-        # masks; (q, kv) is accepted when its first dimension is not B. 3-D
-        # masks are (B, q, kv), and 4-D masks broadcast to (B, H, q, kv).
-        # A document/custom 2-D mask with B == q must be passed as 4-D to
-        # remove that intentional ambiguity.
-        # ------------------------------------------------------------------
+        # Expand KV heads to match Q heads when n_kv_heads < n_heads (no-op for MHA)
+        K_attn = _repeat_kv(K_full, self.n_rep)
+        V_attn = _repeat_kv(V_full, self.n_rep)
+
         q_len = Q.shape[2]
-        kv_len = K_full.shape[2]
-        causal_mask = torch.triu(
-            torch.full((q_len, kv_len), float("-inf"), dtype=Q.dtype, device=Q.device),
-            diagonal=cache_len + 1,
-        )
-        additive_mask = causal_mask
-        if mask is not None:
-            if mask.dim() not in (2, 3, 4):
-                raise ValueError(f"Mask must have 2-4 dims, got {mask.dim()}")
-            if not bool(torch.all((mask == 0) | (mask == 1))):
-                raise ValueError("attention mask values must be 0 or 1 (1=attend)")
-            if mask.dim() == 2:
-                if mask.shape[0] == batch_size and mask.shape[1] == kv_len:
-                    mask = mask.unsqueeze(1).unsqueeze(2)  # (B,1,1,kv) padding
-                elif tuple(mask.shape) == (q_len, kv_len):
-                    mask = mask.unsqueeze(0).unsqueeze(0)  # (1,1,q,kv) custom
+        kv_len = K_attn.shape[2]
+
+        # ------------------------------------------------------------------
+        # Fast-path vs explicit-mask path:
+        # When `mask is None`:
+        #   - If `cache_len == 0` (standard full-sequence training/prefill,
+        #     `q_len == kv_len`), pass `sdpa_mask = None` so PyTorch SDPA
+        #     dispatches native `is_causal=True` FlashAttention-2 / MemEfficient
+        #     kernels with O(L) memory instead of materializing an O(L^2) tensor!
+        #   - If `cache_len > 0` and `q_len == 1` (single-token decode step),
+        #     the single query at `kv_len - 1` attends to all `0..kv_len - 1`
+        #     keys (`diagonal = cache_len + 1 = kv_len` masks nothing), so an
+        #     all-zero (1, kv_len) mask or `is_causal=False` is exact.
+        #   - Otherwise (chunked prefill with `cache_len > 0, q_len > 1` or
+        #     any explicit `mask`), build the exact causal + padding additive mask.
+        # ------------------------------------------------------------------
+        additive_mask: torch.Tensor | None
+        if mask is None and cache_len == 0:
+            additive_mask = None
+        else:
+            causal_mask = torch.triu(
+                torch.full((q_len, kv_len), float("-inf"), dtype=Q.dtype, device=Q.device),
+                diagonal=cache_len + 1,
+            )
+            additive_mask = causal_mask
+            if mask is not None:
+                if mask.dim() not in (2, 3, 4):
+                    raise ValueError(f"Mask must have 2-4 dims, got {mask.dim()}")
+                if not bool(torch.all((mask == 0) | (mask == 1))):
+                    raise ValueError("attention mask values must be 0 or 1 (1=attend)")
+                if mask.dim() == 2:
+                    if mask.shape[0] == batch_size and mask.shape[1] == kv_len:
+                        mask = mask.unsqueeze(1).unsqueeze(2)  # (B,1,1,kv) padding
+                    elif tuple(mask.shape) == (q_len, kv_len):
+                        mask = mask.unsqueeze(0).unsqueeze(0)  # (1,1,q,kv) custom
+                    else:
+                        raise ValueError(
+                            f"2-D mask must be (batch={batch_size}, kv={kv_len}) or (q={q_len}, kv={kv_len}); "
+                            f"got {tuple(mask.shape)}"
+                        )
+                elif mask.dim() == 3:
+                    if (
+                        mask.shape[0] not in (1, batch_size)
+                        or mask.shape[1] not in (1, q_len)
+                        or mask.shape[2] != kv_len
+                    ):
+                        raise ValueError(f"3-D mask must broadcast to (B,q,kv)=({batch_size},{q_len},{kv_len})")
+                    mask = mask.unsqueeze(1)  # (B,1,q,kv)
                 else:
-                    raise ValueError(
-                        f"2-D mask must be (batch={batch_size}, kv={kv_len}) or (q={q_len}, kv={kv_len}); "
-                        f"got {tuple(mask.shape)}"
-                    )
-            elif mask.dim() == 3:
-                if mask.shape[0] not in (1, batch_size) or mask.shape[1] not in (1, q_len) or mask.shape[2] != kv_len:
-                    raise ValueError(f"3-D mask must broadcast to (B,q,kv)=({batch_size},{q_len},{kv_len})")
-                mask = mask.unsqueeze(1)  # (B,1,q,kv)
-            else:
-                if mask.shape[-1] != kv_len or mask.shape[-2] not in (1, q_len):
-                    raise ValueError(f"4-D mask must end in (q,kv)=({q_len},{kv_len})")
-            mask = mask.to(device=Q.device, dtype=Q.dtype)
-            explicit_mask = torch.zeros_like(mask, dtype=Q.dtype).masked_fill(mask == 0, float("-inf"))
-            # Broadcasting here is deliberate: causal and padding/document
-            # restrictions must both remain in the final additive mask.
-            additive_mask = causal_mask + explicit_mask
+                    if mask.shape[-1] != kv_len or mask.shape[-2] not in (1, q_len):
+                        raise ValueError(f"4-D mask must end in (q,kv)=({q_len},{kv_len})")
+                mask = mask.to(device=Q.device, dtype=Q.dtype)
+                explicit_mask = torch.zeros_like(mask, dtype=Q.dtype).masked_fill(mask == 0, float("-inf"))
+                additive_mask = causal_mask + explicit_mask
 
         use_flash = False
-
-        # Optimized path (drop-in accelerator; correctness guaranteed by the
-        # additive mask above even if this path fails).
         try:
             from xrfm.optimization.flash_attention import flash_attention_forward
 
             use_dropout = self.dropout_p if self.training else 0.0
             out = flash_attention_forward(
                 Q,
-                K_full,
-                V_full,
+                K_attn,
+                V_attn,
                 mask=additive_mask,
                 dropout_p=use_dropout,
                 training=self.training,
@@ -201,9 +229,12 @@ class MultiHeadAttention(nn.Module):
             use_flash = False
 
         if not use_flash:
-            scores = torch.matmul(Q, K_full.transpose(-2, -1)) / math.sqrt(self.d_head)
-
-            # Broadcast additive mask to (B, H, q, kv) as needed.
+            scores = torch.matmul(Q, K_attn.transpose(-2, -1)) / math.sqrt(self.d_head)
+            if additive_mask is None:
+                additive_mask = torch.triu(
+                    torch.full((q_len, kv_len), float("-inf"), dtype=Q.dtype, device=Q.device),
+                    diagonal=cache_len + 1,
+                )
             if additive_mask.dim() == 2:
                 additive_mask = additive_mask.unsqueeze(0).unsqueeze(0)
             elif additive_mask.dim() == 3:
@@ -212,14 +243,10 @@ class MultiHeadAttention(nn.Module):
 
             attn_weights = F.softmax(scores, dim=-1)
             attn_weights = self.dropout(attn_weights)
-            out = torch.matmul(attn_weights, V_full)
+            out = torch.matmul(attn_weights, V_attn)
 
         # Concatenate heads: (batch, n_heads, seq, d_head) -> (batch, seq, d_model)
         out = out.transpose(1, 2).contiguous().view(batch_size, seq_len, -1)
         output = self.W_o(out)
 
         return output, present_kv
-
-
-# To use: replace the softmax+matmul block in forward() with:
-#

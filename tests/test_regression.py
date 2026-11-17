@@ -69,13 +69,14 @@ class TestNextTokenPrediction:
 class TestDatasetIntegration:
     """REGRESSION C-5: Training loop uses DataLoader, not random dummy data."""
 
-    def test_training_loop_uses_dataloader(self):
+    def test_training_loop_uses_dataloader(self, tmp_path):
         model = GPTModel()
         dataset = DummyRegressionDataset(vocab_size=100, seq_len=8, size=10)
         loop = TrainingLoop(
             config_path="config/config.yaml",
             model=model,
             dataset=dataset,
+            checkpoint_dir=str(tmp_path),
         )
         result = loop.training_loop(max_steps=3, checkpoint_every=100, log_interval=100)
         assert result["final_step"] == 3

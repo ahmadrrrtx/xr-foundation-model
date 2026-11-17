@@ -134,7 +134,7 @@ class TestTrainingLoopGradAccum:
             ids = torch.randint(0, self.vocab, (self.seq,))
             return ids[:-1], ids[1:]
 
-    def test_grad_accum_advances_step_correctly(self):
+    def test_grad_accum_advances_step_correctly(self, tmp_path):
         """With grad_accum_steps=2, step advances every 2 micro-batches."""
         from xrfm.training.loop import TrainingLoop
 
@@ -144,6 +144,7 @@ class TestTrainingLoopGradAccum:
             config_path="config/config.yaml",
             model=model,
             dataset=ds,
+            checkpoint_dir=str(tmp_path),
         )
         loop.grad_accum_steps = 2
         loop.max_steps = 4
