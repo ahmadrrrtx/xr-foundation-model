@@ -444,11 +444,14 @@ class TrainingLoop:
         try:
             self.mixed_precision_loader.unscale_(self.optimizer.optimizer)
             if self.gradient_clip > 0:
+                clip_err_nonfinite = (
+                    False if self.mixed_precision_loader.precision == "fp16" else self.error_if_nonfinite
+                )
                 torch.nn.utils.clip_grad_norm_(
                     raw.parameters(),
                     max_norm=self.gradient_clip,
                     norm_type=2.0,
-                    error_if_nonfinite=self.error_if_nonfinite,
+                    error_if_nonfinite=clip_err_nonfinite,
                 )
             ok = self.mixed_precision_loader.step(self.optimizer.optimizer)
             self.mixed_precision_loader.update()

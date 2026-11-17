@@ -401,15 +401,18 @@ def main() -> int:
     }
     generations: dict[str, str] = {}
     for k, prompt in sample_prompts.items():
-        res_gen = generate(
-            raw_trained_model,  # type: ignore[arg-type]
-            prompt,
-            tokenizer=tokenizer,
-            max_new_tokens=36,
-            temperature=0.7,
-            top_p=0.9,
-        )
-        generations[k] = prompt + res_gen.text
+        try:
+            res_gen = generate(
+                raw_trained_model,  # type: ignore[arg-type]
+                prompt,
+                tokenizer=tokenizer,
+                max_new_tokens=36,
+                temperature=0.7,
+                top_p=0.9,
+            )
+            generations[k] = prompt + res_gen.text
+        except Exception as exc:  # noqa: BLE001 - qualitative preview must never fail artifact save
+            generations[k] = f"{prompt} [generation_error: {exc}]"
 
     wall_sec = round(time.perf_counter() - t_start, 2)
     tokens_processed = (
