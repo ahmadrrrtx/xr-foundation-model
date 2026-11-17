@@ -353,25 +353,8 @@ def main() -> int:
     gate3_all_improved = all(bpb_final[dom] < bpb_step0[dom] for dom in bpb_final)
 
     raw_trained_model = get_raw_model(loop.model)
-    sample_prompts = {
-        "en": "In modern software security, input validation",
-        "ur": "اردو زبان اور مصنوعی ذہانت کے میدان میں",
-        "ur-Latn": "Python programming mein database ko mehfooz rakhne ke liye",
-        "code": "def calculate_checksum(data: bytes) -> str:\n",
-    }
-    generations: dict[str, str] = {}
-    for k, prompt in sample_prompts.items():
-        res_gen = generate(
-            raw_trained_model,  # type: ignore[arg-type]
-            prompt,
-            tokenizer=tokenizer,
-            max_new_tokens=36,
-            temperature=0.7,
-            top_p=0.9,
-        )
-        generations[k] = prompt + res_gen.text
 
-    # Export SafeTensors + Tokenizer + Config + Telemetry
+    # Export SafeTensors + Tokenizer + Config FIRST (before optional qualitative generation)
     st_path = os.path.join(args.output_dir, "model.safetensors")
     export_model_safetensors(
         raw_trained_model,
@@ -405,6 +388,24 @@ def main() -> int:
             cf,
             indent=2,
         )
+
+    sample_prompts = {
+        "en": "In modern software security, input validation",
+        "ur": "اردو زبان اور مصنوعی ذہانت کے میدان میں",
+        "ur-Latn": "Python programming mein database ko mehfooz rakhne ke liye",
+        "code": "def calculate_checksum(data: bytes) -> str:\n",
+    }
+    generations: dict[str, str] = {}
+    for k, prompt in sample_prompts.items():
+        res_gen = generate(
+            raw_trained_model,  # type: ignore[arg-type]
+            prompt,
+            tokenizer=tokenizer,
+            max_new_tokens=36,
+            temperature=0.7,
+            top_p=0.9,
+        )
+        generations[k] = prompt + res_gen.text
 
     wall_sec = round(time.perf_counter() - t_start, 2)
     tokens_processed = (

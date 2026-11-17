@@ -10,7 +10,9 @@ import torch
 
 from xrfm.config.loader import load_config
 from xrfm.config.schema import ModelConfig
+from xrfm.inference import generate
 from xrfm.models.gpt import XRFMModel
+from xrfm.tokenization.hf_bridge import HFTokenizerAdapter
 from xrfm.training.safetensors_io import export_model_safetensors, load_model_safetensors
 
 
@@ -68,3 +70,19 @@ class TestPhase3NativePresetsAndSafeTensors:
             out1, _ = m1(probe)
             out2, _ = m2(probe)
         assert torch.equal(out1, out2)
+
+    def test_generation_engine_relocates_prompt_to_model_device(self):
+        mcfg = ModelConfig(
+            vocab_size=32768,
+            d_model=64,
+            n_layers=2,
+            n_heads=4,
+            n_kv_heads=2,
+            d_ff=128,
+            max_seq_len=64,
+            dropout=0.0,
+        )
+        m = XRFMModel(mcfg)
+        tok = HFTokenizerAdapter.from_file("src/xrfm/tokenization/tokenizer_32k_multilingual.json")
+        res = generate(m, "اردو اور Python ٹیسٹ", tokenizer=tok, max_new_tokens=6, temperature=0.0)
+        assert len(res.token_ids) == 6

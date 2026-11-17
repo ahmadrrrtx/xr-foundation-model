@@ -366,7 +366,7 @@ def xrfm_collate_fn(
     padded_targets = [torch.nn.functional.pad(y, (0, max_target_len - y.size(0)), value=ignore_index) for y in targets]
     input_batch = torch.stack(padded_inputs, dim=0)
     target_batch = torch.stack(padded_targets, dim=0)
-    if not return_attention_mask:
+    if not return_attention_mask or all(x.size(0) == max_input_len for x in inputs):
         return input_batch, target_batch
     attention = torch.zeros((len(batch), max_input_len), dtype=torch.long)
     for row, example in enumerate(inputs):

@@ -98,6 +98,10 @@ class GenerationEngine:
         if input_ids.shape[1] == 0:
             raise ValueError("input_ids must contain at least one prompt token")
 
+        model_param = next(self.model.parameters(), None)
+        if model_param is not None and input_ids.device != model_param.device:
+            input_ids = input_ids.to(model_param.device)
+
         original_prompt_len = int(input_ids.shape[1])
         # Keep one context slot for generation. Otherwise a long prompt would
         # make the old API report a completion while slicing away every token.
