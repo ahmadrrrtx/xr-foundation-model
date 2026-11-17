@@ -26,7 +26,7 @@
 | **`GATE-0`** | Phase 0: Repo Truth Alignment & Core P0/P1 Fixes | **PASS** | All P0-01..P0-08 work units `DONE`; 560/560 tests (`464` core + `96` neurotopo) + `ruff`/`black`/`mypy`/`bandit`/`ci_smoke_test` 100% green; README quickstart works out-of-the-box | `docs/program/evidence/phase0_dual_track/` |
 | **`GATE-1`** | Phase 1: Shared Governance, 7-Lang LID & Frozen Eval | **PASS** | Enforced SPDX registry, 7-lang + `ur-Latn` LID `100%` (macro-F1 `1.000` $\ge 0.95$), Banded LSH, `L+1` causal shards, frozen eval & 100% synthetic leak catch; **574/574 tests pass** | `docs/program/evidence/phase1_dual_track/` |
 | **`GATE-2`** | Phase 2: Track A 32K Tokenizer Tournament & Shards | **PASS** | `T4` (`32,768` Script-Protected Byte-BPE) WON (`ur=0.702x, ar=1.103x, hi=1.047x`, `0.0%` fallback, `100%` lossless); `20.08M`-token `uint16` `L+1` shards published to `ahmadrrrtx/xrfm-native-shards-v1`; **579/579 tests pass** | `docs/program/evidence/phase2_dual_track/` |
-| **`GATE-3`** | Phase 3: Track A (`XRFM Native`) Pretraining | **READY** | Monotonic `BPB` decrease across all 7 langs + code on Kaggle `2× T4` | `GATE-2` satisfied |
+| **`GATE-3`** | Phase 3: Track A (`XRFM Native`) Pretraining | **IN_PROGRESS** | Monotonic `BPB` decrease across all 7 langs + code on Kaggle GPU + CUDA resume verification | `docs/program/evidence/phase3_dual_track/` |
 | **`GATE-4`** | Phase 4: Track B Base Bake-Off & 40K SFT Corpus | **READY** | `Qwen3-1.7B` vs `Qwen2.5-Coder-1.5B` baselines logged; 0%-contaminated AST/safety-verified SFT | `GATE-1` satisfied |
 | **`GATE-5`** | Phase 5: Track B (`XRFM CoderSec`) QLoRA & Ablations | **PENDING** | Beats unadapted base on Defensive Sec + Multilingual/Roman-Urdu with $<1.5\%$ code regression | Requires `GATE-4` |
 | **`GATE-6`** | Phase 6: Full Cross-Track Eval & Red-Teaming | **PENDING** | EvalPlus, CyberSecEval 2, Belebele, Roman-Urdu perturbation & over-refusal gates met | Requires `GATE-3`, `GATE-5` |
@@ -72,6 +72,17 @@
 | **`P2-03`** | **Stream Balanced 8-Domain Corpus & Execute 4-Way Tokenizer Tournament (`T1..T4`)** | `XRFM_IMPLEMENTATION_ROADMAP.md` §Phase 2 | `scripts/run_tokenizer_tournament.py`, `docs/experiments/tokenizer_tournament_v1.json`, `src/xrfm/tokenization/tokenizer_32k_multilingual.json` | **DONE** | Streamed `15,455` decontaminated docs (`24 MB` across 8 domains); `T1/T2` failed Hindi (`2.236x/2.152x`), `T4` (`32,768` Script-Protected Byte-BPE) WON (`ur=0.702x`, `ar=1.103x`, `hi=1.047x`, `0.0%` fallback, `100%` lossless) |
 | **`P2-04`** | **Build & Publish Decontaminated `L+1` Pretraining Shards to HF Hub** | `XRFM_IMPLEMENTATION_ROADMAP.md` §Phase 2.5 | `scripts/build_and_publish_native_shards.py`, `docs/experiments/native_shards_manifest_v1.json`, `src/xrfm/data/tokenized_dataset.py` | **DONE** | Published `xrfm-ds-1dcd55b6f903a728` (`20,080,975` tokens, `9,577` `2049`-len `uint16` seqs across 8 shards + per-lang validation sets) to `ahmadrrrtx/xrfm-native-shards-v1` (`commit=1652affc...`) |
 | **`P2-05`** | **Phase 2 Quality, Security & Pytest Gate (`GATE-2` Sign-Off & Push)** | All Phase 2 items | `docs/program/03_EXECUTION_LEDGER.md`, `docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md` | **DONE** | `ruff`, `ruff format`, `black`, `mypy` (112 files, 0 issues), `bandit`, and **579/579 pytest tests** (`483` core + `96` neurotopo) all pass (`docs/program/evidence/phase2_dual_track/`) |
+
+---
+
+## Phase 3 Work Units (`GATE-3` Detailed Checklist)
+
+| ID | Work Unit | Audit / Roadmap Requirement | Target Files | Status | Verification / Evidence |
+|---|---|---|---|---|---|
+| **`P3-01`** | **Track A Native Presets (`native-25m.yaml`, `native-85m.yaml`) & SafeTensors Export** | `XRFM_TARGET_ARCHITECTURE.md` §2.2 | `config/native-25m.yaml`, `config/native-85m.yaml`, `src/xrfm/training/safetensors_io.py`, `tests/test_phase3_native_configs.py` | **DONE** | Verified exact param budgets (`~24.8M` & `~84.5M`), GQA (`6/2` & `10/2`), `vocab_size=32768`, and lossless `safetensors` weight save/load with tied embeddings (`3/3` tests pass) |
+| **`P3-02`** | **Track A Native Pretraining, Per-Language `BPB` & CUDA Exact-Resume Runner** | `GATE-3`, `TRN-001..004` CUDA verification | `scripts/train_native_from_hub.py` | **IN_PROGRESS** | Downloads `ahmadrrrtx/xrfm-native-shards-v1`, verifies CUDA AMP + bit-exact checkpoint resume, trains `xrfm-native-25m` & `xrfm-native-85m`, logs per-language `BPB` (`en, ur, ur-Latn, ar, hi, es, fr, code`) |
+| **`P3-03`** | **Execute Track A Pretraining on Kaggle GPU & Publish `xrfm-native-25m` / `85m` to HF Hub** | `GATE-3` | `docs/experiments/track_a_native_training_v1.json`, `ahmadrrrtx/xrfm-native-25m` | **READY** | Zero NaN/Inf, monotonic validation `BPB` decrease on all 8 domains, CUDA resume equivalence verified, weights + telemetry published |
+| **`P3-04`** | **Phase 3 Quality, Verification & Ledger Gate (`GATE-3` Sign-Off & Push)** | All Phase 3 items | `docs/program/03_EXECUTION_LEDGER.md`, `docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md` | **READY** | All tests + linters green, GPU hours & artifacts logged, committed & pushed to `origin/main` |
 
 ---
 

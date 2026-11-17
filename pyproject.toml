@@ -19,6 +19,7 @@ dependencies = [
     "numpy>=1.24.0",
     "jsonschema>=4.18.0",
     "tokenizers>=0.15.0",
+    "safetensors>=0.4.0",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

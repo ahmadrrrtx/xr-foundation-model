@@ -1,0 +1,64 @@
+# XRFM-NATIVE-85M — Track A Flagship From-Scratch Multilingual + Code Preset (~84.5M tied params)
+# Vocabulary: T4 32,768 Script-Protected Byte-Level BPE (`tokenizer_32k_multilingual.json`)
+# Architecture: GQA (10 Q heads / 2 KV heads), Cached FP32-Safe RoPE, FP32-Safe RMSNorm, SwiGLU
+
+project:
+  name: "XRFM Native 85M Multilingual+Code"
+
+paths:
+  data_dir: "data/"
+  checkpoint_dir: "checkpoints/native-85m/"
+  tokenizer_path: "src/xrfm/tokenization/tokenizer_32k_multilingual.json"
+  log_dir: "logs/native-85m/"
+  manifest_dir: "data/manifests/"
+
+datasets:
+  name: "xrfm-native-shards-v1"
+  path: "ahmadrrrtx/xrfm-native-shards-v1"
+  train_ratio: 0.94
+  val_ratio: 0.03
+  test_ratio: 0.03
+  shuffle: true
+  seed: 42
+
+model:
+  vocab_size: 32768
+  d_model: 640
+  n_layers: 14
+  n_heads: 10
+  n_kv_heads: 2
+  d_ff: 1920
+  max_seq_len: 2048
+  dropout: 0.0
+  rope_theta: 100000.0
+  norm_eps: 0.000001
+  use_rope: true
+  use_rmsnorm: true
+  use_swiglu: true
+  gradient_checkpointing: true
+  check_input_bounds: false
+
+training:
+  batch_size: 4
+  grad_accum_steps: 8
+  max_steps: 5000
+  warmup_steps: 250
+  learning_rate: 0.0004
+  min_lr_ratio: 0.1
+  weight_decay: 0.1
+  gradient_clip: 1.0
+  mixed_precision: true
+  checkpoint_every: 500
+  resume_from: null
+  use_ddp: false
+  use_fsdp: false
+  seed: 42
+  error_if_nonfinite: true
+  ignore_index: -100
+  eval_every: 500
+  num_workers: 2
+  pin_memory: true
+  prefetch_factor: 2
+  persistent_workers: true
+  device: null
+  deterministic: false
