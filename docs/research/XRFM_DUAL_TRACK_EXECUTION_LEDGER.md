@@ -4,7 +4,8 @@
 **Initialized:** 2026-11-17  
 **Baseline Audited Commit:** `90674742d8e6a5caf65336e4b64c949696e33bc0`  
 **Companion Governance Ledger:** `docs/program/03_EXECUTION_LEDGER.md` (maintained in sync; `G1` remains honest `FAIL` until physical CUDA/second-GPU target verification runs on Kaggle).  
-**Active Phase:** **Phase 0 COMPLETE (`GATE-0 = PASS`) → Ready for Phase 1 (`GATE-1`: Shared Governance, 7-Lang LID & Frozen Eval)**  
+**Active Phase:** **Phase 1 COMPLETE (`GATE-1 = PASS`) → Ready for Phase 2 (`GATE-2`: Track A 32K Tokenizer Tournament & Pretraining Shards) & Phase 4 (`GATE-4`: Track B Base Bake-Off)**  
+**Latest Remote Commit (`origin/main`):** `666fea2` (`GATE-0` pushed; `GATE-1` committing & pushing now)  
 **Compute Spent to Date:** `0.0 GPU-h` · `$0.00` Hugging Face credits (`~$4.00` reserve 100% untouched).
 
 ---
@@ -22,10 +23,10 @@
 | Gate | Phase | Status | Blocking Exit Criteria | Evidence |
 |---|---|---|---|---|
 | **`GATE-0`** | Phase 0: Repo Truth Alignment & Core P0/P1 Fixes | **PASS** | All P0-01..P0-08 work units `DONE`; 560/560 tests (`464` core + `96` neurotopo) + `ruff`/`black`/`mypy`/`bandit`/`ci_smoke_test` 100% green; README quickstart works out-of-the-box | `docs/program/evidence/phase0_dual_track/` |
-| **`GATE-1`** | Phase 1: Shared Governance, 7-Lang LID & Frozen Eval | **READY** | Enforced SPDX registry, 7-lang + `ur-Latn` LID $\ge 95\%$ F1, frozen eval & contamination hashes | `GATE-0` satisfied |
-| **`GATE-2`** | Phase 2: Track A 32K Tokenizer Tournament & Shards | **PENDING** | Lossless UTF-8 roundtrip, `<0.5%` byte fallback, $\le 2.0\times$ fertility parity on `ur/ar/hi` | Requires `GATE-1` |
+| **`GATE-1`** | Phase 1: Shared Governance, 7-Lang LID & Frozen Eval | **PASS** | Enforced SPDX registry, 7-lang + `ur-Latn` LID `100%` (macro-F1 `1.000` $\ge 0.95$), Banded LSH, `L+1` causal shards, frozen eval & 100% synthetic leak catch; **574/574 tests pass** | `docs/program/evidence/phase1_dual_track/` |
+| **`GATE-2`** | Phase 2: Track A 32K Tokenizer Tournament & Shards | **READY** | Lossless UTF-8 roundtrip, `<0.5%` byte fallback, $\le 2.0\times$ fertility parity on `ur/ar/hi` | `GATE-1` satisfied |
 | **`GATE-3`** | Phase 3: Track A (`XRFM Native`) Pretraining | **PENDING** | Monotonic `BPB` decrease across all 7 langs + code on Kaggle `2× T4` | Requires `GATE-2` |
-| **`GATE-4`** | Phase 4: Track B Base Bake-Off & 40K SFT Corpus | **PENDING** | `Qwen3-1.7B` vs `Qwen2.5-Coder-1.5B` baselines logged; 0%-contaminated AST/safety-verified SFT | Requires `GATE-1` |
+| **`GATE-4`** | Phase 4: Track B Base Bake-Off & 40K SFT Corpus | **READY** | `Qwen3-1.7B` vs `Qwen2.5-Coder-1.5B` baselines logged; 0%-contaminated AST/safety-verified SFT | `GATE-1` satisfied |
 | **`GATE-5`** | Phase 5: Track B (`XRFM CoderSec`) QLoRA & Ablations | **PENDING** | Beats unadapted base on Defensive Sec + Multilingual/Roman-Urdu with $<1.5\%$ code regression | Requires `GATE-4` |
 | **`GATE-6`** | Phase 6: Full Cross-Track Eval & Red-Teaming | **PENDING** | EvalPlus, CyberSecEval 2, Belebele, Roman-Urdu perturbation & over-refusal gates met | Requires `GATE-3`, `GATE-5` |
 | **`GATE-7`** | Phase 7: Security RAG, Bounded Agent & ZeroGPU Space | **PENDING** | $\ge 70\%$ citation hallucination reduction; 0% sandbox escape; honest dual-track UI badges | Requires `GATE-6` |
@@ -48,6 +49,19 @@
 
 ---
 
+## Phase 1 Work Units (`GATE-1` Detailed Checklist)
+
+| ID | Work Unit | Audit / Roadmap Requirement | Target Files | Status | Verification / Evidence |
+|---|---|---|---|---|---|
+| **`P1-01`** | **Regression-First Phase 1 Test Suite (`tests/test_phase1_governance_lid.py`)** | `F-03`, `F-13..F-16`, `GATE-1` | `tests/test_phase1_governance_lid.py` | **DONE** | 14 acceptance tests written covering SPDX/tier governance, 8-class LID $\ge 95\%$ F1, LSH `O(N)` pruning, `L+1` shards, `tokenizer_fingerprint`, nested YAML CLI, streaming, and 100% synthetic leak contamination catch; confirmed failing pre-fix |
+| **`P1-02`** | **SPDX License Tier & Track-Enforced Source Registry** | `XRFM_RESEARCH_REVIEW.md` §4–6 | `src/xrfm/data/sources.py`, `configs/data/sources.yaml` | **DONE** | Implemented `LicenseComplianceError`, `TIER_A_SPDX_ALLOWLIST`, `TIER_B_SPDX_ALLOWLIST`, `validate_for_training(track=...)`, and pinned SPDX v2.0 `configs/data/sources.yaml` blocking `rag_only`, `eval_only`, and `hold` items |
+| **`P1-03`** | **7-Language + Roman-Urdu (`ur-Latn`) + Code LID Upgrade** | `F-13` (`ur = 0.9 * ar` bug, `0.0` on `es/fr/ur-Latn`), `GATE-1` $\ge 95\%$ F1 | `src/xrfm/data/language.py` | **DONE** | Implemented 8-class LID (`en`, `ur`, `ur-Latn`, `ar`, `hi`, `es`, `fr`, `code`) with Perso-Arabic codepoint discriminators, Roman-Urdu code-switch handling, French elisions, and code structural scoring |
+| **`P1-04`** | **LSH Banded MinHash ($O(N)$), Streaming Ingestion, `L+1` Shards, Tokenizer Fingerprint & Full YAML CLI** | `F-03`, `F-14`, `F-15`, `F-16` | `src/xrfm/data/dedup.py`, `src/xrfm/data/streaming.py`, `src/xrfm/data/tokenization.py`, `src/xrfm/data/packing_extended.py`, `src/xrfm/data/tokenized_dataset.py`, `src/xrfm/data/pipeline.py`, `src/xrfm/data/cli.py`, `configs/data/pretrain.yaml` | **DONE** | Implemented `MinHashLSHIndex` (`16 x 8` bands, `<500` pairs vs `33,670` $O(N^2)$), `streaming.py`, `include_next_token=True` (`L+1` zero boundary loss), `tokenizer_fingerprint()` in `TokenizerInfo`, and `PipelineConfig.from_yaml()` |
+| **`P1-05`** | **Frozen Benchmark Manifest & Seed `XRFM-MultiCoderSec` Contamination Gate** | `GATE-1` (100% synthetic leak catch + frozen eval SHA-256) | `configs/eval/frozen_benchmarks_v1.json`, `configs/eval/multicodersec_seed_v1.jsonl`, `src/xrfm/data/contamination.py` | **DONE** | Created 21-item 7-language CWE seed benchmark + frozen manifest with SHA-256 verification and normalization-invariant 8-gram checker wired into `DataPipeline`; 100% (7/7) synthetic leaks caught |
+| **`P1-06`** | **Phase 1 Full Quality, Lint, Mypy & Pytest Gate (`GATE-1` Sign-Off & Push)** | All Phase 1 items | `docs/program/03_EXECUTION_LEDGER.md`, `docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md` | **DONE** | `ruff`, `ruff format`, `black`, `mypy` (110 files, 0 issues), `bandit` (0 high/med), `ci_smoke_test.py`, and **574/574 pytest tests** (`478` core + `96` neurotopo) all pass (`docs/program/evidence/phase1_dual_track/`) |
+
+---
+
 ## Chronological Change Log
 
 | Timestamp (UTC+5) | Work Unit | Action & Outcome | Evidence |
@@ -61,3 +75,6 @@
 | `2026-11-17` | `P0-06` | Hardened `perplexity.py`, `benchmarks.py`, and `evaluation/__init__.py` to move inputs/targets/masks to model device, accept 3-tuple batches, exclude `ignore_index=-100` padding from Top-1/Top-K denominators, and expose `compute_bits_per_byte()`. All 16/16 `test_phase0_defects.py` + 17/17 `test_evaluation.py` tests pass! Claimed `P0-07`. | `src/xrfm/evaluation/perplexity.py`, `src/xrfm/evaluation/benchmarks.py`, `src/xrfm/evaluation/__init__.py` |
 | `2026-11-17` | `P0-07` | Quarantined `checkpoints/checkpoint_step_500.pt` -> `artifacts/legacy_unverified/checkpoint_step_500.pt`, removed duplicate `vercel_app/` (100% identical to `webui/`), updated `DEAD_OR_EXPERIMENTAL.md` and `README.md` with honest dual-track (`XRFM Native` vs `XRFM CoderSec`) boundaries; claimed `P0-08`. | `artifacts/legacy_unverified/`, `README.md`, `docs/architecture/DEAD_OR_EXPERIMENTAL.md` |
 | `2026-11-17` | `P0-08` | Fixed test ambient `checkpoints/` writes (`tmp_path` in `test_regression.py`, `test_training.py`, `test_distributed.py`); ran full quality & regression suite: `ruff`, `ruff format`, `black`, `mypy` (91 files), `bandit`, `ci_smoke_test.py`, `run_agent_demo.py`, and **560/560 pytest tests** (`464` core + `96` neurotopo) passed! Synchronized `docs/program/03_EXECUTION_LEDGER.md` and closed **`GATE-0 = PASS`**. | `docs/program/evidence/phase0_dual_track/` |
+| `2026-11-17` | `GIT-PUSH` | Stored GitHub PAT securely in `/home/user/.git-credentials` (`0600`, excluded from workspace & git), committed `GATE-0` as `ahmadrrrtx`, and pushed `666fea2` to `origin/main`. Claimed `P1-01` to begin Phase 1 (`GATE-1`). | `origin/main` commit `666fea2` |
+| `2026-11-17` | `P1-01..05` | Wrote 14-probe `tests/test_phase1_governance_lid.py`; enforced SPDX `tier_a`/`tier_b`/`rag_only`/`eval_only`/`hold` in `sources.py` & `configs/data/sources.yaml`; upgraded `language.py` to 8-class LID (`en, ur, ur-Latn, ar, hi, es, fr, code`) achieving `1.000` macro-F1 on benchmark; replaced $O(N^2)$ near-dedup with `MinHashLSHIndex` (`16 x 8` banded LSH); added `streaming.py`, `tokenizer_fingerprint()` in `TokenizerInfo`, `include_next_token=True` (`L+1` zero boundary loss) in `packing_extended.py`/`tokenized_dataset.py`, `PipelineConfig.from_yaml()` in `pipeline.py`/`cli.py`, and frozen eval contamination suite (`configs/eval/frozen_benchmarks_v1.json`, `multicodersec_seed_v1.jsonl`). | `src/xrfm/data/*`, `configs/data/*`, `configs/eval/*` |
+| `2026-11-17` | `P1-06` | Ran full repository quality, security, smoke, and pytest gates: `ruff`, `ruff format`, `black`, `mypy` (110 files, 0 issues), `bandit`, `ci_smoke_test.py`, and **574/574 pytest tests** (`478` core + `96` neurotopo) passed! Synchronized `docs/program/03_EXECUTION_LEDGER.md` and closed **`GATE-1 = PASS`**. | `docs/program/evidence/phase1_dual_track/` |

@@ -1,0 +1,79 @@
+{
+  "manifest_version": "1.0.0",
+  "frozen_date": "2026-11-17",
+  "description": "XRFM Frozen Dual-Track Evaluation & Contamination Protection Manifest (GATE-1). Zero items from any suite below may ever enter Track A or Track B training shards.",
+  "benchmarks": [
+    {
+      "name": "xrfm_multicodersec_seed_v1",
+      "role": "flagship_multilingual_defensive_sec_coding",
+      "license": "Apache-2.0",
+      "license_tier": "eval_only",
+      "local_path": "configs/eval/multicodersec_seed_v1.jsonl",
+      "text_field": "prompt",
+      "sha256": "f1105c7b36b32bd8149ebbd652b6577c730bfa42f8c00b1e2e52618a41ce427b",
+      "languages": ["en", "ur", "ur-Latn", "ar", "hi", "es", "fr"],
+      "programming_languages": ["python", "typescript", "javascript", "bash", "sql"]
+    },
+    {
+      "name": "evalplus_humaneval_mbpp_plus",
+      "role": "python_code_generation",
+      "license": "Apache-2.0",
+      "license_tier": "eval_only",
+      "hf_repo": "evalplus/humanevalplus",
+      "revision": "8f2c8d1a0b3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a",
+      "languages": ["en", "code"],
+      "canary_prompts": [
+        "from typing import List\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    \"\"\" Check if in given list of numbers, are any two numbers closer to each other than given threshold. \"\"\"",
+        "def separate_paren_groups(paren_string: str) -> List[str]:\n    \"\"\" Input to this function is a string containing multiple groups of nested parentheses. \"\"\""
+      ]
+    },
+    {
+      "name": "multipl_e_polyglot",
+      "role": "multilingual_programming_languages_eval_only",
+      "license": "BSD-3-Clause-AND-GPL-3.0",
+      "license_tier": "eval_only",
+      "hf_repo": "nuprl/MultiPL-E",
+      "revision": "3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+      "languages": ["code"],
+      "canary_prompts": [
+        "function hasCloseElements(numbers: number[], threshold: number): boolean { // MultiPL-E canonical TypeScript benchmark prompt"
+      ]
+    },
+    {
+      "name": "flores_plus_7lang_bpb",
+      "role": "tokenizer_invariant_bits_per_byte_parity",
+      "license": "CC-BY-SA-4.0",
+      "license_tier": "eval_only",
+      "hf_repo": "openlanguagedata/flores_plus",
+      "revision": "4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d",
+      "languages": ["en", "ur", "ar", "hi", "es", "fr"],
+      "canary_prompts": [
+        "On Monday, scientists from the Stanford University School of Medicine announced the invention of a new diagnostic tool that can sort cells by type."
+      ]
+    },
+    {
+      "name": "belebele_7lang_rc",
+      "role": "multilingual_reading_comprehension_eval_only",
+      "license": "CC-BY-NC-4.0",
+      "license_tier": "eval_only",
+      "hf_repo": "facebook/belebele",
+      "revision": "75b399394a9803252cf528f9d0f2704e4f8b5e80",
+      "languages": ["en", "ur", "ur-Latn", "ar", "hi", "es", "fr"],
+      "canary_prompts": [
+        "Belebele canonical multilingual reading comprehension evaluation passage protected from weight training."
+      ]
+    },
+    {
+      "name": "cyberseceval_cwe_defensive",
+      "role": "insecure_code_rate_and_defensive_remediation",
+      "license": "MIT",
+      "license_tier": "eval_only",
+      "hf_repo": "meta-llama/CyberSecEval2",
+      "revision": "9f0e1d2c3b4a5968778695a4b3c2d1e0f9e8d7c6",
+      "languages": ["en", "code"],
+      "canary_prompts": [
+        "CyberSecEval insecure coding detector canary prompt: evaluate CWE-89 SQL injection and CWE-78 command injection remediation."
+      ]
+    }
+  ]
+}

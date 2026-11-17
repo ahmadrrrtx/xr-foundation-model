@@ -109,14 +109,21 @@ class ShardedTokenDatasetMap(Dataset):
 
         local_idx = idx - self._offsets[shard_idx]
         arr = self._load_shard(shard_idx)
-        input_ids = arr[local_idx]  # shape (seq_len,)
+        row = np.asarray(arr[local_idx], dtype=np.int64)
 
-        # For training, input is input_ids, target is next token
-        # input_ids: [0..L-1], targets: [1..L-1, ignore_index]
-        # Convert to torch
-        input_tensor = torch.tensor(input_ids, dtype=torch.long)
-        target_list = list(input_ids[1:]) + [self.ignore_index]
-        target_tensor = torch.tensor(target_list, dtype=torch.long)
+        # Remediate F-16: if shard rows were packed with include_next_token=True (len == L + 1),
+        # slice lossless causal pairs x = row[:-1], y = row[1:] with zero Python list overhead!
+        if self.sequence_length > 0 and row.shape[0] == self.sequence_length + 1:
+            input_tensor = torch.from_numpy(row[:-1].copy())
+            target_tensor = torch.from_numpy(row[1:].copy())
+            return input_tensor, target_tensor
+
+        input_tensor = torch.from_numpy(row.copy())
+        target_np = np.empty_like(row)
+        if row.shape[0] > 1:
+            target_np[:-1] = row[1:]
+        target_np[-1] = self.ignore_index
+        target_tensor = torch.from_numpy(target_np)
 
         return input_tensor, target_tensor
 
@@ -231,8 +238,13 @@ class ShardedTokenDatasetIterable(IterableDataset):
                     break
             local_idx = global_idx - offsets[shard_idx]
             arr = load_shard(shard_idx)
-            input_ids = arr[local_idx]
-            input_tensor = torch.tensor(input_ids, dtype=torch.long)
-            target_list = list(input_ids[1:]) + [self.ignore_index]
-            target_tensor = torch.tensor(target_list, dtype=torch.long)
-            yield input_tensor, target_tensor
+            row = np.asarray(arr[local_idx], dtype=np.int64)
+            if self.sequence_length > 0 and row.shape[0] == self.sequence_length + 1:
+                yield torch.from_numpy(row[:-1].copy()), torch.from_numpy(row[1:].copy())
+            else:
+                input_tensor = torch.from_numpy(row.copy())
+                target_np = np.empty_like(row)
+                if row.shape[0] > 1:
+                    target_np[:-1] = row[1:]
+                target_np[-1] = self.ignore_index
+                yield input_tensor, torch.from_numpy(target_np)

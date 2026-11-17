@@ -81,23 +81,16 @@ def _load_documents_from_path(path: str) -> list[Document]:
 def cmd_build(args: argparse.Namespace) -> int:
     from xrfm.tokenization import BPETokenizer
 
-    # Load config if provided
+    # Load config if provided (`F-15`: hydrate all nested stage configs via PipelineConfig.from_yaml)
     config_path = args.config
     if config_path and os.path.isfile(config_path):
-        import yaml
-
-        with open(config_path, encoding="utf-8") as f:
-            cfg_dict = yaml.safe_load(f)
-        # Build PipelineConfig from dict (simplified)
-        pipeline_cfg = PipelineConfig(
-            dataset_name=cfg_dict.get("dataset_name", "xrfm-pretrain"),
-            dataset_version=cfg_dict.get("dataset_version", "0.1.0"),
-            output_dir=cfg_dict.get("output_dir", "processed/xrfm-pretrain"),
-            sequence_length=cfg_dict.get("sequence_length", 512),
-        )
+        pipeline_cfg = PipelineConfig.from_yaml(config_path)
         # Override from args if provided
         if args.output_dir:
             pipeline_cfg.output_dir = args.output_dir
+        if getattr(args, "sequence_length", None):
+            pipeline_cfg.sequence_length = args.sequence_length
+            pipeline_cfg.packing.sequence_length = args.sequence_length
     else:
         pipeline_cfg = PipelineConfig(
             dataset_name="xrfm-pretrain",

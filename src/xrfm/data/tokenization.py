@@ -15,17 +15,20 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from xrfm.data.schema import Document
+from xrfm.tokenization.interface import tokenizer_fingerprint
 
 
 def _hash_tokenizer_config(tokenizer) -> str:
-    """Hash tokenizer identity for reproducibility."""
-    # Try to get vocab or config
+    """Hash full tokenizer content fingerprint (`F-03`) for reproducibility."""
+    fp = tokenizer_fingerprint(tokenizer)
+    if fp is not None:
+        return fp.removeprefix("sha256:")[:16]
+
     try:
         vocab_size = tokenizer.vocab_size()
     except Exception:
         vocab_size = 0
 
-    # Try to get special tokens
     try:
         pad_id = getattr(tokenizer, "pad_token_id", None)
         eos_id = getattr(tokenizer, "eos_token_id", None)

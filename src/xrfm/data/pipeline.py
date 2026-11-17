@@ -36,7 +36,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from xrfm.data.contamination import ContaminationConfig, ContaminationRegistry
+from xrfm.data.contamination import (
+    ContaminationConfig,
+    ContaminationRegistry,
+    get_global_registry,
+    load_frozen_benchmarks_into_registry,
+)
 from xrfm.data.dedup import ExactDedupConfig, NearDedupConfig, deduplicate_documents
 from xrfm.data.document_split import SplitConfig, split_documents
 from xrfm.data.language import LanguageDetectorConfig, filter_by_language, get_detector
@@ -78,8 +83,76 @@ class PipelineConfig:
     # Whether to do near dedup (can be expensive)
     do_near_dedup: bool = True
     do_exact_dedup: bool = True
+    check_contamination: bool = True
+    contamination_manifest_path: str = "configs/eval/frozen_benchmarks_v1.json"
     # Sequence length
     sequence_length: int = 2048
+
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any]) -> PipelineConfig:
+        """Hydrate full nested PipelineConfig from a parsed YAML/JSON dictionary (`F-15`)."""
+
+        def _filter_fields(dc_cls: Any, data: dict[str, Any] | None) -> dict[str, Any]:
+            if not isinstance(data, dict):
+                return {}
+            valid = set(dc_cls.__dataclass_fields__.keys())
+            return {k: v for k, v in data.items() if k in valid}
+
+        seq_len = int(raw.get("sequence_length", 2048))
+
+        lang_cfg = LanguageDetectorConfig(**_filter_fields(LanguageDetectorConfig, raw.get("language")))
+        qual_cfg = QualityFilterConfig(**_filter_fields(QualityFilterConfig, raw.get("quality")))
+        pii_cfg = PIIFilterConfig(**_filter_fields(PIIFilterConfig, raw.get("pii")))
+        ex_cfg = ExactDedupConfig(**_filter_fields(ExactDedupConfig, raw.get("exact_dedup")))
+        nd_cfg = NearDedupConfig(**_filter_fields(NearDedupConfig, raw.get("near_dedup")))
+        split_cfg = SplitConfig(**_filter_fields(SplitConfig, raw.get("split")))
+        tok_cfg = TokenizationConfig(**_filter_fields(TokenizationConfig, raw.get("tokenization")))
+
+        pack_raw = dict(_filter_fields(PackingConfig, raw.get("packing")))
+        pack_raw.setdefault("sequence_length", seq_len)
+        pack_cfg = PackingConfig(**pack_raw)
+
+        shard_cfg = ShardingConfig(**_filter_fields(ShardingConfig, raw.get("sharding")))
+        contam_cfg = ContaminationConfig(**_filter_fields(ContaminationConfig, raw.get("contamination")))
+
+        mix_cfg: MixtureConfig | None = None
+        if isinstance(raw.get("mixture"), dict) and raw["mixture"].get("weights"):
+            mix_cfg = MixtureConfig.from_dict(
+                raw["mixture"]["weights"],
+                seed=int(raw["mixture"].get("seed", raw.get("seed", 42))),
+            )
+
+        return cls(
+            dataset_name=str(raw.get("dataset_name", "xrfm-pretrain")),
+            dataset_version=str(raw.get("dataset_version", "0.1.0")),
+            output_dir=str(raw.get("output_dir", "processed/xrfm-pretrain-v0.1")),
+            language=lang_cfg,
+            quality=qual_cfg,
+            pii=pii_cfg,
+            exact_dedup=ex_cfg,
+            near_dedup=nd_cfg,
+            split=split_cfg,
+            mixture=mix_cfg,
+            tokenization=tok_cfg,
+            packing=pack_cfg,
+            sharding=shard_cfg,
+            contamination=contam_cfg,
+            seed=int(raw.get("seed", 42)),
+            pipeline_version=str(raw.get("pipeline_version", "xrfm-pipeline-v2")),
+            do_near_dedup=bool(raw.get("do_near_dedup", nd_cfg.enabled)),
+            do_exact_dedup=bool(raw.get("do_exact_dedup", ex_cfg.enabled)),
+            check_contamination=bool(raw.get("check_contamination", True)),
+            contamination_manifest_path=str(raw.get("contamination_manifest_path", contam_cfg.manifest_path)),
+            sequence_length=seq_len,
+        )
+
+    @classmethod
+    def from_yaml(cls, path: str) -> PipelineConfig:
+        import yaml
+
+        with open(path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        return cls.from_dict(data)
 
     def to_dict(self) -> dict[str, Any]:
         from dataclasses import asdict
@@ -197,9 +270,16 @@ class DataPipeline:
         return unique, {"stats": stats, "details": details}
 
     def check_contamination(self, docs: list[Document]) -> tuple[list[Document], dict[str, Any]]:
-        # For Phase 1, we use empty protected registry unless populated
-        registry = ContaminationRegistry()
-        # In future, load protected datasets from config
+        if not self.config.check_contamination:
+            return docs, {"contaminated": []}
+
+        manifest_path = self.config.contamination_manifest_path or self.config.contamination.manifest_path
+        if manifest_path and os.path.isfile(manifest_path):
+            registry = ContaminationRegistry()
+            load_frozen_benchmarks_into_registry(registry, manifest_path=manifest_path)
+        else:
+            registry = get_global_registry(autoload_frozen=True)
+
         checker = registry.checker(self.config.contamination)
         clean, contaminated = checker.check_documents(docs)
         self._log(f"Contamination: {len(clean)}/{len(docs)} clean, {len(contaminated)} contaminated")
@@ -251,11 +331,14 @@ class DataPipeline:
         # Update sharding config output dir
         self.config.sharding.output_dir = str(self.tokens_dir)
         vocab_size = self.tokenizer.vocab_size() if self.tokenizer else 50304
+        row_seq_len = (
+            self.config.sequence_length + 1 if self.config.packing.include_next_token else self.config.sequence_length
+        )
         shard_infos = write_shards(
             packing_result.sequences,
             self.config.sharding,
             vocab_size=vocab_size,
-            sequence_length=self.config.sequence_length,
+            sequence_length=row_seq_len,
         )
         self._log(f"Sharding: {len(shard_infos)} shards written to {self.tokens_dir}")
         return shard_infos

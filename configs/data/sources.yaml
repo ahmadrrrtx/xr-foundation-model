@@ -1,169 +1,216 @@
-# XRFM Source Registry — authoritative description of training data sources
-# Phase 1: official development corpus is small, license-clean, reproducible
-# Large-scale sources are listed as candidates with clear licensing status
+# XRFM Dual-Track Governed Data Source Registry (v2.0)
+# Strictly aligned with docs/research/XRFM_RESEARCH_REVIEW.md (§4–6)
+#
+# License Tiers:
+#   - tier_a   : Commercial-permissive (Apache-2.0, MIT, BSD-2/3, CC0-1.0, PSF-2.0)
+#   - tier_b   : Permissive with attribution (ODC-By-1.0, CC-BY-4.0) -> NOTICE.md required
+#   - rag_only : Copyleft / ShareAlike (CC-BY-SA-4.0) -> isolated RAG vector index ONLY; ZERO weight training
+#   - eval_only: Non-commercial / benchmark suites -> evaluation & contamination gate ONLY; ZERO weight training
+#   - hold     : Quarantined / rejected sources (enabled: false)
+
+registry_version: "2.0"
 
 sources:
-  # --- Official development / golden sources (license-clean, tiny, redistributable) ---
-  - name: golden
-    uri: tests/data/golden/
-    type: jsonl
+  # ==========================================================================
+  # Local Deterministic Smoke & Golden Verification Corpus
+  # ==========================================================================
+  golden_test:
+    name: golden_test
+    type: web
+    uri: tests/data/golden/documents.jsonl
     license: MIT
     license_url: https://opensource.org/licenses/MIT
+    license_tier: tier_a
+    allowed_uses: [train_track_a, train_track_b]
+    version: v1.0
+    revision: local-golden-v1
     language: en
-    description: Tiny deterministic golden dataset for CI and pipeline testing
-    expected_size: 50KB
+    languages: [en]
     enabled: true
-    version: v0.1.0
-    snapshot_date: 2026-09-18
-    redistribution: allowed
-    citation: XRFM internal golden dataset
+    weight: 0.02
+    format: jsonl
+    text_field: text
+    attribution: "XRFM Project (MIT)"
 
-  - name: tiny_shakespeare
-    uri: data/datasets/sample.txt
-    type: text
-    license: MIT
-    license_url: https://opensource.org/licenses/MIT
+  # ==========================================================================
+  # Tier A & Tier B Pretraining / Continued-Pretraining Sources (Track A & B)
+  # ==========================================================================
+  fineweb_edu:
+    name: fineweb_edu
+    type: web
+    uri: hf://HuggingFaceFW/fineweb-edu
+    license: ODC-By-1.0
+    license_url: https://opendatacommons.org/licenses/by/1-0/
+    license_tier: tier_b
+    allowed_uses: [train_track_a, train_track_b]
+    version: v1.0.0
+    revision: 87f09149ef4734204d70ed1d046ddc9ca3f2b8f9
     language: en
-    description: Small public domain text sample for development
-    expected_size: 100KB
+    languages: [en]
     enabled: true
-    version: v1
-    redistribution: allowed
+    weight: 0.25
+    format: hf
+    text_field: text
+    attribution: "FineWeb-Edu by HuggingFaceFW (ODC-By-1.0)"
 
-  - name: python_stdlib_slice
-    uri: data/datasets/code_slice.py
+  fineweb2_multilingual:
+    name: fineweb2_multilingual
+    type: multilingual
+    uri: hf://HuggingFaceFW/fineweb-2
+    license: ODC-By-1.0
+    license_url: https://opendatacommons.org/licenses/by/1-0/
+    license_tier: tier_b
+    allowed_uses: [train_track_a, train_track_b]
+    version: v2.0.0
+    revision: d291829e6f847052f5b4a76177f62c0d3917f184
+    language: multi
+    languages: [ur, ar, hi, es, fr]
+    enabled: true
+    weight: 0.30
+    format: hf
+    text_field: text
+    attribution: "FineWeb-2 Multilingual by HuggingFaceFW (ODC-By-1.0)"
+
+  sangraha_verified_indic:
+    name: sangraha_verified_indic
+    type: multilingual
+    uri: hf://ai4bharat/sangraha
+    license: CC-BY-4.0
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    license_tier: tier_b
+    allowed_uses: [train_track_a, train_track_b]
+    version: verified-v1
+    revision: 5e921b81974f13f1c7a7c64d8f2822f4d19f231a
+    language: multi
+    languages: [ur, ur-Latn, hi]
+    enabled: true
+    weight: 0.13
+    format: hf
+    text_field: text
+    attribution: "Sangraha Verified by AI4Bharat (CC-BY-4.0)"
+
+  the_stack_v2_permissive:
+    name: the_stack_v2_permissive
     type: code
-    license: PSF-2.0
-    license_url: https://docs.python.org/3/license.html
-    language: en
-    description: Slice of Python stdlib for code testing
-    expected_size: 50KB
+    uri: hf://bigcode/the-stack-v2-dedup
+    license: Apache-2.0
+    license_url: https://www.apache.org/licenses/LICENSE-2.0
+    license_tier: tier_a
+    allowed_uses: [train_track_a, train_track_b]
+    version: v2-permissive
+    revision: 68f782542b3306d5eb91bf6a07b2ef26e0c9392a
+    language: code
+    languages: [code]
     enabled: true
-    version: v1
-    redistribution: allowed
+    weight: 0.22
+    format: hf
+    text_field: content
+    attribution: "The Stack v2 permissive subset (MIT/Apache-2.0/BSD only)"
+    metadata:
+      spdx_row_filter: [MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC]
 
-  # --- Candidate large sources (not yet included in official corpus) ---
-  # These are documented for future evaluation, not automatically ingested
+  nvd_cwe_capec_public_domain:
+    name: nvd_cwe_capec_public_domain
+    type: security
+    uri: hf://xrfm/nvd-cwe-capec-defensive-v1
+    license: CC0-1.0
+    license_url: https://creativecommons.org/publicdomain/zero/1.0/
+    license_tier: tier_a
+    allowed_uses: [train_track_a, train_track_b, rag_retrieval]
+    version: "2026.11"
+    revision: nvd-cwe-2026-11-cc0
+    language: en
+    languages: [en, code]
+    enabled: true
+    weight: 0.08
+    format: jsonl
+    text_field: text
+    attribution: "NIST NVD (US Public Domain / CC0-1.0) & MITRE CWE/CAPEC"
 
-  - name: wikipedia_en
-    uri: https://dumps.wikimedia.org/enwiki/latest/
-    type: wiki_dump
+  # ==========================================================================
+  # Isolated RAG-Only Knowledge Base (NEVER mixed into model weights)
+  # ==========================================================================
+  owasp_cheatsheets_rag_only:
+    name: owasp_cheatsheets_rag_only
+    type: security
+    uri: https://github.com/OWASP/CheatSheetSeries
     license: CC-BY-SA-4.0
     license_url: https://creativecommons.org/licenses/by-sa/4.0/
+    license_tier: rag_only
+    allowed_uses: [rag_retrieval]
+    version: v2026
+    revision: 9b2d3c4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c
     language: en
-    description: English Wikipedia dump, encyclopedic knowledge
-    expected_size: 20GB raw, ~5B tokens
-    enabled: false
-    version: 2026-09-01
-    snapshot_date: 2026-09-01
-    dataset_revision: latest
-    citation: Wikipedia contributors
-    redistribution: allowed
-    processing_complexity: medium
-    quality: high
-    known_limitations: Requires wikitext cleaning, template removal
+    languages: [en]
+    enabled: true
+    weight: 0.0
+    format: txt
+    attribution: "OWASP Cheat Sheet Series (CC-BY-SA-4.0 — RAG retrieval index only, zero weight training)"
 
-  - name: openwebtext
-    uri: https://huggingface.co/datasets/openwebtext
-    type: hf_dataset
-    license: unknown
-    license_url: ""
-    language: en
-    description: OpenWebText - open reproduction of WebText
-    expected_size: 40GB, ~10B tokens
-    enabled: false
-    version: v1
-    redistribution: recipe-only
-    processing_complexity: high
-    quality: medium
-    known_limitations: License unclear, needs careful provenance check
+  # ==========================================================================
+  # Frozen Evaluation-Only Suites (Strictly Protected by Contamination Gate)
+  # ==========================================================================
+  belebele_eval_only:
+    name: belebele_eval_only
+    type: eval
+    uri: hf://facebook/belebele
+    license: CC-BY-NC-4.0
+    license_url: https://creativecommons.org/licenses/by-nc/4.0/
+    license_tier: eval_only
+    allowed_uses: [evaluation]
+    version: v1.0
+    revision: 75b399394a9803252cf528f9d0f2704e4f8b5e80
+    language: multi
+    languages: [en, ur, ur-Latn, ar, hi, es, fr]
+    enabled: true
+    weight: 0.0
+    format: hf
 
-  - name: the_stack_python
-    uri: https://huggingface.co/datasets/bigcode/the-stack
-    type: hf_dataset
-    license: varies
-    license_url: https://huggingface.co/datasets/bigcode/the-stack
+  multipl_e_eval_only:
+    name: multipl_e_eval_only
+    type: eval
+    uri: hf://nuprl/MultiPL-E
+    license: BSD-3-Clause-AND-GPL-3.0
+    license_url: https://github.com/nuprl/MultiPL-E/blob/main/LICENSE
+    license_tier: eval_only
+    allowed_uses: [evaluation]
+    version: v0.4.0
+    revision: 3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b
     language: code
-    description: The Stack - code dataset with license filtering
-    expected_size: 100GB Python subset
-    enabled: false
-    version: v1.2
-    redistribution: allowed-if-license-permits
-    processing_complexity: medium
-    quality: high for code
-    known_limitations: License filtering required, per-file licenses
+    languages: [code]
+    enabled: true
+    weight: 0.0
+    format: hf
 
-  - name: fineweb_edu_sample
-    uri: https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu
-    type: hf_dataset
-    license: ODC-By-1.0
-    license_url: https://opendatacommons.org/licenses/by/1-0/
-    language: en
-    description: FineWeb-Edu - high-quality educational web text filtered from FineWeb
-    expected_size: 1.3T tokens full, 10B sample for XRFM
-    enabled: false
-    version: 2024-06
-    redistribution: allowed
-    processing_complexity: low (already cleaned)
-    quality: very high
-    known_limitations: Still web text, needs additional PII filtering
+  xrfm_multicodersec_eval_only:
+    name: xrfm_multicodersec_eval_only
+    type: eval
+    uri: configs/eval/multicodersec_seed_v1.jsonl
+    license: Apache-2.0
+    license_url: https://www.apache.org/licenses/LICENSE-2.0
+    license_tier: eval_only
+    allowed_uses: [evaluation]
+    version: v1.0.0
+    revision: local-seed-v1
+    language: multi
+    languages: [en, ur, ur-Latn, ar, hi, es, fr, code]
+    enabled: true
+    weight: 0.0
+    format: jsonl
 
-  - name: dolma_cc
-    uri: https://huggingface.co/datasets/allenai/dolma
-    type: hf_dataset
-    license: ODC-By-1.0
-    license_url: https://opendatacommons.org/licenses/by/1-0/
-    language: en
-    description: Dolma Common Crawl subset - diverse web content
-    expected_size: 3T tokens full
+  # ==========================================================================
+  # Quarantined / Rejected Hold List (Disabled — Documented for Governance Audit)
+  # ==========================================================================
+  qwen25_coder_3b_rejected:
+    name: qwen25_coder_3b_rejected
+    type: custom
+    uri: hf://Qwen/Qwen2.5-Coder-3B
+    license: Qwen-Research-License
+    license_tier: hold
+    allowed_uses: [hold]
+    version: rejected
+    revision: rejected-non-commercial-3b-trap
+    language: code
     enabled: false
-    version: v1_7
-    redistribution: allowed
-    processing_complexity: low
-    quality: high
-    known_limitations: Large, needs quality filtering
-
-  - name: gutenberg_books
-    uri: https://www.gutenberg.org/
-    type: text
-    license: Public Domain
-    license_url: https://www.gutenberg.org/policy/license.html
-    language: en
-    description: Project Gutenberg books, public domain
-    expected_size: 10GB, ~2B tokens
-    enabled: false
-    version: 2026
-    redistribution: allowed
-    processing_complexity: medium
-    quality: high
-    known_limitations: Older language, OCR errors in some books
-
-  - name: pes2o
-    uri: https://huggingface.co/datasets/allenai/peS2o
-    type: hf_dataset
-    license: ODC-By-1.0
-    license_url: https://opendatacommons.org/licenses/by/1-0/
-    language: en
-    description: Semantic Scholar academic papers
-    expected_size: 35B tokens
-    enabled: false
-    version: v2
-    redistribution: allowed
-    processing_complexity: medium
-    quality: high
-    known_limitations: Academic language, LaTeX artifacts
-
-  - name: multilingual_ur
-    uri: https://huggingface.co/datasets/urdu
-    type: hf_dataset
-    license: varies
-    license_url: ""
-    language: ur
-    description: Urdu text for multilingual capability
-    expected_size: 1GB
-    enabled: false
-    version: v1
-    redistribution: recipe-only
-    processing_complexity: high
-    quality: medium
-    known_limitations: Limited resources, needs language-specific filtering
+    weight: 0.0
+    attribution: "REJECTED per XRFM_RESEARCH_REVIEW.md §4 (Qwen Research non-commercial license; use Qwen2.5-Coder-1.5B Apache-2.0 instead)"

@@ -1,25 +1,30 @@
-# XRFM Pretraining Data Pipeline Config
-# Phase 1: development corpus, reproducible, small but complete pipeline
+# XRFM Pretraining Data Pipeline Config (v2.0 — Dual-Track 7-Language + Code)
+# Aligned with GATE-1 (SPDX governance, 7-lang + Roman-Urdu LID, Banded MinHash-LSH, L+1 lossless causal shards)
 
 dataset_name: xrfm-pretrain
-dataset_version: 0.1.0
-output_dir: processed/xrfm-pretrain-v0.1
-sequence_length: 512
+dataset_version: 2.0.0
+output_dir: processed/xrfm-pretrain-v2.0
+sequence_length: 2048
 seed: 42
-pipeline_version: xrfm-pipeline-v1
+pipeline_version: xrfm-pipeline-v2
 
-# Source registry
+# Governed SPDX Source Registry
 sources_registry: configs/data/sources.yaml
 
-# Language filtering
+# 8-Class Language Identification (7 target languages + source code)
 language:
-  default_language: en
-  threshold: 0.5
-  detector: heuristic
+  threshold: 0.35
+  fallback_language: unknown
+  trust_source_metadata_when_uncertain: false
   allowed_languages:
     - en
+    - ur
+    - ur-Latn
+    - ar
+    - hi
+    - es
+    - fr
     - code
-    - multilingual
 
 # Quality filtering
 quality:
@@ -33,7 +38,7 @@ quality:
   overall_threshold: 0.3
   allow_code: true
 
-# PII filtering
+# PII & secret heuristic filtering
 pii:
   remove_high_risk: true
   transform_medium_risk: false
@@ -43,35 +48,26 @@ pii:
   flag_sensitive_ids: true
   high_risk_if_secret: true
 
-# Deduplication
+# Deduplication (SHA-256 exact + Banded MinHash-LSH near dedup)
 exact_dedup:
-  algorithm: sha256
-  normalize_before_hash: true
-  keep_first: true
+  enabled: true
+  keep: first
 
 near_dedup:
-  algorithm: minhash
-  threshold: 0.8
+  enabled: true
+  threshold: 0.85
   num_perm: 128
+  num_bands: 16
   shingle_size: 5
-
-# Splitting
-split:
-  train_ratio: 0.9
-  val_ratio: 0.05
-  test_ratio: 0.05
   seed: 42
-  method: hash  # hash = deterministic by doc_id, stable across workers
 
-# Data mixing (example, not yet active for v0.1)
-# mixture:
-#   web: 0.45
-#   books: 0.15
-#   code: 0.15
-#   educational: 0.10
-#   wikipedia: 0.05
-#   science: 0.05
-#   multilingual: 0.05
+# Deterministic hash-based document splitting
+split:
+  train_ratio: 0.94
+  val_ratio: 0.03
+  test_ratio: 0.03
+  seed: 42
+  method: hash
 
 # Tokenization
 tokenization:
@@ -79,9 +75,10 @@ tokenization:
   add_bos: false
   max_length: null
 
-# Packing
+# Packing (include_next_token: true stores L+1 tokens per row so zero boundary targets are wasted)
 packing:
-  sequence_length: 512
+  sequence_length: 2048
+  include_next_token: true
   add_eos_between_docs: true
   allow_cross_document: true
   leftover_handling: drop
@@ -91,16 +88,19 @@ packing:
 sharding:
   num_shards: 8
   dtype: auto
-  output_dir: processed/xrfm-pretrain-v0.1/tokens
+  output_dir: processed/xrfm-pretrain-v2.0/tokens
   shard_prefix: shard
 
-# Contamination control
+# Frozen Evaluation Contamination Gate
 contamination:
-  ngram_size: 13
-  threshold: 0.8
+  ngram_size: 8
+  threshold: 0.5
   check_exact_hash: true
   check_ngram: true
+  manifest_path: configs/eval/frozen_benchmarks_v1.json
 
 # Pipeline options
 do_near_dedup: true
 do_exact_dedup: true
+check_contamination: true
+contamination_manifest_path: configs/eval/frozen_benchmarks_v1.json

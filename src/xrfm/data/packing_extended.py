@@ -29,6 +29,9 @@ class PackingConfig:
     sequence_length: int = 2048
     add_eos_between_docs: bool = True
     eos_token_id: int | None = None
+    # Remediate F-16: when True, each packed row has length (sequence_length + 1)
+    # with stride `sequence_length` so all `sequence_length` next-token targets are real tokens!
+    include_next_token: bool = False
     # If True, documents may cross sequence boundaries (efficient)
     # If False, each sequence contains at most one document (wasteful but preserves boundaries)
     allow_cross_document: bool = True
@@ -98,6 +101,7 @@ def pack_tokenized_documents(
 
     total_tokens = len(stream)
     seq_len = config.sequence_length
+    row_len = seq_len + 1 if config.include_next_token else seq_len
 
     sequences: list[PackedSequence] = []
     discarded = 0
@@ -105,11 +109,14 @@ def pack_tokenized_documents(
 
     # Chunk
     if config.allow_cross_document:
-        # Simple: split stream into chunks
-        num_full = total_tokens // seq_len
+        if config.include_next_token:
+            num_full = (total_tokens - 1) // seq_len if total_tokens >= row_len else 0
+        else:
+            num_full = total_tokens // seq_len
+
         for i in range(num_full):
             start = i * seq_len
-            end = start + seq_len
+            end = start + row_len
             chunk = stream[start:end]
             # Find doc boundaries within this chunk
             boundaries = []
@@ -120,14 +127,12 @@ def pack_tokenized_documents(
                     sources_in_chunk.append(src)
             sequences.append(PackedSequence(input_ids=chunk, doc_boundaries=boundaries, sources=sources_in_chunk))
 
-        leftover = total_tokens % seq_len
+        consumed = num_full * seq_len + (1 if (config.include_next_token and num_full > 0) else 0)
+        leftover = max(0, total_tokens - consumed)
         if leftover > 0:
             if config.leftover_handling == "keep":
-                # Keep as short sequence? But training expects fixed length, so we pad if needed?
-                # For keep, we produce a sequence with leftover tokens + padding
                 chunk = stream[num_full * seq_len :]
-                # Pad
-                pad_needed = seq_len - len(chunk)
+                pad_needed = row_len - len(chunk)
                 chunk_padded = chunk + [config.pad_token_id] * pad_needed
                 padded += pad_needed
                 boundaries = []
@@ -141,9 +146,8 @@ def pack_tokenized_documents(
                     PackedSequence(input_ids=chunk_padded, doc_boundaries=boundaries, sources=sources_in_chunk)
                 )
             elif config.leftover_handling == "pad":
-                # Same as keep, but always pad
                 chunk = stream[num_full * seq_len :]
-                pad_needed = seq_len - len(chunk)
+                pad_needed = row_len - len(chunk)
                 chunk_padded = chunk + [config.pad_token_id] * pad_needed
                 padded += pad_needed
                 sequences.append(PackedSequence(input_ids=chunk_padded, doc_boundaries=[], sources=[]))
@@ -151,18 +155,16 @@ def pack_tokenized_documents(
                 discarded = leftover
     else:
         # Preserve document boundaries: each sequence contains at most one doc, no cross-doc
-        # This is less efficient, but documents are kept separate
         for doc in tokenized_docs:
             tokens = doc.tokens
-            # If doc longer than seq_len, split it
             for start in range(0, len(tokens), seq_len):
-                chunk = tokens[start : start + seq_len]
-                if len(chunk) < seq_len:
+                chunk = tokens[start : start + row_len]
+                if len(chunk) < row_len:
                     if config.leftover_handling == "drop":
                         discarded += len(chunk)
                         continue
                     else:
-                        pad_needed = seq_len - len(chunk)
+                        pad_needed = row_len - len(chunk)
                         chunk = chunk + [config.pad_token_id] * pad_needed
                         padded += pad_needed
                 sequences.append(PackedSequence(input_ids=chunk, doc_boundaries=[0], sources=[doc.source]))
