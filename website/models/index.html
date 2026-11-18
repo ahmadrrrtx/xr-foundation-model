@@ -12,11 +12,12 @@
   <meta property="og:title" content="Models · XRFM">
   <meta property="og:description" content="Published XRFM Native 25M and 85M checkpoints, plus the publication status of the CoderSec track.">
   <meta property="og:url" content="https://ahmadrrrtx.github.io/xr-foundation-model/models/index.html">
-  <meta property="og:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <meta property="og:image" content="https://ahmadrrrtx.github.io/xr-foundation-model/assets/img/hero-neural-artifact.webp">
+  <meta name="theme-color" content="#050c16">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Models · XRFM">
   <meta name="twitter:description" content="Published XRFM Native 25M and 85M checkpoints, plus the publication status of the CoderSec track.">
-  <meta name="twitter:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <meta name="twitter:image" content="https://ahmadrrrtx.github.io/xr-foundation-model/assets/img/hero-neural-artifact.webp">
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
   <link rel="stylesheet" href="../assets/css/site.css">
   <script src="../assets/js/site.js" defer></script>
@@ -52,23 +53,37 @@
       <div class="container">
         <div class="kicker">Models</div>
         <h1>Published checkpoints and lineage</h1>
-        <p>Each model page states its architecture, training data, evaluation scope and exact publication status. Native and CoderSec models are independent and must not be treated as one architecture family.</p>
+        <p>Each model states its architecture, training data, evaluation scope and exact publication status. Native and CoderSec models are independent and must not be treated as one architecture family.</p>
       </div>
     </header>
     <section class="section">
       <div class="container">
-        <div class="table-wrap">
+        <div class="grid grid-3">
+          <article class="card artifact-card">
+            <img src="../assets/img/hero-neural-artifact.webp" alt="Glass transformer layers with glowing neural connections">
+            <div class="artifact-copy"><span class="tag">Track A</span><h3><a href="../models/native-25m.html">Native 25M</a></h3><p>25,200,000 parameters · random initialization · T4 32K BPE</p><a class="card-link" href="https://huggingface.co/ahmadrrrtx/xrfm-native-25m">Hugging Face →</a></div>
+          </article>
+          <article class="card artifact-card">
+            <img src="../assets/img/tokenizer-artifact.webp" alt="Abstract glass tokenizer shards">
+            <div class="artifact-copy"><span class="tag">Track A</span><h3><a href="../models/native-85m.html">Native 85M</a></h3><p>86,446,464 parameters · scaling probe · T4 32K BPE</p><a class="card-link" href="https://huggingface.co/ahmadrrrtx/xrfm-native-85m">Hugging Face →</a></div>
+          </article>
+          <article class="card artifact-card">
+            <img src="../assets/img/codersec-artifact.webp" alt="Crystalline security shield with glowing lock">
+            <div class="artifact-copy"><span class="tag amber">Track B</span><h3><a href="../models/codersec.html">CoderSec</a></h3><p>Qwen3-1.7B base · QLoRA · no public checkpoint</p><a class="card-link" href="../models/codersec.html">Publication status →</a></div>
+          </article>
+        </div>
+        <div class="table-wrap" style="margin-top:2rem">
           <table>
             <thead><tr><th>Model</th><th>Lineage</th><th>Parameters</th><th>Tokenizer</th><th>Status</th><th>Artifact</th></tr></thead>
             <tbody>
-              <tr><td><a href="/xr-foundation-model/models/native-25m.html">XRFM Native 25M</a></td><td>Original, random initialization</td><td class="num">25,200,000</td><td>T4 32K BPE</td><td>Published</td><td><a href="https://huggingface.co/ahmadrrrtx/xrfm-native-25m">Hugging Face</a></td></tr>
-              <tr><td><a href="/xr-foundation-model/models/native-85m.html">XRFM Native 85M</a></td><td>Original, random initialization</td><td class="num">86,446,464</td><td>T4 32K BPE</td><td>Published</td><td><a href="https://huggingface.co/ahmadrrrtx/xrfm-native-85m">Hugging Face</a></td></tr>
-              <tr><td><a href="/xr-foundation-model/models/codersec.html">XRFM CoderSec</a></td><td>Qwen3-1.7B base + QLoRA</td><td class="num">~1.7B base</td><td>Qwen tokenizer</td><td><strong>Not published</strong></td><td>See status page</td></tr>
+              <tr><td>XRFM Native 25M</td><td>Original, random initialization</td><td class="num">25,200,000</td><td>T4 32K BPE</td><td>Published</td><td><a href="https://huggingface.co/ahmadrrrtx/xrfm-native-25m">Hugging Face</a></td></tr>
+              <tr><td>XRFM Native 85M</td><td>Original, random initialization</td><td class="num">86,446,464</td><td>T4 32K BPE</td><td>Published</td><td><a href="https://huggingface.co/ahmadrrrtx/xrfm-native-85m">Hugging Face</a></td></tr>
+              <tr><td>XRFM CoderSec</td><td>Qwen3-1.7B base + QLoRA</td><td class="num">~1.7B base</td><td>Qwen tokenizer</td><td><strong>Not published</strong></td><td>See status page</td></tr>
             </tbody>
           </table>
         </div>
         <div class="grid grid-3" style="margin-top:2rem">
-          <article class="card"><h3>Native weights</h3><p>Released under Apache-2.0 metadata. Source code remains MIT-licensed; the weight license is artifact-specific.</p></article>
+          <article class="card"><h3>Native weights</h3><p>Released under Apache-2.0 metadata. Repository source remains MIT-licensed; the weight license is artifact-specific.</p></article>
           <article class="card"><h3>CoderSec attribution</h3><p>Base model <code>Qwen/Qwen3-1.7B</code> revision <code>70d244cc</code>, Apache-2.0. No adapter or merged weights are public.</p></article>
           <article class="card"><h3>No hidden lineage</h3><p>Native models loaded no third-party pretrained weights. CoderSec did, and says so on every public surface.</p></article>
         </div>

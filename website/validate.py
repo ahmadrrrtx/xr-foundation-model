@@ -27,10 +27,10 @@ def main() -> int:
                 key = 'name="twitter:card"'
             if key not in html:
                 errors.append(f"{rel}: missing meta {meta}")
-        for href in re.findall(r'href="([^"]+)"', html):
-            if href.startswith(("http://", "https://", "mailto:", "#")):
+        for attribute, value in re.findall(r'(href|src)="([^"]+)"', html):
+            if value.startswith(("http://", "https://", "mailto:", "#", "data:")):
                 continue
-            parsed = urlparse(href)
+            parsed = urlparse(value)
             path = unquote(parsed.path)
             if path.startswith(PREFIX):
                 path = path[len(PREFIX) :]
@@ -40,7 +40,7 @@ def main() -> int:
             if path.endswith("/"):
                 target = target / "index.html"
             if not target.exists():
-                errors.append(f"{rel}: broken internal link {href}")
+                errors.append(f"{rel}: broken internal {attribute} {value}")
         for bad in ("TODO", "Lorem ipsum", "PLACEHOLDER CONTENT"):
             if bad in html:
                 errors.append(f"{rel}: placeholder text '{bad}'")
