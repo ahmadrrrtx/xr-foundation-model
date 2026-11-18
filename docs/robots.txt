@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ahmadrrrtx.github.io/xr-foundation-model/sitemap.xml
