@@ -1,5 +1,1 @@
-"""XRFM experiment tracking package (Phase 40)."""
-
-from xrfm.experiment.tracking import ExperimentRecord, git_commit
-
-__all__ = ["ExperimentRecord", "git_commit"]
+"""Experiment card generation utilities for XRFM Phase 8 (GATE-8)."""

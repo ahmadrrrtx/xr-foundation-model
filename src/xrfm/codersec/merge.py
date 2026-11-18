@@ -88,7 +88,9 @@ def merge_and_publish(
     model = model.merge_and_unload()
 
     # Save to temporary directory.
-    output_dir = Path("/var/tmp/codersec_merged") / output_repo.split("/")[-1]  # nosec B108 — /var/tmp staging (not /tmp tmpfs)
+    output_dir = (
+        Path("/var/tmp/codersec_merged") / output_repo.split("/")[-1]
+    )  # nosec B108 — /var/tmp staging (not /tmp tmpfs)
     output_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(str(output_dir))
     tokenizer.save_pretrained(str(output_dir))

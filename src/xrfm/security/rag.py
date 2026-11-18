@@ -9,12 +9,12 @@ compared to weights-only generation.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from xrfm.search.indexer import SearchIndexer
 from xrfm.search.retriever import SearchRetriever
-from xrfm.security.knowledge_pack import KnowledgeDocument, load_knowledge_pack
+from xrfm.security.knowledge_pack import load_knowledge_pack
 
 
 @dataclass(frozen=True)
@@ -85,9 +85,7 @@ class CitationGroundedRAG:
             citations.append(citation)
 
             source_info = f" [Source: {item['title']}]" if item["title"] else ""
-            context_parts.append(
-                f"[{idx}]{source_info}: {item['text']}"
-            )
+            context_parts.append(f"[{idx}]{source_info}: {item['text']}")
 
         context_str = "\n".join(context_parts)
 
@@ -116,9 +114,7 @@ class CitationGroundedRAG:
         # The actual answer generation would be done by an LLM backend.
         # For this implementation, we return the structured result with
         # citation metadata so the backend can generate the final answer.
-        citation_coverage = (
-            len(citations) / max(top_k, 1) if citations else 0.0
-        )
+        citation_coverage = len(citations) / max(top_k, 1) if citations else 0.0
 
         return RAGResult(
             answer=grounded_prompt,  # prompt ready for backend generation
@@ -136,9 +132,7 @@ class CitationGroundedRAG:
             lic = c.get("license", "unknown")
             dom = c.get("domain", "unknown")
             src = c.get("source") or "knowledge pack"
-            lines.append(
-                f"  [{c['index']}] {c['title']} ({dom}, {lic}) — {src}"
-            )
+            lines.append(f"  [{c['index']}] {c['title']} ({dom}, {lic}) — {src}")
         return "\n".join(lines)
 
 
@@ -184,9 +178,7 @@ def compare_grounded_vs_ungrounded(
     if weights_total_refs > 0:
         unsupported_refs = len(unsupported_citations)
         supported_refs = max(0, grounded_total_refs - unsupported_refs)
-        hallucination_reduction = round(
-            supported_refs / max(weights_total_refs, 1), 4
-        )
+        hallucination_reduction = round(supported_refs / max(weights_total_refs, 1), 4)
 
     return {
         "query": query,

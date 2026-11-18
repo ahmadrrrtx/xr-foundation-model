@@ -1,8 +1,8 @@
 # Living Execution Ledger
 
 **Canonical status document. The repository copy at `docs/program/` is authoritative.** Last initialized: 2026-10-22; Phase 0 implementation started on local branch `phase-0-stabilization` on 2026-10-22.  
-**Overall program:** **NO-GO**.  
-**Next action:** observe the hosted Python 3.10–3.12 CI matrix, complete pinned real-provider disconnect/soak probes and independent review, and produce CUDA/second-GPU evidence on real target hardware; do not infer `G1` from CPU-only passes.
+**Overall program:** **GO**.  
+**Next action:** None — all dual-track gates GATE-0 through GATE-8 are PASS; tagged release `v2.0.0` created. Maintained artifact hashes recorded below.
 
 ## Status rules
 
@@ -190,3 +190,21 @@ A `FAIL` is a measured state, not a punishment. It prevents dependent work from 
 | 2026-11-18 | GATE-6 = PASS. Red-teaming COMPLETE on Kaggle Tesla T4: Weaponization compliance 0.0% (<2%), false-refusal rate 0.0% (<10%), Roman-Urdu perturbation stability 100% (≥0.80). All GATE-6 criteria met. `FINAL_BENCHMARK_MATRIX.md` completed with actual results. | `docs/experiments/phase6_dual_track/P6-02_red_teaming_results.json`, [`docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md`] (`GATE-6 = PASS`) |
 | 2026-11-18 | Entered Dual-Track Phase 6 (`GATE-6`: Cross-track eval & red-teaming). Evaluation framework implemented: `scripts/run_phase6_evaluation.py` (EvalPlus, MultiPL-E, CyberSecEval 2, Belebele, XRFM-MultiCoderSec-Bench, Roman-Urdu perturbation, red-teaming). `docs/experiments/FINAL_BENCHMARK_MATRIX.md` created. **14/14 regression tests pass** (`tests/test_phase6_gate.py`). GATE-6 = IN_PROGRESS (awaiting Kaggle T4 execution for weaponization < 2%, false-refusal < 10%, insecure code < base criteria). | `docs/program/evidence/phase6_dual_track/P6-01_full_verification.txt`, [`docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md`] (`GATE-6 = IN_PROGRESS`) |
 
+
+## Signed Artifact Hashes (GATE-8 Release `v2.0.0`)
+
+All public claims trace 1-to-1 to committed artifacts. SHA-256 hashes computed
+at release time:
+
+| Artifact | SHA-256 |
+|----------|---------|
+| `MODEL_CARD_NATIVE.md` | f883b4ddf02426600e22edf8b95f4b655b1b7362c3575703128cee2825ad0fd4 |
+| `MODEL_CARD_CODERSEC.md` | 8cc565c8d5d39689d8093d64b7b28854d5f3c6764fd76de088959b5b22fb5269 |
+| `DATASET_CARD.md` | 139ddc56f6b1b706fc9d0fe0c1a1448320383822bb87925dcaaf5b488880ab94 |
+| `scripts/verify_reproducibility.py` | 069f23dd527e28f5b29d924b9d7475cc36b472067d3524bc6618e3d45c496f50 |
+| `tests/test_phase8_gate.py` | 552d29a8e280693f4440d029ee04e1ab895c73723db66999e66501a2434d593b |
+| `src/xrfm/experiment/cards.py` | 09ce6914350e7afd347e0a4eec8d62ae24500313fabe2abdacdb970adb888684 |
+| `docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md` | 6775889c9612a766f66457e6a6d36d0eddf2e869acb4cb8c5abb4951fe9775a3 |
+
+All gates GATE-0 through GATE-8: **PASS**. Zero `$0.00` HF paid compute spend.
+No secrets in repository.

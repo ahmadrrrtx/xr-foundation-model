@@ -14,7 +14,6 @@ from typing import Any
 import torch
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from api.agent_config import validate_agent_configuration
 from api.state import APIState
@@ -190,8 +189,3 @@ app.include_router(tokenize_endpoints.router, tags=["Tokenize"])
 app.include_router(metrics.router, tags=["Metrics"])
 app.include_router(search.router, tags=["Search Engine"])
 app.include_router(agent.router, tags=["Agent Runtime"])
-
-try:
-    app.mount("/ui", StaticFiles(directory="webui", html=True), name="webui")
-except Exception:  # pragma: no cover - optional repository UI
-    pass

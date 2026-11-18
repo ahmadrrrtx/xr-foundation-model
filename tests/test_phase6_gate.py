@@ -51,9 +51,7 @@ class TestFrozenBenchmarksManifest:
             manifest = json.load(f)
 
         for b in manifest["benchmarks"]:
-            assert b["license_tier"] == "eval_only", (
-                f"Benchmark {b['name']} must be eval_only, got {b['license_tier']}"
-            )
+            assert b["license_tier"] == "eval_only", f"Benchmark {b['name']} must be eval_only, got {b['license_tier']}"
 
 
 class TestRedTeamTestStructures:

@@ -66,8 +66,8 @@ OWASP_SQL_INJECTION_PREVENTION = KnowledgeDocument(
         "1. **Use Prepared Statements (Parameterized Queries)**\n"
         "   Use parameterized queries with placeholders. Never concatenate user input "
         "into SQL strings.\n\n"
-        "   Bad: ``query = \"SELECT * FROM users WHERE id = \" + user_id``\n"
-        "   Good: ``cursor.execute(\"SELECT * FROM users WHERE id = ?\", (user_id,))``\n\n"
+        '   Bad: ``query = "SELECT * FROM users WHERE id = " + user_id``\n'
+        '   Good: ``cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))``\n\n'
         "2. **Use Stored Procedures**\n"
         "   Use stored procedures that parameterize input. Avoid dynamic SQL inside "
         "stored procedures.\n\n"

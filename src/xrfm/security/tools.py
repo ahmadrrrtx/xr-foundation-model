@@ -190,10 +190,7 @@ class SecurityAdvisorySearchTool:
 
         scored: list[tuple[AdvisoryRecord, float]] = []
         for record in self._records.values():
-            text = (
-                f"{record.title} {record.description} "
-                f"{' '.join(record.tags)} {' '.join(record.cwe_ids)}"
-            ).lower()
+            text = (f"{record.title} {record.description} {' '.join(record.tags)} {' '.join(record.cwe_ids)}").lower()
             record_tokens = set(re.findall(r"\w+", text))
             overlap = len(query_tokens & record_tokens)
             if overlap > 0:
@@ -202,10 +199,7 @@ class SecurityAdvisorySearchTool:
                     scored.append((record, score))
 
         scored.sort(key=lambda item: item[1], reverse=True)
-        results = [
-            {**record.to_dict(), "score": round(score, 4)}
-            for record, score in scored[:top_k]
-        ]
+        results = [{**record.to_dict(), "score": round(score, 4)} for record, score in scored[:top_k]]
         return {"results": results, "count": len(results)}
 
 

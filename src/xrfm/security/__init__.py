@@ -10,15 +10,15 @@ from xrfm.security.knowledge_pack import (
     KNOWLEDGE_DOCUMENTS,
     KnowledgeDocument,
     load_knowledge_pack,
-    search_by_tag,
     search_by_domain,
+    search_by_tag,
     search_text,
 )
 from xrfm.security.rag import CitationGroundedRAG, RAGResult, compare_grounded_vs_ungrounded
 from xrfm.security.tools import (
+    AdvisoryRecord,
     SecurityAdvisorySearchTool,
     StaticCodeAuditTool,
-    AdvisoryRecord,
     register_defensive_security_tools,
 )
 

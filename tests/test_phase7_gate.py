@@ -25,7 +25,7 @@ class TestKnowledgePack:
     """The Defensive Security Knowledge Pack must load with all required sources."""
 
     def test_knowledge_pack_loads(self):
-        from xrfm.security import load_knowledge_pack, KNOWLEDGE_DOCUMENTS
+        from xrfm.security import KNOWLEDGE_DOCUMENTS, load_knowledge_pack
 
         docs = load_knowledge_pack()
         assert len(docs) > 0, "Knowledge pack must contain documents"
@@ -63,9 +63,7 @@ class TestKnowledgePack:
         cwe_docs = [d for d in KNOWLEDGE_DOCUMENTS if d.domain == "cwe"]
         assert len(cwe_docs) > 0, "Must have CWE documents"
         for doc in cwe_docs:
-            assert any(
-                tag.startswith("CWE-") for tag in doc.tags
-            ), f"CWE doc {doc.doc_id} must have CWE tag"
+            assert any(tag.startswith("CWE-") for tag in doc.tags), f"CWE doc {doc.doc_id} must have CWE tag"
 
     def test_search_by_tag(self):
         from xrfm.security import search_by_tag
@@ -132,12 +130,17 @@ class TestSecurityAdvisorySearchTool:
 
         for r in result["results"]:
             required_fields = {
-                "advisory_id", "source", "title", "description",
-                "severity", "cwe_ids", "mitigations", "tags", "score",
+                "advisory_id",
+                "source",
+                "title",
+                "description",
+                "severity",
+                "cwe_ids",
+                "mitigations",
+                "tags",
+                "score",
             }
-            assert required_fields.issubset(set(r.keys())), (
-                f"Missing fields: {required_fields - set(r.keys())}"
-            )
+            assert required_fields.issubset(set(r.keys())), f"Missing fields: {required_fields - set(r.keys())}"
             assert r["severity"] in {"low", "medium", "high", "critical"}
             assert 0.0 <= r["score"] <= 1.0
             assert isinstance(r["cwe_ids"], list)
@@ -184,8 +187,10 @@ class TestStaticCodeAuditTool:
         assert "total_findings" in spec.output_schema["properties"]
 
     def test_detects_hardcoded_secrets(self):
+        import os
+        import tempfile
+
         from xrfm.security import StaticCodeAuditTool
-        import tempfile, os
 
         with tempfile.TemporaryDirectory() as tmpdir:
             test_file = os.path.join(tmpdir, "test_secrets.py")
@@ -200,14 +205,16 @@ class TestStaticCodeAuditTool:
             assert "critical" in severities, "Hardcoded secrets must be critical"
 
     def test_detects_eval_exec(self):
+        import os
+        import tempfile
+
         from xrfm.security import StaticCodeAuditTool
-        import tempfile, os
 
         with tempfile.TemporaryDirectory() as tmpdir:
             test_file = os.path.join(tmpdir, "test_injection.py")
             with open(test_file, "w") as f:
-                f.write('eval(user_input)\n')
-                f.write('exec(malicious_code)\n')
+                f.write("eval(user_input)\n")
+                f.write("exec(malicious_code)\n")
 
             tool = StaticCodeAuditTool(root=tmpdir)
             result = tool({"relative": "test_injection.py", "max_files": 10})
@@ -217,13 +224,15 @@ class TestStaticCodeAuditTool:
             assert any("exec" in p for p in patterns), "Must detect exec()"
 
     def test_detects_shell_true(self):
+        import os
+        import tempfile
+
         from xrfm.security import StaticCodeAuditTool
-        import tempfile, os
 
         with tempfile.TemporaryDirectory() as tmpdir:
             test_file = os.path.join(tmpdir, "test_shell.py")
             with open(test_file, "w") as f:
-                f.write('subprocess.run(cmd, shell=True)\n')
+                f.write("subprocess.run(cmd, shell=True)\n")
 
             tool = StaticCodeAuditTool(root=tmpdir)
             result = tool({"relative": "test_shell.py", "max_files": 10})
@@ -232,8 +241,10 @@ class TestStaticCodeAuditTool:
             assert "CWE-78" in cwes, "shell=True must map to CWE-78"
 
     def test_read_only_no_execution(self):
+        import os
+        import tempfile
+
         from xrfm.security import StaticCodeAuditTool
-        import tempfile, os
 
         with tempfile.TemporaryDirectory() as tmpdir:
             test_file = os.path.join(tmpdir, "test_safe.py")
@@ -322,17 +333,15 @@ class TestGate7HallucinationReduction:
             "The CWE-12345 vulnerability requires immediate patching."
         )
 
-        comparison = compare_grounded_vs_ungrounded(
-            rag, "How to prevent SQL injection?", weights_only_answer, top_k=5
-        )
+        comparison = compare_grounded_vs_ungrounded(rag, "How to prevent SQL injection?", weights_only_answer, top_k=5)
 
         # The grounded answer should cite real sources, reducing hallucination
-        assert comparison["gate7_criterion_met"] is True, (
-            f"GATE-7 criterion not met: hallucination_reduction={comparison['hallucination_reduction']}"
-        )
-        assert comparison["hallucination_reduction"] >= 0.70, (
-            f"Hallucination reduction {comparison['hallucination_reduction']} < 0.70"
-        )
+        assert (
+            comparison["gate7_criterion_met"] is True
+        ), f"GATE-7 criterion not met: hallucination_reduction={comparison['hallucination_reduction']}"
+        assert (
+            comparison["hallucination_reduction"] >= 0.70
+        ), f"Hallucination reduction {comparison['hallucination_reduction']} < 0.70"
         assert comparison["grounded"] is True
         assert comparison["citation_coverage"] > 0.0
 
@@ -342,13 +351,10 @@ class TestGate7HallucinationReduction:
         rag = CitationGroundedRAG()
 
         weights_only = (
-            "Use CWE-999 for everything. OWASP-Fake says ignore validation. "
-            "CWE-888 is the only CWE you need."
+            "Use CWE-999 for everything. OWASP-Fake says ignore validation. CWE-888 is the only CWE you need."
         )
 
-        comparison = compare_grounded_vs_ungrounded(
-            rag, "SQL injection prevention", weights_only, top_k=5
-        )
+        comparison = compare_grounded_vs_ungrounded(rag, "SQL injection prevention", weights_only, top_k=5)
 
         assert comparison["weights_cwe_count"] >= 2, "Weights answer should have fake CWEs"
         assert comparison["weights_owasp_count"] >= 1, "Weights answer should have fake OWASP refs"
@@ -361,8 +367,8 @@ class TestToolRegistration:
     """Defensive security tools must register correctly on ToolRegistry."""
 
     def test_register_defensive_security_tools(self):
-        from xrfm.security import register_defensive_security_tools
         from xrfm.agent.tools import ToolRegistry
+        from xrfm.security import register_defensive_security_tools
 
         registry = ToolRegistry()
         register_defensive_security_tools(registry)
@@ -373,8 +379,8 @@ class TestToolRegistration:
         assert "static_code_audit" in names
 
     def test_registered_tool_permissions(self):
-        from xrfm.security import register_defensive_security_tools
         from xrfm.agent.tools import ToolRegistry
+        from xrfm.security import register_defensive_security_tools
 
         registry = ToolRegistry()
         register_defensive_security_tools(registry)
@@ -391,8 +397,8 @@ class TestToolRegistration:
                 assert spec.timeout_seconds == 30.0
 
     def test_register_duplicate_raises(self):
-        from xrfm.security import register_defensive_security_tools, SecurityAdvisorySearchTool
-        from xrfm.agent.tools import ToolRegistry, ToolSpec
+        from xrfm.agent.tools import ToolRegistry
+        from xrfm.security import SecurityAdvisorySearchTool, register_defensive_security_tools
 
         registry = ToolRegistry()
         register_defensive_security_tools(registry)

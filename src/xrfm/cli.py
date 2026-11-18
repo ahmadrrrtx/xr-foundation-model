@@ -59,7 +59,7 @@ def _cmd_security(args: argparse.Namespace) -> int:
         return _cmd_security_scan(args)
     if args.security_command == "search":
         return _cmd_security_search(args)
-    parser.error(f"unknown security command: {args.security_command}")
+    # security_command is required=True, so argparse validates before this runs.
     return 2
 
 
@@ -72,8 +72,7 @@ def _cmd_security_scan(args: argparse.Namespace) -> int:
     print(f"Total findings: {result['total_findings']}")
     for finding in result["findings"]:
         print(
-            f"  {finding['file']}:{finding['line']} "
-            f"[{finding['severity']}] {finding['cwe']}: {finding['description']}"
+            f"  {finding['file']}:{finding['line']} [{finding['severity']}] {finding['cwe']}: {finding['description']}"
         )
     return 0
 
@@ -85,10 +84,7 @@ def _cmd_security_search(args: argparse.Namespace) -> int:
     result = tool({"query": args.query, "top_k": args.top_k})
     print(f"Results: {result['count']}")
     for r in result["results"]:
-        print(
-            f"  [{r['score']}] {r['advisory_id']} — {r['title']} "
-            f"({r['source']}, severity={r['severity']})"
-        )
+        print(f"  [{r['score']}] {r['advisory_id']} — {r['title']} ({r['source']}, severity={r['severity']})")
         print(f"    {r['description'][:200]}")
         if r["cwe_ids"]:
             print(f"    CWEs: {', '.join(r['cwe_ids'])}")
