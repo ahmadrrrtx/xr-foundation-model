@@ -1,0 +1,13 @@
+{
+  "id": "ahmadrrrtx/xrfm-codersec-phase-6-red-teaming-eval",
+  "title": "XRFM CoderSec Phase 6 Red-Teaming Eval",
+  "code_file": "kaggle_phase6_eval_kernel.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "model_sources": []
+}
