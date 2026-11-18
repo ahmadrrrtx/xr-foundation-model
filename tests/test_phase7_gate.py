@@ -336,12 +336,12 @@ class TestGate7HallucinationReduction:
         comparison = compare_grounded_vs_ungrounded(rag, "How to prevent SQL injection?", weights_only_answer, top_k=5)
 
         # The grounded answer should cite real sources, reducing hallucination
-        assert (
-            comparison["gate7_criterion_met"] is True
-        ), f"GATE-7 criterion not met: hallucination_reduction={comparison['hallucination_reduction']}"
-        assert (
-            comparison["hallucination_reduction"] >= 0.70
-        ), f"Hallucination reduction {comparison['hallucination_reduction']} < 0.70"
+        assert comparison["gate7_criterion_met"] is True, (
+            f"GATE-7 criterion not met: hallucination_reduction={comparison['hallucination_reduction']}"
+        )
+        assert comparison["hallucination_reduction"] >= 0.70, (
+            f"Hallucination reduction {comparison['hallucination_reduction']} < 0.70"
+        )
         assert comparison["grounded"] is True
         assert comparison["citation_coverage"] > 0.0
 

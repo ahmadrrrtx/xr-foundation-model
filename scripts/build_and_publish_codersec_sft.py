@@ -468,9 +468,7 @@ def main() -> None:
     # Publish to HF Hub.
     print("\\nPublishing to HF Hub ...")
     # Write records as JSONL for upload.
-    upload_dir = Path(
-        "/var/tmp/codersec_sft_upload"
-    )  # nosec B108 — /var/tmp is the designated staging area (not /tmp tmpfs)
+    upload_dir = Path("/var/tmp/codersec_sft_upload")  # nosec B108 — /var/tmp is the designated staging area (not /tmp tmpfs)
     upload_dir.mkdir(parents=True, exist_ok=True)
     jsonl_path = upload_dir / "data.jsonl"
     with open(jsonl_path, "w", encoding="utf-8") as f:

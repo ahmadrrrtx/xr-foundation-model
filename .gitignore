@@ -18,6 +18,11 @@ env/
 *.pt
 *.pth
 checkpoints/
+*/_adapter/
+*/_merged/
+kaggle_*_kernel.py
+kaggle_*_kernel_metadata.json
+kernel-metadata.json
 
 # IDE
 .vscode/

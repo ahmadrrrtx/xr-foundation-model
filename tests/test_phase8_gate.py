@@ -42,9 +42,9 @@ class TestModelCards:
     def test_cards_trace_to_artifacts(self):
         for card_name in ("MODEL_CARD_NATIVE.md", "MODEL_CARD_CODERSEC.md"):
             content = (REPO_ROOT / card_name).read_text(encoding="utf-8")
-            assert (
-                "docs/experiments/" in content or "artifact" in content.lower()
-            ), f"{card_name} must trace claims to committed artifacts"
+            assert "docs/experiments/" in content or "artifact" in content.lower(), (
+                f"{card_name} must trace claims to committed artifacts"
+            )
 
 
 class TestDatasetCard:

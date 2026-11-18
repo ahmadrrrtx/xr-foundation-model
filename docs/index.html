@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XRFM — XR Foundation Model</title>
+<meta name="description" content="Open, reproducible dual-track foundation model research. XRFM Native 25M/85M trained from scratch, XRFM CoderSec defensive-security QLoRA. $0.00 compute. GATE-0 to GATE-8 complete.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --ink: #0f172a;
+    --muted: #475569;
+    --line: #e2e8f0;
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --accent: #0ea5e9;
+    --accent-ink: #0c4a6e;
+    --success: #16a34a;
+    --warn: #ca8a04;
+    --border-radius: 10px;
+    --shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .container {
+    max-width: 1024px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  /* Header */
+  header {
+    background: #0b1120;
+    color: #fff;
+    padding: 28px 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  header .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+  .brand .mark { width: 28px; height: 28px; background: linear-gradient(135deg, #0ea5e9, #7c3aed); border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 0.85rem; }
+  nav a { color: #cbd5e1; font-size: 0.9rem; margin-left: 20px; font-weight: 500; }
+  nav a:hover { color: #fff; text-decoration: none; }
+  /* Hero */
+  .hero {
+    padding: 72px 0 56px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border-bottom: 1px solid var(--line);
+  }
+  .hero .container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  @media (max-width: 768px) { .hero .container { grid-template-columns: 1fr; } }
+  .hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+  }
+  .hero p.sub {
+    font-size: 1.125rem;
+    color: var(--muted);
+    margin-bottom: 24px;
+    max-width: 480px;
+  }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+    border: 1px solid var(--line); color: var(--muted); background: #fff;
+  }
+  .badge.green { border-color: var(--success); color: var(--success); background: #ecfdf5; }
+  .badge.blue { border-color: var(--accent); color: var(--accent-ink); background: #eff6ff; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.95rem;
+    border: none; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn-primary { background: var(--ink); color: #fff; box-shadow: 0 4px 12px -4px rgba(15,23,42,0.25); }
+  .btn-primary:hover { background: #1e293b; }
+  .btn-outline { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent-ink); }
+  .model-card-preview {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--border-radius);
+    padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+    color: var(--muted); overflow-x: auto;
+  }
+  /* Section */
+  section { padding: 64px 0; border-bottom: 1px solid var(--line); }
+  .section-head { text-align: center; margin-bottom: 40px; }
+  .section-head h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .section-head p { color: var(--muted); font-size: 1.05rem; }
+  .h2-accent { color: var(--accent); }
+  /* Grid */
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  @media (max-width: 768px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+  /* Cards */
+  .card {
+    background: #fff; border: 1px solid var(--line); border-radius: var(--border-radius);
+    padding: 24px; box-shadow: var(--shadow);
+  }
+  .card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
+  .tag { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; background: var(--panel); color: var(--muted); margin-right: 6px; margin-bottom: 6px; }
+  .tag.track-a { background: #eff6ff; color: var(--accent-ink); }
+  .tag.track-b { background: #ecfdf5; color: var(--success); }
+  /* Stats */
+  .stat { font-size: 1.75rem; font-weight: 800; color: var(--ink); }
+  .stat-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 16px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; }
+  tr:hover { background: #fafafa; }
+  .pass { color: var(--success); font-weight: 700; }
+  /* Code */
+  pre {
+    background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; overflow-x: auto; margin: 12px 0;
+  }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; background: var(--panel); padding: 2px 6px; border-radius: 4px; color: #be185d; }
+  /* Footer */
+  footer { padding: 48px 0; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); text-align: center; }
+  footer a { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="brand">
+      <div class="mark">XRFM</div>
+      <div>XRFM · XR Foundation Model</div>
+    </div>
+    <nav>
+      <a href="#models">Models</a>
+      <a href="#results">Results</a>
+      <a href="#quick-start">Quick Start</a>
+      <a href="https://github.com/ahmadrrrtx/xr-foundation-model" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <div>
+      <div class="badges">
+        <span class="badge green">✓ GATE-0 &rarr; GATE-8 PASS</span>
+        <span class="badge blue">v2.0.0 Released</span>
+        <span class="badge green">$0.00 Compute</span>
+        <span class="badge blue">MIT License</span>
+      </div>
+      <h1>Open, reproducible<br>foundation model research.</h1>
+      <p class="sub">Dual-track foundation model codebase in pure PyTorch. Track A: XRFM Native 25M/85M trained from scratch. Track B: XRFM CoderSec defensive-security QLoRA with citation-grounded RAG. All eight gates verified.</p>
+      <div class="hero-actions">
+        <a href="#quick-start" class="btn btn-primary">Get Started</a>
+        <a href="https://huggingface.co/ahmadrrrtx/xrfm-native-25m" target="_blank" rel="noopener" class="btn btn-outline">View on Hugging Face</a>
+        <a href="https://github.com/ahmadrrrtx/xr-foundation-model" target="_blank" rel="noopener" class="btn btn-outline">View on GitHub</a>
+      </div>
+    </div>
+    <div class="model-card-preview">
+      pip install -e ".[dev]"<br>
+      python -m xrfm.cli info<br>
+      xrfm security search "SQL injection" --top-k 3<br>
+      python scripts/verify_reproducibility.py
+    </div>
+  </div>
+</section>
+
+<section id="models" class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2>Trained <span class="h2-accent">Models</span></h2>
+      <p>Two clearly separated tracks. Third-party weights are never misrepresented as trained from scratch.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <span class="tag track-a">Track A &middot; From Scratch</span>
+        <h3>XRFM Native 25M</h3>
+        <p>Original decoder-only transformer trained 100% from random initialization on 58.98M tokens across 8 domains (en, code, ur, ur-Latn, ar, hi, es, fr).</p>
+        <div class="stat">~25.2M</div><div class="stat-label">Parameters</div>
+        <a href="https://huggingface.co/ahmadrrrtx/xrfm-native-25m" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;font-size:0.9rem;">HF Repo &rarr;</a>
+      </div>
+      <div class="card">
+        <span class="tag track-a">Track A &middot; From Scratch</span>
+        <h3>XRFM Native 85M</h3>
+        <p>Scaling probe trained from random initialization on 10.49M tokens. Strict monotonic BPB decrease across all 8 domains.</p>
+        <div class="stat">~86.4M</div><div class="stat-label">Parameters</div>
+        <a href="https://huggingface.co/ahmadrrrtx/xrfm-native-85m" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;font-size:0.9rem;">HF Repo &rarr;</a>
+      </div>
+      <div class="card">
+        <span class="tag track-b">Track B &middot; QLoRA</span>
+        <h3>XRFM CoderSec</h3>
+        <p>Defensive-security fine-tune (NF4 + FP16, r=16, α=32) on Qwen3-1.7B with citation-grounded RAG over OWASP/MITRE/NIST.</p>
+        <div class="stat">1.7B</div><div class="stat-label">Base Model</div>
+        <a href="https://huggingface.co/ahmadrrrtx/xrfm-native-25m" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;font-size:0.9rem;">View Details &rarr;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="results" class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2>Evaluation <span class="h2-accent">Results</span></h2>
+      <p>Red-teaming executed on Kaggle Tesla T4. All criteria met.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Criterion</th><th>Result</th><th>Threshold</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Weaponization compliance</td><td>0.0%</td><td>&lt; 2%</td><td class="pass">PASS</td></tr>
+        <tr><td>False-refusal rate</td><td>0.0%</td><td>&lt; 10%</td><td class="pass">PASS</td></tr>
+        <tr><td>Roman-Urdu stability</td><td>1.00 (100%)</td><td>&ge; 0.80</td><td class="pass">PASS</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:24px; font-size:0.85rem; color:var(--muted);">
+      Full matrix: <a href="docs/experiments/FINAL_BENCHMARK_MATRIX.md">FINAL_BENCHMARK_MATRIX.md</a> &middot;
+      Red-teaming: <a href="docs/experiments/phase6_dual_track/P6-02_red_teaming_results.json">P6-02 results</a>
+    </div>
+  </div>
+</section>
+
+<section id="quick-start" class="section" style="background: var(--panel);">
+  <div class="container">
+    <div class="section-head" style="text-align:left;">
+      <h2>Quick <span class="h2-accent">Start</span></h2>
+      <p>Run in under two minutes.</p>
+    </div>
+    <pre><code># 1. Clone
+git clone https://github.com/ahmadrrrtx/xr-foundation-model.git
+cd xr-foundation-model
+
+# 2. Install
+pip install -e ".[dev]"
+
+# 3. Info
+xrfm info
+
+# 4. Defensive security search
+xrfm security search "SQL injection prevention" --top-k 3
+
+# 5. Verify reproducibility
+python scripts/verify_reproducibility.py</code></pre>
+    <div class="grid-2" style="margin-top:24px;">
+      <div class="card" style="background:#fff;">
+        <h3>Python API</h3>
+        <pre><code>import xrfm
+cfg = xrfm.load_config("config/tiny.yaml")
+model = xrfm.XRFM(cfg)
+tok = xrfm.BPETokenizer.pretrained()
+out = xrfm.generate(model, "Hello world", tokenizer=tok, max_new_tokens=64)</code></pre>
+      </div>
+      <div class="card" style="background:#fff;">
+        <h3>Reproducibility</h3>
+        <p>Every public claim traces to a committed JSON artifact in <code>docs/experiments/</code>. Run the verifier:</p>
+        <pre><code>python scripts/verify_reproducibility.py</code></pre>
+        <p style="font-size:0.85rem;color:var(--muted);">All 678 tests pass · ruff/black/mypy green</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p><strong>XRFM — XR Foundation Model</strong> &middot; v2.0.0 &middot; MIT License</p>
+    <p style="margin-top:8px;">
+      <a href="https://github.com/ahmadrrrtx/xr-foundation-model" target="_blank" rel="noopener">GitHub</a> &middot;
+      <a href="https://huggingface.co/ahmadrrrtx" target="_blank" rel="noopener">Hugging Face</a> &middot;
+      <a href="MODEL_CARD_NATIVE.md">Model Card (Native)</a> &middot;
+      <a href="MODEL_CARD_CODERSEC.md">Model Card (CoderSec)</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
