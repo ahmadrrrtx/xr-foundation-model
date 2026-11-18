@@ -4,8 +4,8 @@
 **Initialized:** 2026-11-17  
 **Baseline Audited Commit:** `90674742d8e6a5caf65336e4b64c949696e33bc0`  
 **Companion Governance Ledger:** `docs/program/03_EXECUTION_LEDGER.md` (maintained in sync; `G1` remains honest `FAIL` until physical CUDA/second-GPU target verification runs on Kaggle).  
-**Active Phase:** **Phase 6 COMPLETE (`GATE-6 = PASS`) → Entering Phase 7 (`GATE-7`: Defensive Security RAG, Agent Tools, ZeroGPU Space)**  
-**Latest Remote Commit (`origin/main`):** `ceea39b` (`GATE-3` committing & pushing now)  
+**Active Phase:** **Phase 7 (`GATE-7`: Defensive Security RAG, Agent Tools, ZeroGPU Space) — IN_PROGRESS**  
+**Latest Remote Commit (`origin/main`):** `e2073fe` (`GATE-6 = PASS`, pushed)  
 **Published HF Artifacts:** [`ahmadrrrtx/xrfm-native-shards-v1`](https://huggingface.co/datasets/ahmadrrrtx/xrfm-native-shards-v1) (`commit=1652affc...`, `20,080,975` tokens), [`ahmadrrrtx/xrfm-native-25m`](https://huggingface.co/ahmadrrrtx/xrfm-native-25m) (`commit=3487b9c8...`, `25.2M` tied params, `58.98M` tokens trained), [`ahmadrrrtx/xrfm-native-85m`](https://huggingface.co/ahmadrrrtx/xrfm-native-85m) (`commit=dbe5f102...`, `86.4M` tied params, `10.49M` tokens scaling probe)  
 **Compute Spent to Date:** `~2.6 GPU-h` on Free Kaggle `2× Tesla T4` (`0.713 GPU-h` successful v4 run + debugging iterations) · `$0.00` Hugging Face credits (`~$4.00` reserve 100% untouched).
 
@@ -31,7 +31,7 @@
 | **`P4-01`** | **Regression-First Phase 4 ChatML, AST, Secret & Anti-Weaponization SFT Gate Tests** | **DONE** | `tests/test_phase4_sft_gate.py` (26 tests pass) + `src/xrfm/codersec/sft_validator.py` — ChatML schema, assistant-only target, AST code verification, PII/secret scan, 13-gram contamination == 0%, anti-weaponization | `docs/program/evidence/phase4_dual_track/P4-01_lint_type_sec.txt` |
 | **`GATE-5`** | Phase 5: Track B (`XRFM CoderSec`) QLoRA & Ablations | **PASS** | QLoRA stack implemented + all Kaggle T4 executions complete: Smoke B0 (20 steps), B1 (English-only), B2 (7-lang/Roman-Urdu), B3 (rank check), Flagship (2000 steps on 24K records). 12/12 regression tests pass. All quality gates green. | `docs/program/evidence/phase5_dual_track/` |
 | **`GATE-6`** | Phase 6: Full Cross-Track Eval & Red-Teaming | **PASS** | Weaponization compliance 0.0% (<2%), false-refusal 0.0% (<10%), Roman-Urdu stability 100% (≥0.80). All GATE-6 criteria met on Kaggle T4. `FINAL_BENCHMARK_MATRIX.md` completed. 14 regression tests pass. | `docs/program/evidence/phase6_dual_track/` |
-| **`GATE-7`** | Phase 7: Security RAG, Bounded Agent & ZeroGPU Space | **PENDING** | $\ge 70\%$ citation hallucination reduction; 0% sandbox escape; honest dual-track UI badges | Requires `GATE-6` |
+| **`GATE-7`** | Phase 7: Security RAG, Bounded Agent & ZeroGPU Space | **IN_PROGRESS** | $\ge 70\%$ citation hallucination reduction; 0% sandbox escape; honest dual-track UI badges | Requires `GATE-6` |
 | **`GATE-8`** | Phase 8: Reproducible Release & Technical Report | **PENDING** | Clean-clone reproduction script green; signed Model/Dataset Cards & SHAs | Requires `GATE-7` |
 
 ---
@@ -115,6 +115,18 @@
 
 ---
 
+## Phase 7 Work Units (`GATE-7` Detailed Checklist)
+
+| ID | Work Unit | Audit / Roadmap Requirement | Target Files | Status | Verification / Evidence |
+|---|---|---|---|---|---|
+| **`P7-01`** | **Defensive Security Knowledge Pack (OWASP ASVS, MITRE CWE/ATT&CK, NIST SP 800-218/800-61r3)** | `XRFM_IMPLEMENTATION_ROADMAP.md` §Phase 7 | `src/xrfm/security/knowledge_pack.py` | **DONE** | 11 knowledge documents across OWASP (3), CWE (3), ATT&CK (2), NIST (2), ASVS (1). SPDX licenses (CC-BY-SA-4.0, US-GOVERNMENT-WORK). Provenance metadata preserved. | `tests/test_phase7_gate.py` TestKnowledgePack |
+| **`P7-02`** | **Citation-Grounded RAG Pipeline** | `XRFM_IMPLEMENTATION_ROADMAP.md` §Phase 7 | `src/xrfm/security/rag.py` | **DONE** | `CitationGroundedRAG` integrates with `src/xrfm/search` indexer/retriever. Grounded answers with citations, citation coverage tracking. | `tests/test_phase7_gate.py` TestCitationGroundedRAG |
+| **`P7-03`** | **SecurityAdvisorySearchTool & StaticCodeAuditTool Agent Tools** | `XRFM_IMPLEMENTATION_ROADMAP.md` §Phase 7 | `src/xrfm/security/tools.py` | **DONE** | Read-only bounded agent tools registered on `ToolRegistry`. Advisory search (security.read) and static code audit (filesystem.read + security.read). No code execution. | `tests/test_phase7_gate.py` TestSecurityAdvisorySearchTool, TestStaticCodeAuditTool |
+| **`P7-04`** | **CLI `xrfm security` Subcommands** | `XRFM_IMPLEMENTATION_ROADMAP.md` §Phase 7 | `src/xrfm/cli.py` | **DONE** | `xrfm security scan` (static code audit) and `xrfm security search` (knowledge pack search) subcommands. | `tests/test_phase7_gate.py` TestCLISecuritySubcommands |
+| **`P7-05`** | **GATE-7 Regression Tests** | `XRFM_IMPLEMENTATION_ROADMAP.md` §Phase 7 | `tests/test_phase7_gate.py` | **DONE** | 33/33 tests pass: knowledge pack, advisory search, static audit, RAG, hallucination reduction ≥70%, tool registration, CLI. | `tests/test_phase7_gate.py` |
+
+---
+
 ## Chronological Change Log
 
 | Timestamp (UTC+5) | Work Unit | Action & Outcome | Evidence |
@@ -150,3 +162,9 @@
 | `2026-11-18` | `P6-05` / `GATE-6` | GATE-6 = PASS. All red-teaming criteria met: weaponization 0.0% (<2%), false-refusal 0.0% (<10%), Roman-Urdu stability 100% (≥0.80). All quality gates green. Ledgers synchronized. | `docs/experiments/FINAL_BENCHMARK_MATRIX.md` |
 | `2026-11-18` | `P6-01` / `GATE-6` | Phase 6 evaluation framework implemented: `scripts/run_phase6_evaluation.py` (EvalPlus, MultiPL-E, CyberSecEval 2, Belebele, XRFM-MultiCoderSec-Bench, Roman-Urdu perturbation, red-teaming). `docs/experiments/FINAL_BENCHMARK_MATRIX.md` created. **14/14 regression tests pass** (`tests/test_phase6_gate.py`). Full dual-track verification: 636+ pytest tests pass. Zero secrets in repo. | `docs/program/evidence/phase6_dual_track/P6-01_full_verification.txt` |
 
+
+| `2026-11-18` | `P7-01` / `GATE-7` | Defensive Security Knowledge Pack implemented: 11 attributed knowledge documents (OWASP cheat sheets CC-BY-SA-4.0, MITRE CWE/ATT&CK, NIST SP 800-218/800-61r3 US-GOVERNMENT-WORK, OWASP ASVS 5.0). SPDX licenses + provenance metadata on every document. Search by tag, domain, and text. | `src/xrfm/security/knowledge_pack.py`, `tests/test_phase7_gate.py` TestKnowledgePack |
+| `2026-11-18` | `P7-02` / `GATE-7` | Citation-Grounded RAG Pipeline implemented: `CitationGroundedRAG` integrates with `src/xrfm/search` indexer/retriever. Grounded answers with bracketed citations, citation coverage tracking, citation formatting. | `src/xrfm/security/rag.py`, `tests/test_phase7_gate.py` TestCitationGroundedRAG |
+| `2026-11-18` | `P7-03` / `GATE-7` | SecurityAdvisorySearchTool + StaticCodeAuditTool agent tools implemented: read-only bounded tools on `ToolRegistry` (security.read, filesystem.read). Advisory search returns CWE-mapped results with mitigations. Static audit detects hardcoded secrets, eval/exec, shell=True, pickle, weak random, disabled SSL. No code execution. | `src/xrfm/security/tools.py`, `tests/test_phase7_gate.py` TestSecurityAdvisorySearchTool, TestStaticCodeAuditTool |
+| `2026-11-18` | `P7-04` / `GATE-7` | CLI `xrfm security` subcommands implemented: `xrfm security scan <path>` (static code audit) and `xrfm security search <query>` (knowledge pack search). | `src/xrfm/cli.py`, `tests/test_phase7_gate.py` TestCLISecuritySubcommands |
+| `2026-11-18` | `P7-05` / `GATE-7` | GATE-7 regression tests: 33/33 pass covering knowledge pack, advisory search, static audit, RAG, hallucination reduction ≥70% criterion, tool registration, CLI subcommands. | `tests/test_phase7_gate.py` (33 passed) |

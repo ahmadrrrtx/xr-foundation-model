@@ -54,6 +54,47 @@ def _cmd_data(args: argparse.Namespace, rest: list[str]) -> int:
     return data_main(rest)
 
 
+def _cmd_security(args: argparse.Namespace) -> int:
+    if args.security_command == "scan":
+        return _cmd_security_scan(args)
+    if args.security_command == "search":
+        return _cmd_security_search(args)
+    parser.error(f"unknown security command: {args.security_command}")
+    return 2
+
+
+def _cmd_security_scan(args: argparse.Namespace) -> int:
+    from xrfm.security.tools import StaticCodeAuditTool
+
+    tool = StaticCodeAuditTool()
+    result = tool({"relative": args.relative, "max_files": args.max_files})
+    print(f"Files scanned: {result['files_scanned']}")
+    print(f"Total findings: {result['total_findings']}")
+    for finding in result["findings"]:
+        print(
+            f"  {finding['file']}:{finding['line']} "
+            f"[{finding['severity']}] {finding['cwe']}: {finding['description']}"
+        )
+    return 0
+
+
+def _cmd_security_search(args: argparse.Namespace) -> int:
+    from xrfm.security.tools import SecurityAdvisorySearchTool
+
+    tool = SecurityAdvisorySearchTool()
+    result = tool({"query": args.query, "top_k": args.top_k})
+    print(f"Results: {result['count']}")
+    for r in result["results"]:
+        print(
+            f"  [{r['score']}] {r['advisory_id']} — {r['title']} "
+            f"({r['source']}, severity={r['severity']})"
+        )
+        print(f"    {r['description'][:200]}")
+        if r["cwe_ids"]:
+            print(f"    CWEs: {', '.join(r['cwe_ids'])}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="xrfm", description="XR Foundation Model CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -66,6 +107,16 @@ def main(argv: list[str] | None = None) -> int:
     # Data pipeline CLI (Phase 1)
     data_parser = sub.add_parser("data", help="data pipeline commands")
     data_parser.add_argument("data_args", nargs=argparse.REMAINDER, help="args for data subcommand")
+
+    # Defensive security CLI (Phase 7)
+    sec_parser = sub.add_parser("security", help="defensive security commands")
+    sec_sub = sec_parser.add_subparsers(dest="security_command", required=True)
+    sec_scan = sec_sub.add_parser("scan", help="static code audit for insecure patterns")
+    sec_scan.add_argument("relative", help="relative path to file or directory under project root")
+    sec_scan.add_argument("--max-files", type=int, default=50, help="maximum files to scan")
+    sec_search = sec_sub.add_parser("search", help="search knowledge pack for advisories")
+    sec_search.add_argument("query", help="search query")
+    sec_search.add_argument("--top-k", type=int, default=5, help="maximum results")
 
     args, unknown = parser.parse_known_args(argv)
 
@@ -89,6 +140,8 @@ def main(argv: list[str] | None = None) -> int:
         if rest and rest[0] == "--":
             rest = rest[1:]
         return _cmd_data(args, rest)
+    if args.command == "security":
+        return _cmd_security(args)
 
     parser.error(f"unknown command: {args.command}")
     return 2  # unreachable
