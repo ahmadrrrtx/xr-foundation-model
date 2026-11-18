@@ -3,6 +3,8 @@ name: CD - Build and Push Docker Image
 on:
   push:
     tags: ["v*"]
+    # Temporary verification trigger; removed after the Docker build is checked.
+    branches: ["release/first-public-batch"]
   workflow_dispatch:
 
 env:
