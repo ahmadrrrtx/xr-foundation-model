@@ -1,0 +1,215 @@
+=== RUFF CHECK ===
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_phase5_qlora.py:14:1
+   |
+12 |   """
+13 |
+14 | / from __future__ import annotations
+15 | |
+16 | | import json
+17 | | import os
+18 | | import tempfile
+19 | | from pathlib import Path
+20 | | from unittest.mock import MagicMock, patch
+21 | |
+22 | | import pytest
+23 | | import torch
+24 | |
+25 | | from xrfm.codersec.config import CoderSecConfig
+26 | | from xrfm.codersec.dataset import CoderSecSFTDataset, get_tokenizer
+   | |___________________________________________________________________^
+help: Organize imports
+   |
+27 |
+   -
+28 | # ---------------------------------------------------------------------------
+   |
+
+F401 [*] `json` imported but unused
+  --> tests/test_phase5_qlora.py:16:8
+   |
+14 | from __future__ import annotations
+15 |
+16 | import json
+   |        ^^^^
+17 | import os
+18 | import tempfile
+   |
+help: Remove unused import: `json`
+   |
+15 |
+   - import json
+16 | import os
+   |
+
+F401 [*] `tempfile` imported but unused
+  --> tests/test_phase5_qlora.py:18:8
+   |
+16 | import json
+17 | import os
+18 | import tempfile
+   |        ^^^^^^^^
+19 | from pathlib import Path
+20 | from unittest.mock import MagicMock, patch
+   |
+help: Remove unused import: `tempfile`
+   |
+17 | import os
+   - import tempfile
+18 | from pathlib import Path
+   |
+
+F401 [*] `pathlib.Path` imported but unused
+  --> tests/test_phase5_qlora.py:19:21
+   |
+17 | import os
+18 | import tempfile
+19 | from pathlib import Path
+   |                     ^^^^
+20 | from unittest.mock import MagicMock, patch
+   |
+help: Remove unused import: `pathlib.Path`
+   |
+18 | import tempfile
+   - from pathlib import Path
+19 | from unittest.mock import MagicMock, patch
+   |
+
+Found 4 errors.
+[*] 4 fixable with `--fix`.
+=== RUFF FORMAT CHECK ===
+unformatted: File would be reformatted
+   --> scripts/build_and_publish_codersec_sft.py:471:23
+    |
+470 |     # Write records as JSONL for upload.
+    -     upload_dir = Path(
+    -         "/var/tmp/codersec_sft_upload"
+    -     )  # nosec B108 — /var/tmp is the designated staging area (not /tmp tmpfs)
+471 +     upload_dir = Path("/var/tmp/codersec_sft_upload")  # nosec B108 — /var/tmp is the designated staging area (not /tmp tmpfs)
+472 |     upload_dir.mkdir(parents=True, exist_ok=True)
+    |
+
+1 file would be reformatted, 190 files already formatted
+=== BLACK CHECK ===
+would reformat /home/user/xr-foundation-model/src/xrfm/codersec/merge.py
+would reformat /home/user/xr-foundation-model/tests/test_phase5_qlora.py
+
+Oh no! 💥 💔 💥
+2 files would be reformatted, 155 files would be left unchanged.
+=== MYPY CORE ===
+src/xrfm/data/sources.py:26: error: Library stubs not installed for "yaml"  [import-untyped]
+src/xrfm/config/loader.py:26: error: Library stubs not installed for "yaml"  [import-untyped]
+src/xrfm/config/loader.py:26: note: Hint: "python3 -m pip install types-PyYAML"
+src/xrfm/agent/tools.py:12: error: Library stubs not installed for "jsonschema"  [import-untyped]
+src/xrfm/agent/tools.py:12: note: Hint: "python3 -m pip install types-jsonschema"
+src/xrfm/agent/tools.py:12: note: (or run "mypy --install-types" to install all missing stub packages)
+src/xrfm/agent/tools.py:12: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+src/xrfm/data/pipeline.py:151: error: Library stubs not installed for "yaml"  [import-untyped]
+src/xrfm/codersec/dataset.py:16: error: Skipping analyzing "pyarrow.parquet": module is installed, but missing library stubs or py.typed marker  [import-untyped]
+src/xrfm/codersec/dataset.py:16: note: Error code "import-untyped" not covered by "type: ignore[import-not-found]" comment
+src/xrfm/codersec/dataset.py:16: error: Skipping analyzing "pyarrow": module is installed, but missing library stubs or py.typed marker  [import-untyped]
+src/xrfm/codersec/dataset.py:50: error: "AutoTokenizer" has no attribute "pad_token"  [attr-defined]
+src/xrfm/codersec/dataset.py:51: error: "AutoTokenizer" has no attribute "pad_token"  [attr-defined]
+src/xrfm/codersec/dataset.py:51: error: "AutoTokenizer" has no attribute "eos_token"  [attr-defined]
+src/xrfm/codersec/dataset.py:61: error: "AutoTokenizer" not callable  [operator]
+src/xrfm/codersec/dataset.py:91: error: "AutoTokenizer" not callable  [operator]
+src/xrfm/codersec/dataset.py:236: error: Incompatible return value type (got "TokenizersBackend | SentencePieceBackend", expected "AutoTokenizer")  [return-value]
+src/xrfm/codersec/train_qlora.py:226: error: Unexpected keyword argument "tokenizer" for "Trainer"  [call-arg]
+src/xrfm/codersec/train_qlora.py:226: note: "Trainer" defined in "transformers.trainer"
+Found 13 errors in 6 files (checked 119 source files)
+=== BANDIT ===
+[manager]	WARNING	Test in comment: revision is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: pinned is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: by is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: caller is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: var is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: tmp is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: staging is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: not is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: tmp is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: tmpfs is not a test name or id, ignoring
+[tester]	WARNING	nosec encountered (B108), but no failed test on file src/xrfm/codersec/merge.py:91
+=== PTEST CORE ===
+
+==================================== ERRORS ====================================
+_________________ ERROR collecting tests/test_phase0_agent.py __________________
+ImportError while importing test module '/home/user/xr-foundation-model/tests/test_phase0_agent.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/local/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_phase0_agent.py:13: in <module>
+    from fastapi.testclient import TestClient
+E   ModuleNotFoundError: No module named 'fastapi'
+__________________ ERROR collecting tests/test_phase0_api.py ___________________
+ImportError while importing test module '/home/user/xr-foundation-model/tests/test_phase0_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/local/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_phase0_api.py:8: in <module>
+    from fastapi.testclient import TestClient
+E   ModuleNotFoundError: No module named 'fastapi'
+=========================== short test summary info ============================
+ERROR tests/test_phase0_agent.py
+ERROR tests/test_phase0_api.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+2 skipped, 2 errors in 7.23s
+=== PTEST NEUROTOPO ===
+........................................................................ [ 75%]
+........................                                                 [100%]
+=============================== warnings summary ===============================
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: core is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: topology is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: neurons is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: dynamics is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: memory is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: routing is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: uncertainty is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: knowledge is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: neurotopo is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: nt_training is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: nt_evaluation is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase14.py::test_builder_returns_model_and_head
+  /home/user/xr-foundation-model/tests/test_neurotopo_phase14.py:25: DeprecationWarning: neurotopo is deprecated; import from xrfm.research.neurotopo instead
+    uncertainty=__import__("xrfm.neurotopo.config", fromlist=["UncertaintyConfig"]).UncertaintyConfig(enabled=True),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+96 passed, 12 warnings in 111.97s (0:01:51)
+=== SECRET SCAN ===
+NO_REAL_SECRETS
