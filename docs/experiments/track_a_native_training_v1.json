@@ -1,0 +1,258 @@
+{
+  "phase": "Phase 3 (GATE-3) — Track A XRFM Native Pretraining & CUDA Exact-Resume Verification",
+  "gate_status": "PASS",
+  "kaggle_kernel": "ahmadrrrtx/xrfm-native-25m-track-a-pretraining (version 4)",
+  "source_git_commit": "ceea39b013d2fa1d8a48ec3c14de63034d132b45",
+  "shards_dataset_repo": "ahmadrrrtx/xrfm-native-shards-v1",
+  "shards_dataset_commit": "1652affcb1e95455a6af27b72ab424116bb9884f",
+  "total_gpu_hours_v4": 0.713,
+  "hf_credits_spent_usd": 0.0,
+  "runs": {
+    "xrfm_native_25m": {
+      "hf_repo": "ahmadrrrtx/xrfm-native-25m",
+      "hf_commit": "3487b9c80612e735d9766d557e7e4e34d672efa0",
+      "safetensors_sha256": "62517774ab7a657507bd8a0aa4cf36250303ed7b6e407c8c55699df1344ba9ff",
+      "telemetry": {
+        "experiment": "track_a_xrfm_native_pretraining",
+        "timestamp_utc": "2026-11-17T23:10:46Z",
+        "config_path": "config/native-25m.yaml",
+        "shards_repo": "ahmadrrrtx/xrfm-native-shards-v1",
+        "parameters_tied": 25200000,
+        "steps": 900,
+        "tokens_trained": 58982400,
+        "wall_seconds": 1572.03,
+        "gpu_hours": 0.4367,
+        "peak_vram_mb": 3865.93,
+        "hardware": {
+          "cuda_available": true,
+          "device_count": 2,
+          "device_names": [
+            "Tesla T4",
+            "Tesla T4"
+          ],
+          "torch_version": "2.11.0+cu130"
+        },
+        "cuda_exact_resume_probe": {
+          "device": "cuda",
+          "cuda_device_name": "Tesla T4",
+          "mixed_precision": true,
+          "uninterrupted_final_loss": 10.359375,
+          "resumed_final_loss": 10.359375,
+          "max_weight_abs_diff": 0.0,
+          "exact_match": true
+        },
+        "final_train_loss": 5.3325,
+        "bpb_step0": {
+          "en": 3.4651,
+          "code": 4.0011,
+          "ur": 2.6101,
+          "ur-Latn": 3.698,
+          "ar": 2.7293,
+          "hi": 1.8358,
+          "es": 4.07,
+          "fr": 4.0781
+        },
+        "bpb_final": {
+          "en": 1.8152,
+          "code": 0.9966,
+          "ur": 1.3674,
+          "ur-Latn": 1.8102,
+          "ar": 1.5708,
+          "hi": 0.9211,
+          "es": 2.1618,
+          "fr": 2.1611
+        },
+        "bpb_delta": {
+          "en": -1.6499,
+          "code": -3.0045,
+          "ur": -1.2427,
+          "ur-Latn": -1.8878,
+          "ar": -1.1585,
+          "hi": -0.9147,
+          "es": -1.9082,
+          "fr": -1.917
+        },
+        "bpb_trajectory": [
+          {
+            "step": 0,
+            "bpb": {
+              "en": 3.4651,
+              "code": 4.0011,
+              "ur": 2.6101,
+              "ur-Latn": 3.698,
+              "ar": 2.7293,
+              "hi": 1.8358,
+              "es": 4.07,
+              "fr": 4.0781
+            }
+          },
+          {
+            "step": 300,
+            "bpb": {
+              "en": 2.0322,
+              "code": 1.4424,
+              "ur": 1.5424,
+              "ur-Latn": 2.0241,
+              "ar": 1.7341,
+              "hi": 1.0369,
+              "es": 2.4114,
+              "fr": 2.4409
+            },
+            "train_loss": 5.9243
+          },
+          {
+            "step": 600,
+            "bpb": {
+              "en": 1.8652,
+              "code": 1.0492,
+              "ur": 1.4046,
+              "ur-Latn": 1.8582,
+              "ar": 1.6128,
+              "hi": 0.9483,
+              "es": 2.2167,
+              "fr": 2.2286
+            },
+            "train_loss": 5.3901
+          },
+          {
+            "step": 900,
+            "bpb": {
+              "en": 1.8152,
+              "code": 0.9966,
+              "ur": 1.3674,
+              "ur-Latn": 1.8102,
+              "ar": 1.5708,
+              "hi": 0.9211,
+              "es": 2.1618,
+              "fr": 2.1611
+            },
+            "train_loss": 5.3325
+          }
+        ],
+        "gate3_pass": true,
+        "sample_generations": {
+          "en": "In modern software security, input validation of the other time, the common quality of the specific position. The taw to the end of the way the the concept of the sexual, and the market of the GK",
+          "ur": "اردو زبان اور مصنوعی ذہانت کے میدان میں آائیز کی تعداد میں اس تریان کی نمائندوں کی جگہ، ہر طرح ایک مشکل، اور اس کی عورت میں ابشانی ہی اور سر دے دیا گیا اور",
+          "ur-Latn": "Python programming mein database ko mehfooz rakhne ke liye.\nIndate your doctor:\n- Pendneea\n- Sallol\n- Pogoine\n- 10\n- 2011 ",
+          "code": "def calculate_checksum(data: bytes) -> str:\n- find_- n2. +**}r(+1/_\\.[_C\\D_|d(Subs_b[0]|5"
+        }
+      }
+    },
+    "xrfm_native_85m": {
+      "hf_repo": "ahmadrrrtx/xrfm-native-85m",
+      "hf_commit": "dbe5f102e01c4e2ea4d07e92615ce4cb40b8644c",
+      "safetensors_sha256": "883527e12897a265d6aba7ce50a8aa1ed2732eeaaac4b57931a4495258fca30f",
+      "telemetry": {
+        "experiment": "track_a_xrfm_native_pretraining",
+        "timestamp_utc": "2026-11-17T23:27:26Z",
+        "config_path": "config/native-85m.yaml",
+        "shards_repo": "ahmadrrrtx/xrfm-native-shards-v1",
+        "parameters_tied": 86446464,
+        "steps": 160,
+        "tokens_trained": 10485760,
+        "wall_seconds": 994.72,
+        "gpu_hours": 0.2763,
+        "peak_vram_mb": 2580.41,
+        "hardware": {
+          "cuda_available": true,
+          "device_count": 2,
+          "device_names": [
+            "Tesla T4",
+            "Tesla T4"
+          ],
+          "torch_version": "2.11.0+cu130"
+        },
+        "cuda_exact_resume_probe": {
+          "device": "cuda",
+          "cuda_device_name": "Tesla T4",
+          "mixed_precision": true,
+          "uninterrupted_final_loss": 10.359375,
+          "resumed_final_loss": 10.359375,
+          "max_weight_abs_diff": 0.0,
+          "exact_match": true
+        },
+        "final_train_loss": 6.8362,
+        "bpb_step0": {
+          "en": 3.4799,
+          "code": 4.0077,
+          "ur": 2.6492,
+          "ur-Latn": 3.7126,
+          "ar": 2.6961,
+          "hi": 1.8626,
+          "es": 4.0712,
+          "fr": 4.082
+        },
+        "bpb_final": {
+          "en": 2.293,
+          "code": 2.1978,
+          "ur": 1.8611,
+          "ur-Latn": 2.3555,
+          "ar": 1.9244,
+          "hi": 1.2443,
+          "es": 2.7739,
+          "fr": 2.8644
+        },
+        "bpb_delta": {
+          "en": -1.1869,
+          "code": -1.8099,
+          "ur": -0.7881,
+          "ur-Latn": -1.3571,
+          "ar": -0.7717,
+          "hi": -0.6183,
+          "es": -1.2973,
+          "fr": -1.2176
+        },
+        "bpb_trajectory": [
+          {
+            "step": 0,
+            "bpb": {
+              "en": 3.4799,
+              "code": 4.0077,
+              "ur": 2.6492,
+              "ur-Latn": 3.7126,
+              "ar": 2.6961,
+              "hi": 1.8626,
+              "es": 4.0712,
+              "fr": 4.082
+            }
+          },
+          {
+            "step": 80,
+            "bpb": {
+              "en": 2.4217,
+              "code": 2.4178,
+              "ur": 1.9393,
+              "ur-Latn": 2.4672,
+              "ar": 1.9644,
+              "hi": 1.2634,
+              "es": 2.9466,
+              "fr": 3.0064
+            },
+            "train_loss": 7.1958
+          },
+          {
+            "step": 160,
+            "bpb": {
+              "en": 2.293,
+              "code": 2.1978,
+              "ur": 1.8611,
+              "ur-Latn": 2.3555,
+              "ar": 1.9244,
+              "hi": 1.2443,
+              "es": 2.7739,
+              "fr": 2.8644
+            },
+            "train_loss": 6.8362
+          }
+        ],
+        "gate3_pass": true,
+        "sample_generations": {
+          "en": "In modern software security, input validation are this other the the the the the the but of the day, are our to the their authors that the the the the with the the the the the the group, the same",
+          "ur": "اردو زبان اور مصنوعی ذہانت کے میدان میں کو کا سامنے نے۔ تھا تو تان کر کی گیا کی اس سے، نے یہاں ایک مہ، کا اس کی عورت بھی کیش حور اور کہا پر کو میںان",
+          "ur-Latn": "Python programming mein database ko mehfooz rakhne ke liye.\nIndate- The B)-Cage, 1009050005900970003721118",
+          "code": "def calculate_checksum(data: bytes) -> str:\n]\n40- They the a cross of a the the the children in the the the D.It of the the fcza, with the the the the the the the"
+        }
+      }
+    }
+  }
+}

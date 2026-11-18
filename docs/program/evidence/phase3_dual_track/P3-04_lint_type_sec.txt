@@ -1,0 +1,11 @@
+=== RUFF CHECK ===
+All checks passed!
+=== RUFF FORMAT CHECK ===
+181 files already formatted
+=== BLACK CHECK ===
+All done! ✨ 🍰 ✨
+147 files would be left unchanged.
+=== MYPY CORE ===
+Success: no issues found in 113 source files
+=== BANDIT ===
+ALL_QUALITY_CHECKS_PASSED

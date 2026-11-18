@@ -1,0 +1,53 @@
+........................................................................ [ 75%]
+........................                                                 [100%]
+=============================== warnings summary ===============================
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: core is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: topology is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: neurons is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: dynamics is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: memory is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: routing is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: uncertainty is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: knowledge is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: neurotopo is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: nt_training is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: nt_evaluation is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase14.py::test_builder_returns_model_and_head
+  /home/user/xr-foundation-model/tests/test_neurotopo_phase14.py:25: DeprecationWarning: neurotopo is deprecated; import from xrfm.research.neurotopo instead
+    uncertainty=__import__("xrfm.neurotopo.config", fromlist=["UncertaintyConfig"]).UncertaintyConfig(enabled=True),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+96 passed, 12 warnings in 71.76s (0:01:11)

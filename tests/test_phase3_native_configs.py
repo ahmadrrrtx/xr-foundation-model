@@ -6,6 +6,8 @@ and Tied-Embedding `SafeTensors` Export/Import Parity.
 
 from __future__ import annotations
 
+import json
+
 import torch
 
 from xrfm.config.loader import load_config
@@ -86,3 +88,24 @@ class TestPhase3NativePresetsAndSafeTensors:
         tok = HFTokenizerAdapter.from_file("src/xrfm/tokenization/tokenizer_32k_multilingual.json")
         res = generate(m, "اردو اور Python ٹیسٹ", tokenizer=tok, max_new_tokens=6, temperature=0.0)
         assert len(res.token_ids) == 6
+
+    def test_gate3_kaggle_training_artifact_invariants(self):
+        with open("docs/experiments/track_a_native_training_v1.json", encoding="utf-8") as f:
+            art = json.load(f)
+        assert art["gate_status"] == "PASS"
+        expected_domains = ("en", "code", "ur", "ur-Latn", "ar", "hi", "es", "fr")
+        for run_key in ("xrfm_native_25m", "xrfm_native_85m"):
+            run = art["runs"][run_key]
+            assert len(run["hf_commit"]) == 40
+            assert len(run["safetensors_sha256"]) == 64
+            tel = run["telemetry"]
+            assert tel["gate3_pass"] is True
+            assert tel["cuda_exact_resume_probe"]["device"] == "cuda"
+            assert tel["cuda_exact_resume_probe"]["max_weight_abs_diff"] == 0.0
+            assert tel["cuda_exact_resume_probe"]["exact_match"] is True
+            traj = tel["bpb_trajectory"]
+            assert len(traj) >= 3
+            for dom in expected_domains:
+                vals = [pt["bpb"][dom] for pt in traj]
+                for i in range(1, len(vals)):
+                    assert vals[i] < vals[i - 1], f"Non-monotonic BPB in {run_key}/{dom}: {vals}"
