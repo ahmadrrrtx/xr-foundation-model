@@ -31,6 +31,10 @@
         <p>The tokenizer tournament compared four candidates (T1–T4) and a legacy 2K control on cross-script fertility, byte fallback and lossless round-trip. T4 (32,768 Script-Protected Byte-BPE) won, with reported fertility ratios of 0.702× for Urdu, 1.103× for Arabic and 1.047× for Hindi relative to the English reference, 0% byte fallback and 100% lossless round-trip. These are tokenizer efficiency measurements, not downstream capability scores.</p>
 
         <h2>CoderSec evaluation</h2>
+        <div class="card artifact-card" style="min-height:280px;margin:1.2rem 0">
+          <img src="{{ROOT}}assets/img/codersec-artifact.webp" alt="Security shield artifact representing the CoderSec evaluation boundary">
+          <div class="artifact-copy"><span class="tag amber">Limited-sample assessment</span><h3>Small suites, honest language</h3></div>
+        </div>
         <p>The base-model bake-off compared Qwen3-1.7B and Qwen2.5-Coder-1.5B-Instruct on a small internal coding/defensive-security/multilingual set. Reported averages were 0.8611 and 0.8333 respectively. Security checks include an 8-prompt weaponization screen, 7 false-refusal prompts and 4 Roman-Urdu perturbation pairs. These are preliminary internal tests with very small samples.</p>
         <div class="callout danger"><p>A zero observed failure rate on 8 prompts does not prove zero real-world risk. No comprehensive safety evaluation or independent benchmark has been published, and no CoderSec checkpoint is publicly available.</p></div>
 

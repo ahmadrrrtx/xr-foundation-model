@@ -87,12 +87,15 @@ def render() -> list[str]:
     template = (ROOT / "template.html").read_text(encoding="utf-8")
     built: list[str] = []
     for output, (title, description, nav_key, fragment) in PAGES.items():
-        body = (ROOT / "pages" / fragment).read_text(encoding="utf-8").strip()
         depth = output.count("/")
         site_root = "./" if depth == 0 else "../" * depth
+        body = (ROOT / "pages" / fragment).read_text(encoding="utf-8").strip()
+        # Absolute project links in page fragments are rewritten to a relative
+        # site root; full external URLs (including og:image) must stay intact.
+        body = body.replace('="/xr-foundation-model/', f'="{site_root}')
+        body = body.replace("{{ROOT}}", site_root)
         html = template
         html = html.replace("{{ROOT}}", site_root)
-        html = html.replace("/xr-foundation-model/", site_root)
         html = html.replace("{{TITLE}}", title)
         html = html.replace("{{DESCRIPTION}}", description)
         html = html.replace("{{BODY}}", body)
