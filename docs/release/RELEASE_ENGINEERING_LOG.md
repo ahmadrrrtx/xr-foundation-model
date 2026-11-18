@@ -66,3 +66,19 @@
 **Phase Three — CD/Release pipelines:** Already configured correctly (trigger on tag pushes v*, minimal permissions). No changes needed.
 
 **Next:** Wait for CI to turn green on release/first-public-batch, then proceed to Phase Four (model cards + dataset cards audit).
+
+### Phase One — CI Fix (v3): mypy import-untyped error
+
+CI run #55 on release/first-public-batch failed:
+- mypy exit code 1: `src/xrfm/tokenization/hf_bridge.py:144` — `tokenizers` module missing library stubs (import-untyped)
+- Test (3.10) exit code 1: Unable to see details (logs truncated, requires login)
+
+**Fix:** Added `# type: ignore[import-untyped]` to `from tokenizers import Tokenizer` in hf_bridge.py.
+
+**Still unresolved:** Test (3.10) failure — details unavailable from GitHub web UI (requires login). May be a Python 3.10 dependency compatibility issue on ubuntu-latest (Ubuntu 26). Need to investigate if CI run #57 (for commit f5d093c) passes.
+
+**Commits pushed to release/first-public-batch:**
+- 76560ae: CI trigger on release/* branches
+- 44bd165: Log updates
+- f5d093c: Phase Five website
+- 913bedc: mypy fix
