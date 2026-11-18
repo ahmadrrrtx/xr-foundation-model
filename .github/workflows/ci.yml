@@ -17,11 +17,9 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: |
-          pip install -e ".[dev]"
+          pip install -e ".[dev,hub]"
       - name: Run ruff (lint + format check)
         run: ruff check . && ruff format --check .
-      - name: Run black (format check)
-        run: black --check .
 
   type-check:
     name: Type Check (mypy)
@@ -33,7 +31,7 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: |
-          pip install -e ".[dev]"
+          pip install -e ".[dev,hub]"
       - name: Run mypy
         # Forensic-audit fix (F-43): `|| true` previously masked type errors.
         # Core package + API app. src/xrfm/research is the experimental
@@ -54,7 +52,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install -e ".[dev]"
+          pip install -e ".[dev,hub]"
       - name: Run pytest
         run: python -m pytest tests/ -v --tb=short
       - name: Upload test results
@@ -133,6 +131,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install -e ".[dev]"
+          pip install -e ".[dev,hub]"
       - name: Run training smoke test
         run: python scripts/ci_smoke_test.py

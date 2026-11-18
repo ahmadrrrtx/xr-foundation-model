@@ -38,7 +38,6 @@ hub = [
 ]
 dev = [
     "pytest>=7.0",
-    "black>=23.0",
     "ruff>=0.3.0",
     "mypy>=1.0",
     "types-PyYAML>=6.0",
@@ -48,6 +47,9 @@ dev = [
     # dev installs must include it or CI lint/type/test jobs fail on imports.
     "fastapi>=0.100.0",
     "uvicorn>=0.20.0",
+    # Required for test collection of Phase 4/5 codersec tests:
+    "transformers>=4.51.0,<4.53.0",
+    "peft>=0.11.0",
 ]
 api = [
     "fastapi>=0.100.0",
