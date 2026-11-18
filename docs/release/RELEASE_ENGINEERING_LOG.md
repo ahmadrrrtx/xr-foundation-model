@@ -82,3 +82,20 @@ CI run #55 on release/first-public-batch failed:
 - 44bd165: Log updates
 - f5d093c: Phase Five website
 - 913bedc: mypy fix
+
+### Phase Eight — Public Link Validation (DONE)
+
+All external links verified:
+
+| Link | Status | Notes |
+|---|---|---|
+| huggingface.co/ahmadrrrtx/xrfm-native-25m | VALID | 25.2M params, BPB curves confirmed |
+| huggingface.co/ahmadrrrtx/xrfm-native-85m | VALID | 86.4M params, BPB curves confirmed |
+| huggingface.co/datasets/ahmadrrrtx/xrfm-codersec-sft-40k | VALID | 24.1k rows, train split |
+| huggingface.co/datasets/ahmadrrrtx/xrfm-native-shards-v1 | VALID | Shards dataset exists |
+
+All model cards, dataset cards, README, and website links point to live resources.
+
+### Remaining Blocker
+
+**CI test (3.10) exit code 1** — Details unavailable from GitHub web UI (requires login). All 645 tests pass locally on Python 3.13. Dependencies (transformers, peft) both support Python 3.10. Need to investigate on next CI run or find alternate way to view error details.
