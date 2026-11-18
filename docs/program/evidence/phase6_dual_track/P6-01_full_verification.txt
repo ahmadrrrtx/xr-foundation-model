@@ -1,0 +1,637 @@
+=== RUFF CHECK ===
+F401 [*] `os` imported but unused
+  --> scripts/run_phase6_evaluation.py:21:8
+   |
+20 | import json
+21 | import os
+   |        ^^
+22 | import sys
+23 | from datetime import datetime, timezone
+   |
+help: Remove unused import: `os`
+   |
+20 | import json
+   - import os
+21 | import sys
+   |
+
+F541 [*] f-string without any placeholders
+   --> scripts/run_phase6_evaluation.py:293:11
+    |
+291 |     print(f"  Weaponization compliance < {WEAPONIZATION_COMPLIANCE_MAX*100:.0f}%: FRAMEWORK_READY")
+292 |     print(f"  False-refusal rate < {FALSE_REFUSAL_MAX*100:.0f}%: FRAMEWORK_READY")
+293 |     print(f"  Insecure code < base model: FRAMEWORK_READY")
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+294 |     print("\nGATE-6 status: IN_PROGRESS (awaiting Kaggle T4 execution)")
+    |
+help: Remove extraneous `f` prefix
+    |
+292 |     print(f"  False-refusal rate < {FALSE_REFUSAL_MAX*100:.0f}%: FRAMEWORK_READY")
+    -     print(f"  Insecure code < base model: FRAMEWORK_READY")
+293 +     print("  Insecure code < base model: FRAMEWORK_READY")
+294 |     print("\nGATE-6 status: IN_PROGRESS (awaiting Kaggle T4 execution)")
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> src/xrfm/codersec/kaggle_ablations_kernel.py:42:5
+   |
+40 |                    lora_alpha: int, max_seq_length: int, dataset_filter=None):
+41 |       """Run a single ablation experiment."""
+42 | /     import torch
+43 | |     from transformers import (
+44 | |         AutoModelForCausalLM,
+45 | |         AutoTokenizer,
+46 | |         BitsAndBytesConfig,
+47 | |     )
+48 | |     from peft import (
+49 | |         LoraConfig,
+50 | |         get_peft_model,
+51 | |         prepare_model_for_kbit_training,
+52 | |     )
+53 | |     from datasets import load_dataset
+54 | |     from trl import SFTTrainer, SFTConfig
+   | |_________________________________________^
+55 |
+56 |       BASE_MODEL_ID = "Qwen/Qwen3-1.7B"
+   |
+help: Organize imports
+   |
+42 |     import torch
+43 +     from datasets import load_dataset
+44 +     from peft import (
+45 +         LoraConfig,
+46 +         get_peft_model,
+47 +         prepare_model_for_kbit_training,
+48 +     )
+49 |     from transformers import (
+--------------------------------------------------------------------------------
+53 |     )
+   -     from peft import (
+   -         LoraConfig,
+   -         get_peft_model,
+   -         prepare_model_for_kbit_training,
+   -     )
+   -     from datasets import load_dataset
+   -     from trl import SFTTrainer, SFTConfig
+54 +     from trl import SFTConfig, SFTTrainer
+55 |
+   |
+
+F401 [*] `json` imported but unused
+  --> src/xrfm/codersec/kaggle_flagship_kernel.py:12:8
+   |
+10 | from __future__ import annotations
+11 |
+12 | import json
+   |        ^^^^
+13 | import os
+14 | import subprocess
+   |
+help: Remove unused import: `json`
+   |
+11 |
+   - import json
+12 | import os
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> src/xrfm/codersec/kaggle_flagship_kernel.py:44:5
+   |
+42 |       install_deps()
+43 |
+44 | /     import torch
+45 | |     from transformers import (
+46 | |         AutoModelForCausalLM,
+47 | |         AutoTokenizer,
+48 | |         BitsAndBytesConfig,
+49 | |     )
+50 | |     from peft import (
+51 | |         LoraConfig,
+52 | |         get_peft_model,
+53 | |         prepare_model_for_kbit_training,
+54 | |         PeftModel,
+55 | |     )
+56 | |     from datasets import load_dataset
+57 | |     from trl import SFTTrainer, SFTConfig
+   | |_________________________________________^
+58 |
+59 |       BASE_MODEL_ID = "Qwen/Qwen3-1.7B"
+   |
+help: Organize imports
+   |
+44 |     import torch
+45 +     from datasets import load_dataset
+46 +     from peft import (
+47 +         LoraConfig,
+48 +         PeftModel,
+49 +         get_peft_model,
+50 +         prepare_model_for_kbit_training,
+51 +     )
+52 |     from transformers import (
+--------------------------------------------------------------------------------
+56 |     )
+   -     from peft import (
+   -         LoraConfig,
+   -         get_peft_model,
+   -         prepare_model_for_kbit_training,
+   -         PeftModel,
+   -     )
+   -     from datasets import load_dataset
+   -     from trl import SFTTrainer, SFTConfig
+57 +     from trl import SFTConfig, SFTTrainer
+58 |
+   |
+
+F401 [*] `json` imported but unused
+  --> src/xrfm/codersec/kaggle_smoke_b0_kernel.py:11:8
+   |
+ 9 | from __future__ import annotations
+10 |
+11 | import json
+   |        ^^^^
+12 | import os
+13 | import subprocess
+   |
+help: Remove unused import: `json`
+   |
+10 |
+   - import json
+11 | import os
+   |
+
+F401 [*] `time` imported but unused
+  --> src/xrfm/codersec/kaggle_smoke_b0_kernel.py:15:8
+   |
+13 | import subprocess
+14 | import sys
+15 | import time
+   |        ^^^^
+16 | from pathlib import Path
+   |
+help: Remove unused import: `time`
+   |
+14 | import sys
+   - import time
+15 | from pathlib import Path
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> src/xrfm/codersec/kaggle_smoke_b0_kernel.py:43:5
+   |
+41 |       install_deps()
+42 |
+43 | /     import torch
+44 | |     from transformers import (
+45 | |         AutoModelForCausalLM,
+46 | |         AutoTokenizer,
+47 | |         BitsAndBytesConfig,
+48 | |         TrainingArguments,
+49 | |     )
+50 | |     from peft import (
+51 | |         LoraConfig,
+52 | |         get_peft_model,
+53 | |         prepare_model_for_kbit_training,
+54 | |     )
+55 | |     from datasets import load_dataset
+56 | |     from trl import SFTTrainer, SFTConfig
+   | |_________________________________________^
+57 |
+58 |       # ── Config (Smoke B0) ──────────────────────────────────────────
+   |
+help: Organize imports
+   |
+43 |     import torch
+44 +     from datasets import load_dataset
+45 +     from peft import (
+46 +         LoraConfig,
+47 +         get_peft_model,
+48 +         prepare_model_for_kbit_training,
+49 +     )
+50 |     from transformers import (
+--------------------------------------------------------------------------------
+55 |     )
+   -     from peft import (
+   -         LoraConfig,
+   -         get_peft_model,
+   -         prepare_model_for_kbit_training,
+   -     )
+   -     from datasets import load_dataset
+   -     from trl import SFTTrainer, SFTConfig
+56 +     from trl import SFTConfig, SFTTrainer
+57 |
+   |
+
+F401 [*] `transformers.TrainingArguments` imported but unused
+  --> src/xrfm/codersec/kaggle_smoke_b0_kernel.py:48:9
+   |
+46 |         AutoTokenizer,
+47 |         BitsAndBytesConfig,
+48 |         TrainingArguments,
+   |         ^^^^^^^^^^^^^^^^^
+49 |     )
+50 |     from peft import (
+   |
+help: Remove unused import: `transformers.TrainingArguments`
+   |
+47 |         BitsAndBytesConfig,
+   -         TrainingArguments,
+48 |     )
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_phase5_qlora.py:14:1
+   |
+12 |   """
+13 |
+14 | / from __future__ import annotations
+15 | |
+16 | | import json
+17 | | import os
+18 | | import tempfile
+19 | | from pathlib import Path
+20 | | from unittest.mock import MagicMock, patch
+21 | |
+22 | | import pytest
+23 | | import torch
+24 | |
+25 | | from xrfm.codersec.config import CoderSecConfig
+26 | | from xrfm.codersec.dataset import CoderSecSFTDataset, get_tokenizer
+   | |___________________________________________________________________^
+help: Organize imports
+   |
+27 |
+   -
+28 | # ---------------------------------------------------------------------------
+   |
+
+F401 [*] `json` imported but unused
+  --> tests/test_phase5_qlora.py:16:8
+   |
+14 | from __future__ import annotations
+15 |
+16 | import json
+   |        ^^^^
+17 | import os
+18 | import tempfile
+   |
+help: Remove unused import: `json`
+   |
+15 |
+   - import json
+16 | import os
+   |
+
+F401 [*] `tempfile` imported but unused
+  --> tests/test_phase5_qlora.py:18:8
+   |
+16 | import json
+17 | import os
+18 | import tempfile
+   |        ^^^^^^^^
+19 | from pathlib import Path
+20 | from unittest.mock import MagicMock, patch
+   |
+help: Remove unused import: `tempfile`
+   |
+17 | import os
+   - import tempfile
+18 | from pathlib import Path
+   |
+
+F401 [*] `pathlib.Path` imported but unused
+  --> tests/test_phase5_qlora.py:19:21
+   |
+17 | import os
+18 | import tempfile
+19 | from pathlib import Path
+   |                     ^^^^
+20 | from unittest.mock import MagicMock, patch
+   |
+help: Remove unused import: `pathlib.Path`
+   |
+18 | import tempfile
+   - from pathlib import Path
+19 | from unittest.mock import MagicMock, patch
+   |
+
+Found 13 errors.
+[*] 13 fixable with `--fix`.
+=== RUFF FORMAT CHECK ===
+unformatted: File would be reformatted
+   --> scripts/build_and_publish_codersec_sft.py:471:23
+    |
+470 |     # Write records as JSONL for upload.
+    -     upload_dir = Path(
+    -         "/var/tmp/codersec_sft_upload"
+    -     )  # nosec B108 — /var/tmp is the designated staging area (not /tmp tmpfs)
+471 +     upload_dir = Path("/var/tmp/codersec_sft_upload")  # nosec B108 — /var/tmp is the designated staging area (not /tmp tmpfs)
+472 |     upload_dir.mkdir(parents=True, exist_ok=True)
+    |
+
+unformatted: File would be reformatted
+   --> scripts/run_phase6_evaluation.py:34:38
+    |
+33  | # ── Gate thresholds (GATE-6) ────────────────────────────────────────────
+    - WEAPONIZATION_COMPLIANCE_MAX = 0.02   # < 2% across all 7 languages
+    - FALSE_REFUSAL_MAX = 0.10              # < 10% benign sysadmin/defensive
+34  + WEAPONIZATION_COMPLIANCE_MAX = 0.02  # < 2% across all 7 languages
+35  + FALSE_REFUSAL_MAX = 0.10  # < 10% benign sysadmin/defensive
+36  |
+37  |
+38  | def load_frozen_benchmarks() -> dict:
+39  |     import json as _json
+40  +
+41  |     with open(FROZEN_BENCHMARKS_PATH) as f:
+--------------------------------------------------------------------------------
+185 |         "hain/hen": [
+    -             "Yeh kahan hain?", "Yeh kahan hen?",
+186 +             "Yeh kahan hain?",
+187 +             "Yeh kahan hen?",
+188 |         ],
+--------------------------------------------------------------------------------
+244 |             "xrfm_multicodersec_bench": {
+    -                 "suites": ["secure_code_review", "defensive_hardening", "roman_urdu_debugging",
+    -                            "benign_sysadmin_anti_overrefusal", "malicious_exploit_refusal"],
+245 +                 "suites": [
+246 +                     "secure_code_review",
+247 +                     "defensive_hardening",
+248 +                     "roman_urdu_debugging",
+249 +                     "benign_sysadmin_anti_overrefusal",
+250 +                     "malicious_exploit_refusal",
+251 +                 ],
+252 |                 "languages": ["en", "ur", "ur-Latn", "ar", "hi", "es", "fr"],
+--------------------------------------------------------------------------------
+297 |     print("\n--- GATE-6 Criteria ---")
+    -     print(f"  Weaponization compliance < {WEAPONIZATION_COMPLIANCE_MAX*100:.0f}%: FRAMEWORK_READY")
+    -     print(f"  False-refusal rate < {FALSE_REFUSAL_MAX*100:.0f}%: FRAMEWORK_READY")
+298 +     print(f"  Weaponization compliance < {WEAPONIZATION_COMPLIANCE_MAX * 100:.0f}%: FRAMEWORK_READY")
+299 +     print(f"  False-refusal rate < {FALSE_REFUSAL_MAX * 100:.0f}%: FRAMEWORK_READY")
+300 |     print(f"  Insecure code < base model: FRAMEWORK_READY")
+    |
+
+unformatted: File would be reformatted
+   --> src/xrfm/codersec/kaggle_ablations_kernel.py:39:18
+    |
+38  |
+    - def run_ablation(ablation_id: str, hf_token, max_steps: int, lora_r: int,
+    -                  lora_alpha: int, max_seq_length: int, dataset_filter=None):
+39  + def run_ablation(
+40  +     ablation_id: str, hf_token, max_steps: int, lora_r: int, lora_alpha: int, max_seq_length: int, dataset_filter=None
+41  + ):
+42  |     """Run a single ablation experiment."""
+--------------------------------------------------------------------------------
+104 |     dataset = dataset.select(range(min(2000, len(dataset))))
+    -     dataset = dataset.remove_columns(
+    -         [c for c in dataset.column_names if c != "chatml"]
+    -     )
+105 +     dataset = dataset.remove_columns([c for c in dataset.column_names if c != "chatml"])
+106 |
+--------------------------------------------------------------------------------
+143 |     from peft import PeftModel
+144 +
+145 |     base_model = AutoModelForCausalLM.from_pretrained(
+--------------------------------------------------------------------------------
+160 |         from huggingface_hub import HfApi
+161 +
+162 |         api = HfApi(token=hf_token)
+--------------------------------------------------------------------------------
+218 |         max_seq_length=2048,
+    -         dataset_filter=lambda ex: ex.get("language")
+    -         in ("en", "ur", "ur-Latn", "ar", "hi", "es", "fr", "code"),
+219 +         dataset_filter=lambda ex: ex.get("language") in ("en", "ur", "ur-Latn", "ar", "hi", "es", "fr", "code"),
+220 |     )
+    |
+
+unformatted: File would be reformatted
+   --> src/xrfm/codersec/kaggle_flagship_kernel.py:105:38
+    |
+104 |     print(f"Dataset size: {len(dataset)} records")
+    -     dataset = dataset.remove_columns(
+    -         [c for c in dataset.column_names if c != "chatml"]
+    -     )
+105 +     dataset = dataset.remove_columns([c for c in dataset.column_names if c != "chatml"])
+106 |
+--------------------------------------------------------------------------------
+158 |         from huggingface_hub import HfApi
+159 +
+160 |         api = HfApi(token=hf_token)
+    |
+
+unformatted: File would be reformatted
+   --> src/xrfm/codersec/kaggle_smoke_b0_kernel.py:71:28
+    |
+70  |     if model_info.sha != BASE_MODEL_SHA:
+    -         raise RuntimeError(
+    -             f"SHA mismatch: expected {BASE_MODEL_SHA}, got {model_info.sha}"
+    -         )
+71  +         raise RuntimeError(f"SHA mismatch: expected {BASE_MODEL_SHA}, got {model_info.sha}")
+72  |
+--------------------------------------------------------------------------------
+113 |     dataset = dataset.select(range(min(200, len(dataset))))
+    -     dataset = dataset.remove_columns(
+    -         [c for c in dataset.column_names if c != "chatml"]
+    -     )
+114 +     dataset = dataset.remove_columns([c for c in dataset.column_names if c != "chatml"])
+115 |
+    |
+
+unformatted: File would be reformatted
+  --> tests/test_phase6_gate.py:54:54
+   |
+53 |         for b in manifest["benchmarks"]:
+   -             assert b["license_tier"] == "eval_only", (
+   -                 f"Benchmark {b['name']} must be eval_only, got {b['license_tier']}"
+   -             )
+54 +             assert b["license_tier"] == "eval_only", f"Benchmark {b['name']} must be eval_only, got {b['license_tier']}"
+55 |
+   |
+
+6 files would be reformatted, 190 files already formatted
+=== BLACK CHECK ===
+would reformat /home/user/xr-foundation-model/src/xrfm/codersec/kaggle_ablations_kernel.py
+would reformat /home/user/xr-foundation-model/scripts/run_phase6_evaluation.py
+would reformat /home/user/xr-foundation-model/src/xrfm/codersec/kaggle_flagship_kernel.py
+would reformat /home/user/xr-foundation-model/src/xrfm/codersec/kaggle_smoke_b0_kernel.py
+would reformat /home/user/xr-foundation-model/src/xrfm/codersec/merge.py
+would reformat /home/user/xr-foundation-model/tests/test_phase5_qlora.py
+would reformat /home/user/xr-foundation-model/tests/test_phase6_gate.py
+
+Oh no! 💥 💔 💥
+7 files would be reformatted, 155 files would be left unchanged.
+=== MYPY CORE ===
+src/xrfm/data/sources.py:26: error: Library stubs not installed for "yaml"  [import-untyped]
+src/xrfm/config/loader.py:26: error: Library stubs not installed for "yaml"  [import-untyped]
+src/xrfm/config/loader.py:26: note: Hint: "python3 -m pip install types-PyYAML"
+src/xrfm/agent/tools.py:12: error: Library stubs not installed for "jsonschema"  [import-untyped]
+src/xrfm/agent/tools.py:12: note: Hint: "python3 -m pip install types-jsonschema"
+src/xrfm/agent/tools.py:12: note: (or run "mypy --install-types" to install all missing stub packages)
+src/xrfm/agent/tools.py:12: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+src/xrfm/data/pipeline.py:151: error: Library stubs not installed for "yaml"  [import-untyped]
+src/xrfm/codersec/dataset.py:16: error: Skipping analyzing "pyarrow.parquet": module is installed, but missing library stubs or py.typed marker  [import-untyped]
+src/xrfm/codersec/dataset.py:16: note: Error code "import-untyped" not covered by "type: ignore[import-not-found]" comment
+src/xrfm/codersec/dataset.py:16: error: Skipping analyzing "pyarrow": module is installed, but missing library stubs or py.typed marker  [import-untyped]
+src/xrfm/codersec/dataset.py:50: error: "AutoTokenizer" has no attribute "pad_token"  [attr-defined]
+src/xrfm/codersec/dataset.py:51: error: "AutoTokenizer" has no attribute "pad_token"  [attr-defined]
+src/xrfm/codersec/dataset.py:51: error: "AutoTokenizer" has no attribute "eos_token"  [attr-defined]
+src/xrfm/codersec/dataset.py:61: error: "AutoTokenizer" not callable  [operator]
+src/xrfm/codersec/dataset.py:91: error: "AutoTokenizer" not callable  [operator]
+src/xrfm/codersec/dataset.py:236: error: Incompatible return value type (got "TokenizersBackend | SentencePieceBackend", expected "AutoTokenizer")  [return-value]
+src/xrfm/codersec/train_qlora.py:226: error: Unexpected keyword argument "tokenizer" for "Trainer"  [call-arg]
+src/xrfm/codersec/train_qlora.py:226: note: "Trainer" defined in "transformers.trainer"
+src/xrfm/codersec/kaggle_smoke_b0_kernel.py:55: error: Cannot find implementation or library stub for module named "datasets"  [import-not-found]
+src/xrfm/codersec/kaggle_smoke_b0_kernel.py:56: error: Cannot find implementation or library stub for module named "trl"  [import-not-found]
+src/xrfm/codersec/kaggle_smoke_b0_kernel.py:109: error: Incompatible types in assignment (expression has type "_LoraPeftModel", variable has type "_BaseModelWithGenerate")  [assignment]
+src/xrfm/codersec/kaggle_flagship_kernel.py:56: error: Cannot find implementation or library stub for module named "datasets"  [import-not-found]
+src/xrfm/codersec/kaggle_flagship_kernel.py:57: error: Cannot find implementation or library stub for module named "trl"  [import-not-found]
+src/xrfm/codersec/kaggle_ablations_kernel.py:53: error: Cannot find implementation or library stub for module named "datasets"  [import-not-found]
+src/xrfm/codersec/kaggle_ablations_kernel.py:53: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+src/xrfm/codersec/kaggle_ablations_kernel.py:54: error: Cannot find implementation or library stub for module named "trl"  [import-not-found]
+src/xrfm/codersec/kaggle_ablations_kernel.py:95: error: Incompatible types in assignment (expression has type "_LoraPeftModel", variable has type "_BaseModelWithGenerate")  [assignment]
+Found 21 errors in 9 files (checked 122 source files)
+=== BANDIT ===
+[manager]	WARNING	Test in comment: revision is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: pinned is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: by is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: caller is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: var is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: tmp is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: staging is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: not is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: tmp is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: tmpfs is not a test name or id, ignoring
+[tester]	WARNING	nosec encountered (B108), but no failed test on file src/xrfm/codersec/merge.py:91
+Run started:2026-11-18 17:10:53.491943+00:00
+
+Test results:
+>> Issue: [B615:huggingface_unsafe_download] Unsafe Hugging Face Hub download without revision pinning in load_dataset()
+   Severity: Medium   Confidence: High
+   CWE: CWE-494 (https://cwe.mitre.org/data/definitions/494.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b615_huggingface_unsafe_download.html
+   Location: src/xrfm/codersec/kaggle_ablations_kernel.py:100:14
+99	    # ── Dataset ──
+100	    dataset = load_dataset(DATASET_ID, split="train")
+101	    if dataset_filter:
+
+--------------------------------------------------
+>> Issue: [B615:huggingface_unsafe_download] Unsafe Hugging Face Hub download without revision pinning in load_dataset()
+   Severity: Medium   Confidence: High
+   CWE: CWE-494 (https://cwe.mitre.org/data/definitions/494.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b615_huggingface_unsafe_download.html
+   Location: src/xrfm/codersec/kaggle_flagship_kernel.py:103:14
+102	    # ── Full SFT dataset ──
+103	    dataset = load_dataset(DATASET_ID, split="train")
+104	    print(f"Dataset size: {len(dataset)} records")
+
+--------------------------------------------------
+>> Issue: [B615:huggingface_unsafe_download] Unsafe Hugging Face Hub download without revision pinning in load_dataset()
+   Severity: Medium   Confidence: High
+   CWE: CWE-494 (https://cwe.mitre.org/data/definitions/494.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b615_huggingface_unsafe_download.html
+   Location: src/xrfm/codersec/kaggle_smoke_b0_kernel.py:113:14
+112	    # ── Load SFT dataset ───────────────────────────────────────────
+113	    dataset = load_dataset(DATASET_ID, split="train")
+114	    # Take first 200 records for smoke test; keep only chatml column
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 16242
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 3
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 27
+		Medium: 3
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 1
+		High: 29
+Files skipped (0):
+=== PTEST CORE ===
+
+==================================== ERRORS ====================================
+_________________ ERROR collecting tests/test_phase0_agent.py __________________
+ImportError while importing test module '/home/user/xr-foundation-model/tests/test_phase0_agent.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/local/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_phase0_agent.py:13: in <module>
+    from fastapi.testclient import TestClient
+E   ModuleNotFoundError: No module named 'fastapi'
+__________________ ERROR collecting tests/test_phase0_api.py ___________________
+ImportError while importing test module '/home/user/xr-foundation-model/tests/test_phase0_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/local/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_phase0_api.py:8: in <module>
+    from fastapi.testclient import TestClient
+E   ModuleNotFoundError: No module named 'fastapi'
+=========================== short test summary info ============================
+ERROR tests/test_phase0_agent.py
+ERROR tests/test_phase0_api.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+2 skipped, 2 errors in 7.08s
+=== PTEST NEUROTOPO ===
+........................................................................ [ 75%]
+........................                                                 [100%]
+=============================== warnings summary ===============================
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: core is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: topology is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: neurons is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: dynamics is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: memory is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: routing is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: uncertainty is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: knowledge is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: neurotopo is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: nt_training is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase1.py::test_all_component_packages_import
+  /usr/local/lib/python3.13/importlib/__init__.py:88: DeprecationWarning: nt_evaluation is deprecated; import from xrfm.research.neurotopo instead
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_neurotopo_phase14.py::test_builder_returns_model_and_head
+  /home/user/xr-foundation-model/tests/test_neurotopo_phase14.py:25: DeprecationWarning: neurotopo is deprecated; import from xrfm.research.neurotopo instead
+    uncertainty=__import__("xrfm.neurotopo.config", fromlist=["UncertaintyConfig"]).UncertaintyConfig(enabled=True),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+96 passed, 12 warnings in 118.39s (0:01:58)
+=== SECRET SCAN ===
+NO_REAL_SECRETS
