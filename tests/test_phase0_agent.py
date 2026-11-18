@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import multiprocessing
 import os
+import queue
 import threading
 import time
 from pathlib import Path
@@ -58,6 +60,26 @@ class _BlockingBackend(ScriptedBackend):
 class _SlowBackend(ScriptedBackend):
     def chat(self, messages: Any, tools: Any) -> Decision:
         time.sleep(0.35)
+        return super().chat(messages, tools)
+
+
+class _GatedBackend(ScriptedBackend):
+    """Blocks in ``chat`` until the test releases it.
+
+    Using an explicit gate tests event ordering directly instead of relying on
+    wall-clock thresholds that vary with runner load.
+    """
+
+    def __init__(self, entered: Any, gate: Any) -> None:
+        # BackendExecutor runs subclasses in a spawned process, so these must
+        # be multiprocessing events, not threading events.
+        self.entered = entered
+        self.gate = gate
+
+    def chat(self, messages: Any, tools: Any) -> Decision:
+        self.entered.set()
+        if not self.gate.wait(timeout=10):
+            raise RuntimeError("test gate was not released")
         return super().chat(messages, tools)
 
 
@@ -200,14 +222,34 @@ def test_runtime_wall_deadline_kills_a_backend_that_already_started(tmp_path: Pa
 
 
 def test_agent_stream_emits_request_before_backend_finishes() -> None:
-    runtime = AgentRuntime(_SlowBackend(), ToolExecutor(ToolRegistry()))
+    spawn = multiprocessing.get_context("spawn")
+    entered = spawn.Event()
+    gate = spawn.Event()
+    runtime = AgentRuntime(_GatedBackend(entered, gate), ToolExecutor(ToolRegistry()))
     events = runtime.stream("hello")
-    started = time.monotonic()
-    first = next(events)
-    elapsed = time.monotonic() - started
-    assert first.phase == AgentPhase.REQUEST
-    assert elapsed < 0.2
-    list(events)
+    first_event: queue.Queue[Any] = queue.Queue(maxsize=1)
+
+    def consume() -> None:
+        try:
+            for event in events:
+                if first_event.empty():
+                    first_event.put(event)
+        except Exception as exc:  # pragma: no cover - surfaced by the assertion below
+            first_event.put(exc)
+
+    worker = threading.Thread(target=consume, daemon=True)
+    worker.start()
+    try:
+        assert entered.wait(timeout=10), "backend should be reached while events are consumed"
+        try:
+            value = first_event.get(timeout=2)
+        except queue.Empty as exc:  # pragma: no cover - failure path
+            pytest.fail(f"no request event was emitted: {exc}")
+        assert getattr(value, "phase", None) == AgentPhase.REQUEST
+        assert not gate.is_set(), "the request event must not be buffered behind backend work"
+    finally:
+        gate.set()
+        worker.join(timeout=10)
 
 
 def test_agent_http_stream_does_not_buffer_backend_work(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -217,14 +259,35 @@ def test_agent_http_stream_does_not_buffer_backend_work(monkeypatch: pytest.Monk
     import api.routes.agent as route
     from api.main import app
 
-    runtime = AgentRuntime(_SlowBackend(), ToolExecutor(ToolRegistry()))
+    spawn = multiprocessing.get_context("spawn")
+    entered = spawn.Event()
+    gate = spawn.Event()
+    runtime = AgentRuntime(_GatedBackend(entered, gate), ToolExecutor(ToolRegistry()))
     monkeypatch.setattr(route, "_get_runtime", lambda: runtime)
     with TestClient(app) as client:
-        started = time.monotonic()
         with client.stream("POST", "/v1/agent/stream", json={"request": "hello"}) as response:
             lines = response.iter_lines()
-            assert next(lines) == "event: request"
-            assert time.monotonic() - started < 0.2
+            first_line: queue.Queue[Any] = queue.Queue(maxsize=1)
+
+            def read_first_line() -> None:
+                try:
+                    first_line.put(next(lines))
+                except Exception as exc:  # pragma: no cover - surfaced by the assertion below
+                    first_line.put(exc)
+
+            reader = threading.Thread(target=read_first_line, daemon=True)
+            reader.start()
+            try:
+                assert entered.wait(timeout=5), "backend should be reached while the stream is open"
+                try:
+                    value = first_line.get(timeout=2)
+                except queue.Empty as exc:  # pragma: no cover - failure path
+                    pytest.fail(f"first SSE event was buffered behind backend work: {exc}")
+                assert value == "event: request"
+                assert not gate.is_set(), "backend must still be blocked when the first event arrives"
+            finally:
+                gate.set()
+                reader.join(timeout=5)
             assert "event: done" in list(lines)
 
 

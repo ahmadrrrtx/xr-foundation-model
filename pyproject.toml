@@ -38,7 +38,9 @@ hub = [
 ]
 dev = [
     "pytest>=7.0",
-    "ruff>=0.3.0",
+    # Formatter versions are pinned because Black and Ruff must agree byte-for-byte.
+    "ruff==0.17.5",
+    "black==26.10.1",
     "mypy>=1.0",
     "types-PyYAML>=6.0",
     "types-jsonschema>=4.23.0",
@@ -50,6 +52,9 @@ dev = [
     # Required for test collection of Phase 4/5 codersec tests:
     "transformers>=4.51.0,<4.53.0",
     "peft>=0.11.0",
+    # xrfm.codersec.dataset imports pyarrow at module scope; dev installs must
+    # include it so `pytest tests/` collects without the `hub` extra.
+    "pyarrow>=14.0.0",
 ]
 api = [
     "fastapi>=0.100.0",

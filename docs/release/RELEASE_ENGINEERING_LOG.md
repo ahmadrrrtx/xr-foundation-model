@@ -99,3 +99,47 @@ All model cards, dataset cards, README, and website links point to live resource
 ### Remaining Blocker
 
 **CI test (3.10) exit code 1** — Details unavailable from GitHub web UI (requires login). All 645 tests pass locally on Python 3.13. Dependencies (transformers, peft) both support Python 3.10. Need to investigate on next CI run or find alternate way to view error details.
+
+---
+
+## Authoritative Phase Zero baseline (release engineering, 2026-11-19)
+
+The earlier entries in this file were written during the previous pass and do not
+match the actual remote state observed at the start of this engagement. The
+values below supersede them.
+
+| Field | Value |
+|-------|-------|
+| Repository | https://github.com/ahmadrrrtx/xr-foundation-model |
+| Checkout used | `/home/user/xr-foundation-model` (created fresh; no pre-existing checkout) |
+| Baseline commit | `dcc426610ad6e337985a43b93f3d83bad40f669d` |
+| Baseline branch | `main`, clean working tree |
+| Release branch created | `release/first-public-batch` (from baseline; no force-push) |
+| Preserved tag | `v2.0.0` still resolves to `b5d2120ba7` (unchanged) |
+| Remote | `origin` → `https://github.com/ahmadrrrtx/xr-foundation-model.git` |
+| GitHub auth | Valid PAT for `ahmadrrrtx`; repo permissions include admin/maintain/push/pull |
+| Hugging Face auth | Valid write token for `ahmadrrrtx` |
+| Uncommitted developer changes | None at baseline |
+
+Credential handling: tokens were stored outside the repository in a mode-0600
+file under `/home/user/.config/xrfm/` and were never written to tracked files,
+logs, workflow files or documentation.
+
+## Authoritative CI diagnosis from downloaded Action logs
+
+| Run | Head | Actual failure |
+|-----|------|----------------|
+| #53 (`44374167245`) | `466a61d9` | `ruff format --check` would reformat 4 files (exit 1) |
+| #54 (`44375949675`) | `eb2e6008` | `black --check` would reformat the same 4 files (exit 1); pytest exit 2 from `ModuleNotFoundError: pyarrow` during collection |
+| #62 (`44390630623`) | `dcc42661` | Python 3.10 test `test_agent_http_stream_does_not_buffer_backend_work` took 1.58 s against a hard `< 0.2 s` assertion; 3.11/3.12 jobs were cancelled by fail-fast |
+| Pages #5 (`44390630530`) | `dcc42661` | `actions/configure-pages` received HTTP 404: GitHub Pages was never enabled for the repository |
+
+Conclusions from evidence:
+- Pytest exit code 2 was a **collection** error, not an assertion failure.
+- The earlier remedy removed the Black gate entirely. That weakened quality control.
+  Black and Ruff were made to agree by restructuring the four ambiguous statements;
+  both gates are enabled again with pinned formatter versions.
+- The streaming test measured absolute wall-clock latency on a shared runner. It
+  now uses an explicit gate to test event ordering deterministically.
+- GitHub Pages deployment cannot pass until Pages is enabled in repository settings;
+  a fine-grained PAT receives HTTP 403 from the Pages settings API.
