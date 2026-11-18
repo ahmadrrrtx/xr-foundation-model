@@ -43,3 +43,26 @@
 - pytest: 678/678 passed
 - pytest collection: 678 tests collected, 0 errors
 
+
+### Phase One — CI/CD Fixes (v2)
+
+**CI trigger expanded:** Added `release/*` to push/pull_request triggers in `.github/workflows/ci.yml` so CI runs on `release/first-public-batch` without requiring a PR to main/develop first.
+
+**Status:** Fixes committed and pushed to `release/first-public-batch` at commit `76560ae`. CI should trigger on the `release/*` branch pattern.
+
+**Local verification (all passing):**
+- ruff check: ALL CHECKS PASSED
+- ruff format --check: 218 files already formatted
+- pytest: 645/645 passed
+- mypy on new code: clean
+
+**Phase Two — Repository Cleanup (DONE):**
+- Removed 6 root-level deprecated shim directories (model/, tokenizer/, training/, inference/, evaluation/, optimization/)
+- All canonical code in src/xrfm/ unchanged
+- Updated tests/test_compat_shims.py (dropped root-level shim tests, kept in-package)
+- Added docs/release/ARCHIVE_INDEX.md with restoration instructions
+- 39 files deleted, recoverable via Git history
+
+**Phase Three — CD/Release pipelines:** Already configured correctly (trigger on tag pushes v*, minimal permissions). No changes needed.
+
+**Next:** Wait for CI to turn green on release/first-public-batch, then proceed to Phase Four (model cards + dataset cards audit).
