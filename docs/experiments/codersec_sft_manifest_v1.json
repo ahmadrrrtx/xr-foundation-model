@@ -1,0 +1,49 @@
+{
+  "dataset_id": "ahmadrrrtx/xrfm-codersec-sft-40k",
+  "hf_repo": "ahmadrrrtx/xrfm-codersec-sft-40k",
+  "hf_commit": "808d7505152eea93e6cd4af5f2269f43712afc2d",
+  "total_examples": 24100,
+  "pillars": {
+    "code": 14000,
+    "defensive_security": 12000,
+    "multilingual_roman_urdu": 10000,
+    "rag_citation_safety": 4000
+  },
+  "license_tiers": {
+    "opencoder_stage2": "tier_b",
+    "opencode_instruct": "tier_b",
+    "code_vuln_security_dpo": "tier_a",
+    "aya_dataset": "tier_a"
+  },
+  "contamination_checked": true,
+  "contamination_ngram_size": 13,
+  "contamination_result": "0% contamination (13-gram vs frozen eval benchmarks)",
+  "safety_filtered": true,
+  "safety_result": "0% exploit weaponization compliance (anti-weaponization gate)",
+  "provenance_sha": "5da93de694695a5aded5bdc2080f74ceb526c421ec977f48f9c2bc12210edbba",
+  "base_models_evaluated": [
+    {
+      "name": "Qwen/Qwen3-1.7B",
+      "sha": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+      "sha": "2e1fd397ee46e1388853d2af2c993145b0f1098a",
+      "license": "Apache-2.0"
+    }
+  ],
+  "created_at": "2026-11-18T10:19:21Z",
+  "config": {
+    "total_examples": 40000,
+    "pillars": {
+      "code": 0.35,
+      "defensive_security": 0.3,
+      "multilingual_roman_urdu": 0.25,
+      "rag_citation_safety": 0.1
+    },
+    "max_seq_length": 2048,
+    "chatml_format": true,
+    "assistant_only_loss": true
+  }
+}

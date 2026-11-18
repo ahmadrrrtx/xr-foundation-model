@@ -1,0 +1,39 @@
+=== RUFF CHECK ===
+All checks passed!
+=== RUFF FORMAT CHECK ===
+unformatted: File would be reformatted
+   --> scripts/build_and_publish_codersec_sft.py:471:23
+    |
+470 |     # Write records as JSONL for upload.
+    -     upload_dir = Path(
+    -         "/var/tmp/codersec_sft_upload"
+    -     )  # nosec B108 — /var/tmp is the designated staging area (not /tmp tmpfs)
+471 +     upload_dir = Path("/var/tmp/codersec_sft_upload")  # nosec B108 — /var/tmp is the designated staging area (not /tmp tmpfs)
+472 |     upload_dir.mkdir(parents=True, exist_ok=True)
+    |
+
+1 file would be reformatted, 186 files already formatted
+=== BLACK CHECK ===
+All done! ✨ 🍰 ✨
+153 files would be left unchanged.
+=== MYPY CORE ===
+Success: no issues found in 116 source files
+=== BANDIT ===
+=== PTEST CORE ===
+........................................................................ [ 14%]
+........................................................................ [ 28%]
+........................................................................ [ 42%]
+........................................................................ [ 56%]
+........................................................................ [ 70%]
+........................................................................ [ 84%]
+........................................................................ [ 98%]
+..........                                                               [100%]
+=============================== warnings summary ===============================
+tests/test_optimization.py::TestFlashAttention::test_force_math_backend
+  /usr/local/lib/python3.13/contextlib.py:109: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
+    self.gen = func(*args, **kwds)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+514 passed, 1 warning in 46.60s
+=== SECRET SCAN ===
+NO_REAL_SECRETS
