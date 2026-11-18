@@ -6,7 +6,7 @@
 **Release branch:** `release/first-public-batch`
 **Verification commit:** `d86be03`
 **Pull request:** https://github.com/ahmadrrrtx/xr-foundation-model/pull/5
-**Preserved tag:** `v2.0.0` → `b5d2120ba7`, unchanged
+**Preserved tag:** `v2.0.0` → `6c611662d70362aea3cc66c874da206cb93f9f91`, unchanged
 
 ## 1. Completed work
 

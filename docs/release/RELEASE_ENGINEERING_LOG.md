@@ -115,7 +115,7 @@ values below supersede them.
 | Baseline commit | `dcc426610ad6e337985a43b93f3d83bad40f669d` |
 | Baseline branch | `main`, clean working tree |
 | Release branch created | `release/first-public-batch` (from baseline; no force-push) |
-| Preserved tag | `v2.0.0` still resolves to `b5d2120ba7` (unchanged) |
+| Preserved tag | `v2.0.0` still resolves to `6c611662d70362aea3cc66c874da206cb93f9f91` (unchanged) |
 | Remote | `origin` → `https://github.com/ahmadrrrtx/xr-foundation-model.git` |
 | GitHub auth | Valid PAT for `ahmadrrrtx`; repo permissions include admin/maintain/push/pull |
 | Hugging Face auth | Valid write token for `ahmadrrrtx` |

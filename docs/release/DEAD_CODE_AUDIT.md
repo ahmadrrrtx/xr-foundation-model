@@ -46,7 +46,7 @@ No files were deleted in the current release-engineering pass.
 ## 4. Branch and archive state
 
 - No force-push, history rewrite, tag replacement or destructive operation was performed.
-- Tag `v2.0.0` remains at `b5d2120ba7`, untouched.
+- Tag `v2.0.0` remains at `6c611662d70362aea3cc66c874da206cb93f9f91`, untouched.
 - Recoverable copy of all previously removed files: Git history; see `docs/release/ARCHIVE_INDEX.md` for exact restoration commands.
 
 ## 5. Change decision
