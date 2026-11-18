@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Page Not Found · XRFM</title>
+<meta name="description" content="The page you were looking for doesn't exist on the XRFM website. Return to the homepage or browse the docs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --ink: #0f172a;
+    --muted: #475569;
+    --line: #e2e8f0;
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --accent: #0ea5e9;
+    --accent-ink: #0c4a6e;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .container { max-width: 1024px; margin: 0 auto; padding: 0 24px; flex: 1; }
+  header {
+    background: #0b1120;
+    color: #fff;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  header .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+  .brand .mark { width: 28px; height: 28px; background: linear-gradient(135deg, #0ea5e9, #7c3aed); border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 0.85rem; }
+  nav a { color: #cbd5e1; font-size: 0.9rem; margin-left: 20px; font-weight: 500; text-decoration: none; }
+  nav a:hover { color: #fff; }
+  .hero {
+    padding: 80px 0;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border-bottom: 1px solid var(--line);
+    text-align: center;
+  }
+  .hero h1 { font-size: 3rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 16px; }
+  .hero p { font-size: 1.125rem; color: var(--muted); margin-bottom: 28px; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.95rem;
+    border: none; cursor: pointer; transition: transform 0.1s;
+    text-decoration: none;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--ink); color: #fff; }
+  .btn-outline { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent-ink); }
+  footer { padding: 40px 0; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); text-align: center; }
+  footer a { color: var(--ink); text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <div class="brand">
+      <div class="mark">XRFM</div>
+      <div>XRFM · XR Foundation Model</div>
+    </div>
+    <nav>
+      <a href="/xr-foundation-model/">Home</a>
+      <a href="https://github.com/ahmadrrrtx/xr-foundation-model" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+<section class="hero">
+  <div class="container">
+    <h1>404</h1>
+    <p>Page not found. The page you&rsquo;re looking for doesn&rsquo;t exist (or has moved).</p>
+    <div class="hero-actions">
+      <a href="/xr-foundation-model/" class="btn btn-primary">Go Home</a>
+      <a href="https://github.com/ahmadrrrtx/xr-foundation-model" target="_blank" rel="noopener" class="btn btn-outline">GitHub Repo</a>
+    </div>
+  </div>
+</section>
+<footer>
+  <div class="container">
+    <p><strong>XRFM — XR Foundation Model</strong> &middot; v2.0.0 &middot; MIT License</p>
+  </div>
+</footer>
+</body>
+</html>

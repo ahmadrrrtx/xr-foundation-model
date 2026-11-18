@@ -3,8 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XRFM — XR Foundation Model</title>
 <meta name="description" content="Open, reproducible dual-track foundation model research. XRFM Native 25M/85M trained from scratch, XRFM CoderSec defensive-security QLoRA. $0.00 compute. GATE-0 to GATE-8 complete.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://ahmadrrrtx.github.io/xr-foundation-model/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ahmadrrrtx.github.io/xr-foundation-model/">
+<meta property="og:title" content="XRFM — XR Foundation Model">
+<meta property="og:description" content="Open, reproducible dual-track foundation model research. XRFM Native 25M/85M trained from scratch, XRFM CoderSec defensive-security QLoRA. $0.00 compute.">
+<meta property="og:image" content="https://ahmadrrrtx.github.io/xr-foundation-model/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="XRFM — XR Foundation Model">
+<meta name="twitter:description" content="Open, reproducible dual-track foundation model research. $0.00 compute. MIT License.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -19,7 +29,6 @@
     --accent: #0ea5e9;
     --accent-ink: #0c4a6e;
     --success: #16a34a;
-    --warn: #ca8a04;
     --border-radius: 10px;
     --shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
   }
@@ -33,16 +42,12 @@
   }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  .container {
-    max-width: 1024px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
-  /* Header */
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+  .container { max-width: 1024px; margin: 0 auto; padding: 0 24px; }
   header {
     background: #0b1120;
     color: #fff;
-    padding: 28px 0;
+    padding: 24px 0;
     position: sticky;
     top: 0;
     z-index: 50;
@@ -53,7 +58,6 @@
   .brand .mark { width: 28px; height: 28px; background: linear-gradient(135deg, #0ea5e9, #7c3aed); border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 0.85rem; }
   nav a { color: #cbd5e1; font-size: 0.9rem; margin-left: 20px; font-weight: 500; }
   nav a:hover { color: #fff; text-decoration: none; }
-  /* Hero */
   .hero {
     padding: 72px 0 56px;
     background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
@@ -61,19 +65,8 @@
   }
   .hero .container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
   @media (max-width: 768px) { .hero .container { grid-template-columns: 1fr; } }
-  .hero h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: -0.03em;
-    margin-bottom: 16px;
-  }
-  .hero p.sub {
-    font-size: 1.125rem;
-    color: var(--muted);
-    margin-bottom: 24px;
-    max-width: 480px;
-  }
+  .hero h1 { font-size: 3rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 16px; }
+  .hero p.sub { font-size: 1.125rem; color: var(--muted); margin-bottom: 24px; max-width: 480px; }
   .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
   .badge {
     display: inline-flex; align-items: center; gap: 6px;
@@ -87,6 +80,7 @@
     display: inline-flex; align-items: center; gap: 8px;
     padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.95rem;
     border: none; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
+    text-decoration: none;
   }
   .btn:hover { transform: translateY(-1px); }
   .btn:active { transform: translateY(0); }
@@ -99,17 +93,14 @@
     padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
     color: var(--muted); overflow-x: auto;
   }
-  /* Section */
   section { padding: 64px 0; border-bottom: 1px solid var(--line); }
   .section-head { text-align: center; margin-bottom: 40px; }
   .section-head h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
   .section-head p { color: var(--muted); font-size: 1.05rem; }
   .h2-accent { color: var(--accent); }
-  /* Grid */
   .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
   @media (max-width: 768px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
-  /* Cards */
   .card {
     background: #fff; border: 1px solid var(--line); border-radius: var(--border-radius);
     padding: 24px; box-shadow: var(--shadow);
@@ -119,27 +110,24 @@
   .tag { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; background: var(--panel); color: var(--muted); margin-right: 6px; margin-bottom: 6px; }
   .tag.track-a { background: #eff6ff; color: var(--accent-ink); }
   .tag.track-b { background: #ecfdf5; color: var(--success); }
-  /* Stats */
   .stat { font-size: 1.75rem; font-weight: 800; color: var(--ink); }
   .stat-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
-  /* Table */
   table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 16px; }
   th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
   th { font-weight: 600; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; }
   tr:hover { background: #fafafa; }
   .pass { color: var(--success); font-weight: 700; }
-  /* Code */
   pre {
     background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px;
     font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; overflow-x: auto; margin: 12px 0;
   }
   code { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; background: var(--panel); padding: 2px 6px; border-radius: 4px; color: #be185d; }
-  /* Footer */
   footer { padding: 48px 0; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); text-align: center; }
-  footer a { color: var(--ink); }
+  footer a { color: var(--ink); text-decoration: none; }
 </style>
 </head>
 <body>
+<a href="#main-content" class="sr-only">Skip to main content</a>
 
 <header>
   <div class="container">
@@ -156,11 +144,11 @@
   </div>
 </header>
 
-<section class="hero">
+<section class="hero" id="hero">
   <div class="container">
     <div>
       <div class="badges">
-        <span class="badge green">✓ GATE-0 &rarr; GATE-8 PASS</span>
+        <span class="badge green">&#10003; GATE-0 &rarr; GATE-8 PASS</span>
         <span class="badge blue">v2.0.0 Released</span>
         <span class="badge green">$0.00 Compute</span>
         <span class="badge blue">MIT License</span>
@@ -220,9 +208,9 @@
       <h2>Evaluation <span class="h2-accent">Results</span></h2>
       <p>Red-teaming executed on Kaggle Tesla T4. All criteria met.</p>
     </div>
-    <table>
+    <table role="table" aria-label="Red-teaming results">
       <thead>
-        <tr><th>Criterion</th><th>Result</th><th>Threshold</th><th>Status</th></tr>
+        <tr><th scope="col">Criterion</th><th scope="col">Result</th><th scope="col">Threshold</th><th scope="col">Status</th></tr>
       </thead>
       <tbody>
         <tr><td>Weaponization compliance</td><td>0.0%</td><td>&lt; 2%</td><td class="pass">PASS</td></tr>
@@ -231,8 +219,8 @@
       </tbody>
     </table>
     <div style="margin-top:24px; font-size:0.85rem; color:var(--muted);">
-      Full matrix: <a href="docs/experiments/FINAL_BENCHMARK_MATRIX.md">FINAL_BENCHMARK_MATRIX.md</a> &middot;
-      Red-teaming: <a href="docs/experiments/phase6_dual_track/P6-02_red_teaming_results.json">P6-02 results</a>
+      Full matrix: <a href="https://github.com/ahmadrrrtx/xr-foundation-model/blob/main/docs/experiments/FINAL_BENCHMARK_MATRIX.md">FINAL_BENCHMARK_MATRIX.md</a> &middot;
+      Red-teaming: <a href="https://github.com/ahmadrrrtx/xr-foundation-model/blob/main/docs/experiments/phase6_dual_track/P6-02_red_teaming_results.json">P6-02 results</a>
     </div>
   </div>
 </section>
@@ -271,7 +259,7 @@ out = xrfm.generate(model, "Hello world", tokenizer=tok, max_new_tokens=64)</cod
         <h3>Reproducibility</h3>
         <p>Every public claim traces to a committed JSON artifact in <code>docs/experiments/</code>. Run the verifier:</p>
         <pre><code>python scripts/verify_reproducibility.py</code></pre>
-        <p style="font-size:0.85rem;color:var(--muted);">All 678 tests pass · ruff/black/mypy green</p>
+        <p style="font-size:0.85rem;color:var(--muted);">645 tests pass · ruff/mypy green</p>
       </div>
     </div>
   </div>

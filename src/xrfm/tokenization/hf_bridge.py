@@ -141,7 +141,7 @@ class HFTokenizerAdapter(Tokenizer):
     def load(self, path: str) -> None:
         if not os.path.isfile(path):
             raise FileNotFoundError(f"Tokenizer file not found: {path}")
-        from tokenizers import Tokenizer as RustTokenizer
+        from tokenizers import Tokenizer as RustTokenizer  # type: ignore[import-untyped]
 
         self._backend = RustTokenizer.from_file(path)
         self._sync_metadata()

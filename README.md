@@ -1,6 +1,6 @@
 # XRFM — XR Foundation Model
 
-[![CI](https://github.com/ahmadrrrtx/xr-foundation-model/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ahmadrrrtx/xr-foundation-model/actions/workflows/ci.yml)
+[![CI](https://github.com/ahmadrrrtx/xr-foundation-model/actions/workflows/ci.yml/badge.svg?branch=release%2Ffirst-public-batch)](https://github.com/ahmadrrrtx/xr-foundation-model/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-orange.svg)](https://pytorch.org)
