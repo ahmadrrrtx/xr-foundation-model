@@ -1,154 +1,141 @@
-# XRFM — XR Foundation Model
+# XR Foundation Model (XRFM)
 
-[![CI](https://github.com/ahmadrrrtx/xr-foundation-model/actions/workflows/ci.yml/badge.svg?branch=release%2Ffirst-public-batch)](https://github.com/ahmadrrrtx/xr-foundation-model/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.x-orange.svg)](https://pytorch.org)
+[![CI](https://github.com/ahmadrrrtx/xr-foundation-model/actions/workflows/ci.yml/badge.svg)](https://github.com/ahmadrrrtx/xr-foundation-model/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
+[![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Release](https://img.shields.io/github/v/release/ahmadrrrtx/xr-foundation-model)](https://github.com/ahmadrrrtx/xr-foundation-model/releases)
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fahmadrrrtx.github.io%2Fxr-foundation-model%2F)](https://ahmadrrrtx.github.io/xr-foundation-model/)
 
-Professional, reproducible dual-track foundation model research codebase.
+**Open-source multilingual foundation-model research with an original transformer architecture and a specialized coding and defensive cybersecurity track.**
 
----
+Official website: <https://ahmadrrrtx.github.io/xr-foundation-model/>
 
-## 🎯 Trained Models (GATE-0 → GATE-8 Complete)
+XRFM is a research project, not a production assistant. It contains two independent model lineages that share tooling and evaluation practices but never share weights or training history.
 
-All gates pass. Tagged release `v2.0.0`. Zero paid compute ($0.00 HF).
+## Technical overview
 
-| Model | Track | Parameters | Base | HF Repo | Status |
-|-------|-------|------------|------|---------|--------|
-| **XRFM Native 25M** | Track A (from scratch) | ~25.2M | Random init | [`ahmadrrrtx/xrfm-native-25m`](https://huggingface.co/ahmadrrrtx/xrfm-native-25m) | ✅ Released |
-| **XRFM Native 85M** | Track A (from scratch) | ~86.4M | Random init | [`ahmadrrrtx/xrfm-native-85m`](https://huggingface.co/ahmadrrrtx/xrfm-native-85m) | ✅ Released |
-| **XRFM CoderSec** | Track B (defensive security) | QLoRA on 1.7B | Qwen/Qwen3-1.7B | QLoRA adapter + merged | ✅ Released |
+- **Track A — XRFM Native:** decoder-only transformers developed by this project and trained from random initialization on a multilingual/code corpus.
+- **Track B — XRFM CoderSec:** a defensive-coding track based on the explicitly attributed `Qwen/Qwen3-1.7B` base model and QLoRA fine-tuning. No CoderSec checkpoint is publicly available at present.
 
-**Model cards:** [`MODEL_CARD_NATIVE.md`](MODEL_CARD_NATIVE.md) · [`MODEL_CARD_CODERSEC.md`](MODEL_CARD_CODERSEC.md) · [`DATASET_CARD.md`](DATASET_CARD.md)
+The canonical Python package is `src/xrfm/`. The wheel ships only the `xrfm` package; API, deployment and training scripts remain repository tools.
 
-**Live model website:** https://ahmadrrrtx.github.io/xr-foundation-model/
+## Published models
 
----
+| Model | Lineage | Parameters | Tokenizer | Artifact |
+|---|---|---:|---|---|
+| XRFM Native 25M | Original, random initialization | 25,200,000 | T4 32K Byte-BPE | [Hugging Face](https://huggingface.co/ahmadrrrtx/xrfm-native-25m) |
+| XRFM Native 85M | Original, random initialization | 86,446,464 | T4 32K Byte-BPE | [Hugging Face](https://huggingface.co/ahmadrrrtx/xrfm-native-85m) |
+| XRFM CoderSec | Qwen3-1.7B base + QLoRA | ~1.7B base | Qwen tokenizer | **Not published** |
 
-## 📦 Installation
+Native 25M was trained for 900 steps over 58,982,400 processed tokens; Native 85M for 160 steps over 10,485,760 tokens. Both used NVIDIA Tesla T4 hardware and reported a zero-difference exact-resume probe. The 85M run is a shorter scaling probe and has higher final BPB than 25M across all reported domains.
+
+## Datasets
+
+| Dataset | Revision | Actual content | License |
+|---|---|---|---|
+| [xrfm-native-shards-v1](https://huggingface.co/datasets/ahmadrrrtx/xrfm-native-shards-v1) | `1652affc` | 8 train shards, 9,577 sequences, 20,080,975 prepared tokens, 623 validation docs | ODC-By, mixed source licenses |
+| [xrfm-codersec-sft-40k](https://huggingface.co/datasets/ahmadrrrtx/xrfm-codersec-sft-40k) | `808d7505` | 24,100 rows (the name is a target, not a count) | `other`; row licenses Apache-2.0 / CC0-1.0 / MIT |
+
+The CoderSec dataset card and [quality report](https://huggingface.co/datasets/ahmadrrrtx/xrfm-codersec-sft-40k/blob/main/QUALITY_REPORT.json) disclose measured defects: malformed ChatML in all rows, placeholder code in all 2,100 code rows and 11,993 exact duplicates. The original revision is preserved because documented QLoRA experiments used it.
+
+## Architecture summary
+
+Native models use the original `XRFMModel`:
+
+- Decoder-only transformer with grouped-query attention
+- Rotary position embeddings (RoPE)
+- RMSNorm and SwiGLU feed-forward blocks
+- Causal masking and KV-cached generation
+- 2,048-token context in the published configurations
+- T4 Script-Protected Byte-Level BPE with 32,768 vocabulary entries
+
+CoderSec uses Qwen3-1.7B with NF4 + FP16 QLoRA, adapter training and merge scripts in `src/xrfm/codersec/`. It is not an XRFM Native architecture.
+
+## Languages and scripts
+
+Native pretraining and evaluation cover English, code, Urdu (Perso-Arabic), Roman Urdu, Arabic, Hindi, Spanish and French. The CoderSec SFT rows are labelled `en`, `urd`, `arb` and `spa`.
+
+## Tokenizer
+
+The T4 tokenizer was selected in a four-way multilingual and code tournament. The winning candidate used 32,768 Script-Protected Byte-BPE tokens with atomic special tokens, 0% byte fallback and lossless round-trip in the recorded evaluation. The legacy 2K vocabulary and full tournament harness are preserved for reproducibility.
+
+## Training methodology
+
+Native training used causal language modelling on `uint16` shards with 2,048 tokens and a next-token label. Deduplication used SHA-256 and MinHash-LSH 8×4; contamination was checked against a frozen benchmark manifest. CoderSec experiments used QLoRA on a Qwen3-1.7B base with SFT data revision `808d7505`, followed by internal evaluation and red-team notebooks.
+
+## Evaluation methodology
+
+Native evaluation reports per-domain bits per byte (BPB), lower is better. BPB measures likelihood/compression fit to held-out data; it does **not** prove programming or cybersecurity capability. There is no weighted aggregate score. CoderSec reports small internal red-team suites (8 weaponization prompts, 7 false-refusal prompts, 4 Roman-Urdu perturbation pairs); these are preliminary and cannot establish population-level safety.
+
+## Installation
 
 ```bash
-# Clone the repo
 git clone https://github.com/ahmadrrrtx/xr-foundation-model.git
 cd xr-foundation-model
-
-# Install in editable mode with dev dependencies
-pip install -e ".[dev]"
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[dev,hub]'
 ```
 
-## 🚀 Quick Start
+Python 3.10, 3.11 and 3.12 are tested in CI. The PyPI name `xrfm` belongs to an unrelated tabular-kernel project; install from source, not from PyPI.
+
+## Inference example
 
 ```python
 import xrfm
 
-# Load a config and build the model
 cfg = xrfm.load_config("config/tiny.yaml")
 model = xrfm.XRFM(cfg)
-
-# Tokenize and generate
 tok = xrfm.BPETokenizer.pretrained()
-out = xrfm.generate(model, "Hello world", tokenizer=tok,
-                    max_new_tokens=64, temperature=0.8)
-
-# Evaluate
-ppl = xrfm.evaluate(model, val_loader)
-print(f"Perplexity: {ppl:.2f}")
+result = xrfm.generate(model, "Once upon a time", tokenizer=tok, max_new_tokens=64)
+print(result)
 ```
 
-```bash
-# CLI
-xrfm info
-xrfm validate-config config/tiny.yaml
+Published Native checkpoints are research models, not instruction-tuned chat assistants.
 
-# Phase 7: Defensive security tools
-xrfm security search "SQL injection prevention" --top-k 3
-xrfm security scan src/ --max-files 20
-```
-
----
-
-## 🏗️ Architecture
-
-XRFM is a pure-PyTorch research codebase with two clearly separated tracks:
-
-### Track A — XRFM Native (from scratch)
-Original decoder-only transformer trained from random initialization:
-- GQA/MHA multi-head attention with RoPE positional embeddings
-- FP32-safe RMSNorm and SwiGLU activation
-- Native `is_causal=True` SDPA fast-path
-- Activation checkpointing and weight tying
-- Byte-level BPE tokenizer (32K, script-protected)
-
-### Track B — XRFM CoderSec (defensive security)
-Parameter-efficient QLoRA fine-tune on explicitly attributed open base models:
-- QLoRA (NF4 + FP16, r=16, α=32) on Qwen3-1.7B
-- Citation-Grounded RAG over OWASP ASVS, MITRE CWE/ATT&CK, NIST SP 800-218/800-61r3
-- Bounded agent tools: `SecurityAdvisorySearchTool`, `StaticCodeAuditTool`
-- Red-teaming: 0.0% weaponization, 0.0% false-refusal, 100% Roman-Urdu stability
-
-Third-party pretrained weights are **never** loaded into `XRFMModel` or misrepresented as trained from scratch.
-
----
-
-## 📊 Evaluation & Red-Teaming
-
-All evaluation artifacts are committed in [`docs/experiments/`](docs/experiments/).
-
-| Criterion | Result | Threshold | Status |
-|-----------|--------|-----------|--------|
-| Weaponization compliance | 0.0% | < 2% | ✅ PASS |
-| False-refusal rate | 0.0% | < 10% | ✅ PASS |
-| Roman-Urdu stability | 1.00 (100%) | ≥ 0.80 | ✅ PASS |
-
-See [`docs/experiments/FINAL_BENCHMARK_MATRIX.md`](docs/experiments/FINAL_BENCHMARK_MATRIX.md) for the full benchmark matrix.
-
----
-
-## 🧪 Reproducibility
-
-Verify a clean clone reproduces every claim:
+## Reproduction
 
 ```bash
+python scripts/ci_smoke_test.py
 python scripts/verify_reproducibility.py
+python scripts/train_native_from_hub.py --config config/native-25m.yaml
 ```
 
-This checks that all committed artifacts parse, model/dataset cards exist, the knowledge pack loads, agent tools register, the CLI works, red-teaming thresholds are met, and the test suite passes.
+See [documentation](https://ahmadrrrtx.github.io/xr-foundation-model/docs/) and the [experiment registry](docs/experiments/) for pinned revisions and hardware notes.
 
----
+## Data provenance
 
-## 📚 Documentation
+Native shards derive from FineWeb-Edu, FineWeb-2, OpenCoder Stage-2 and AI4Bharat Sangraha with pinned revisions and source licenses. CoderSec SFT rows derive from CyberNative, AYA, a project-authored security knowledge pack and OpenCoder Stage-2. OWASP, MITRE and NIST identifiers are cited with document-level attribution requirements; no blanket SPDX claim is made for those external resources.
 
-| Document | Description |
-|----------|-------------|
-| [`MODEL_CARD_NATIVE.md`](MODEL_CARD_NATIVE.md) | Track A model card (25M / 85M) |
-| [`MODEL_CARD_CODERSEC.md`](MODEL_CARD_CODERSEC.md) | Track B model card (CoderSec) |
-| [`DATASET_CARD.md`](DATASET_CARD.md) | Dataset card (shards + SFT-40k) |
-| [`docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md`](docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md) | Execution ledger (all gates) |
-| [`docs/program/03_EXECUTION_LEDGER.md`](docs/program/03_EXECUTION_LEDGER.md) | Program governance ledger |
-| [`docs/experiments/FINAL_BENCHMARK_MATRIX.md`](docs/experiments/FINAL_BENCHMARK_MATRIX.md) | Benchmark results |
+## Licensing
 
----
+Repository source is MIT. Native model weights are Apache-2.0. The Native dataset is ODC-By with mixed upstream licenses. The CoderSec base model is Apache-2.0; its SFT dataset uses mixed row-level licenses and is marked `other`. See the [artifact-specific license matrix](docs/release/LICENSE_AND_ATTRIBUTION_MATRIX.md).
 
-## 🔒 Safety & Dual-Use Boundaries
+## Limitations
 
-XRFM CoderSec is a **defensive-security** tool. It must not be used to generate weaponizable code, exploits, or malware. Red-teaming confirmed 0.0% weaponization compliance. All outputs should be reviewed by a qualified security engineer before deployment.
+- Small experimental models with limited training data and no instruction tuning.
+- BPB improvements are not evidence of coding, reasoning or security capability.
+- CoderSec weights are not public; its red-team results use very small samples.
+- The published CoderSec SFT dataset contains known serialization and content defects.
+- No formal privacy or safety audit has been published.
 
-See [`SECURITY.md`](SECURITY.md) for the security policy.
+## Security policy
 
----
+Report vulnerabilities through the process in [SECURITY.md](SECURITY.md). Do not open public issues for sensitive findings.
 
-## 🤝 Contributing
+## Citation
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+A machine-readable [`CITATION.cff`](CITATION.cff) is maintained in the repository. Cite the exact model and dataset revisions used. No DOI, journal publication or scholarly affiliation is claimed.
 
----
+## Contributing
 
-## 📄 License
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Preserve the Native/CoderSec distinction, tokenizer research and artifact provenance in all changes.
 
-[MIT](LICENSE) — see [`LICENSE`](LICENSE) for details.
+## Documentation
 
----
-
-<div align="center">
-  <b>XRFM — Open, reproducible, defensive-security foundation model research.</b>
-</div>
+- [Official website](https://ahmadrrrtx.github.io/xr-foundation-model/)
+- [Architecture](docs/architecture.md)
+- [Model and dataset audit](docs/release/MODEL_AND_DATASET_AUDIT.md)
+- [Dependency map](docs/release/DEPENDENCY_MAP.md)
+- [Release reports](docs/release/)

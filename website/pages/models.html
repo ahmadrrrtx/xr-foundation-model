@@ -1,0 +1,26 @@
+    <header class="page-head">
+      <div class="container">
+        <div class="kicker">Models</div>
+        <h1>Published checkpoints and lineage</h1>
+        <p>Each model page states its architecture, training data, evaluation scope and exact publication status. Native and CoderSec models are independent and must not be treated as one architecture family.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Model</th><th>Lineage</th><th>Parameters</th><th>Tokenizer</th><th>Status</th><th>Artifact</th></tr></thead>
+            <tbody>
+              <tr><td><a href="/xr-foundation-model/models/native-25m.html">XRFM Native 25M</a></td><td>Original, random initialization</td><td class="num">25,200,000</td><td>T4 32K BPE</td><td>Published</td><td><a href="https://huggingface.co/ahmadrrrtx/xrfm-native-25m">Hugging Face</a></td></tr>
+              <tr><td><a href="/xr-foundation-model/models/native-85m.html">XRFM Native 85M</a></td><td>Original, random initialization</td><td class="num">86,446,464</td><td>T4 32K BPE</td><td>Published</td><td><a href="https://huggingface.co/ahmadrrrtx/xrfm-native-85m">Hugging Face</a></td></tr>
+              <tr><td><a href="/xr-foundation-model/models/codersec.html">XRFM CoderSec</a></td><td>Qwen3-1.7B base + QLoRA</td><td class="num">~1.7B base</td><td>Qwen tokenizer</td><td><strong>Not published</strong></td><td>See status page</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid grid-3" style="margin-top:2rem">
+          <article class="card"><h3>Native weights</h3><p>Released under Apache-2.0 metadata. Source code remains MIT-licensed; the weight license is artifact-specific.</p></article>
+          <article class="card"><h3>CoderSec attribution</h3><p>Base model <code>Qwen/Qwen3-1.7B</code> revision <code>70d244cc</code>, Apache-2.0. No adapter or merged weights are public.</p></article>
+          <article class="card"><h3>No hidden lineage</h3><p>Native models loaded no third-party pretrained weights. CoderSec did, and says so on every public surface.</p></article>
+        </div>
+      </div>
+    </section>

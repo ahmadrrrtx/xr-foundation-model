@@ -1,0 +1,70 @@
+    <header class="page-head">
+      <div class="container">
+        <div class="kicker">Documentation</div>
+        <h1>Install, run and reproduce</h1>
+        <p>Python 3.10–3.12 are tested in CI. Install from source: the PyPI name <code>xrfm</code> belongs to an unrelated project.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container grid grid-2">
+        <article class="prose">
+          <h2 id="installation">Installation</h2>
+          <pre><code>git clone https://github.com/ahmadrrrtx/xrf-foundation-model.git
+cd xr-foundation-model
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[dev,hub]'</code></pre>
+          <p>The import name remains <code>xrfm</code>. Do not install the unrelated PyPI distribution named <code>xrfm</code>.</p>
+
+          <h2 id="quickstart">Quick start</h2>
+          <pre><code>import xrfm
+
+cfg = xrfm.load_config("config/tiny.yaml")
+model = xrfm.XRFM(cfg)
+tok = xrfm.BPETokenizer.pretrained()
+ids = tok.encode("Assalam o Alaikum — hello in Urdu.")
+print(tok.decode(ids))</code></pre>
+
+          <h2 id="tokenizer">Tokenizer usage</h2>
+          <p>The T4 tokenizer file is packaged with the library and published with both Native checkpoints. Special tokens are atomic. The legacy <code>vocab.json</code> is retained only as the tournament control.</p>
+          <pre><code>from xrfm.tokenization import HFTokenizerAdapter
+
+tok = HFTokenizerAdapter("src/xrfm/tokenization/tokenizer_32k_multilingual.json")
+ids = tok.encode("Roman Urdu: aap kaise hain?")
+assert tok.decode(ids) == "Roman Urdu: aap kaise hain?"</code></pre>
+
+          <h2 id="training">Training configuration</h2>
+          <p>Active configs: <code>config/tiny.yaml</code>, <code>config/native-25m.yaml</code>, <code>config/native-85m.yaml</code>. Dataset sources are pinned in <code>configs/data/</code>. Run the CPU smoke test before any GPU experiment:</p>
+          <pre><code>python scripts/ci_smoke_test.py
+python scripts/train_native_from_hub.py --config config/native-25m.yaml</code></pre>
+        </article>
+        <article class="prose">
+          <h2 id="inference">Inference</h2>
+          <pre><code>from xrfm import generate
+from xrfm.inference import GenerationEngine
+
+engine = GenerationEngine(model, tokenizer=tok)
+result = engine.generate("Once upon a time", max_new_tokens=64)
+print(result.text)</code></pre>
+          <p>Native checkpoints are small research models, not chat models. Prompt formats are plain text unless a separate experiment specifies otherwise.</p>
+
+          <h2 id="datasets">Dataset preparation</h2>
+          <p>Native shards are <code>uint16</code> arrays of 2,049 values: 2,048 tokens plus the next-token label. Validation JSONL files are per language. CoderSec SFT is JSONL with row-level provenance and license fields.</p>
+          <pre><code>python scripts/build_and_publish_native_shards.py --help
+python scripts/filter_codersec_sft.py --help</code></pre>
+
+          <h2 id="evaluation">Evaluation</h2>
+          <pre><code>python scripts/evaluate_checkpoint.py --help
+python scripts/run_eval_protocol.py --help</code></pre>
+          <p>Report BPB per domain. Do not aggregate without documenting weights. Explain that BPB is a likelihood measure.</p>
+
+          <h2 id="reproducibility">Reproducibility</h2>
+          <pre><code>python scripts/verify_reproducibility.py</code></pre>
+          <p>This checks pinned experiment artefacts including the tokenizer tournament, shard manifest and SFT manifest. Model and dataset revisions are recorded in the release reports.</p>
+
+          <h2 id="contributing">Contributing</h2>
+          <p>Read the <a href="https://github.com/ahmadrrrtx/xr-foundation-model/blob/main/CONTRIBUTING.md">contribution guide</a>. Keep Native and CoderSec lineage separate, preserve tokenizer research, add tests for behaviour changes and avoid committing large artefacts.</p>
+          <p><a class="card-link" href="https://github.com/ahmadrrrtx/xrf-foundation-model/tree/main/docs">Full documentation in the repository →</a></p>
+        </article>
+      </div>
+    </section>

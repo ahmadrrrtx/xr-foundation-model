@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XRFM Native 85M · XRFM</title>
+  <meta name="description" content="An 86.4M-parameter decoder-only transformer scaling probe trained from random initialization.">
+  <meta name="author" content="M. Ahmad, RRRTX Labs">
+  <link rel="canonical" href="https://ahmadrrrtx.github.io/xr-foundation-model/models/native-85m.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="XR Foundation Model">
+  <meta property="og:title" content="XRFM Native 85M · XRFM">
+  <meta property="og:description" content="An 86.4M-parameter decoder-only transformer scaling probe trained from random initialization.">
+  <meta property="og:url" content="https://ahmadrrrtx.github.io/xr-foundation-model/models/native-85m.html">
+  <meta property="og:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="XRFM Native 85M · XRFM">
+  <meta name="twitter:description" content="An 86.4M-parameter decoder-only transformer scaling probe trained from random initialization.">
+  <meta name="twitter:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <script src="../assets/js/site.js" defer></script>
+</head>
+<body data-site-root="../">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../">
+        <svg class="brand-mark" viewBox="0 0 40 40" role="img" aria-label="XRFM mark">
+          <rect x="1" y="1" width="38" height="38" rx="11" fill="#071426"/>
+          <path d="M10 12l6 8-6 8M20 28l11-16" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="30" cy="12" r="2.2" fill="#2dd4bf"/>
+        </svg>
+        XRFM
+      </a>
+      <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-label="Toggle navigation">
+      <label class="nav-toggle-label" for="nav-toggle" aria-hidden="true">☰</label>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="../" data-nav="home">Home</a>
+        <a href="../models/" data-nav="models" aria-current="page">Models</a>
+        <a href="../architecture/" data-nav="architecture">Architecture</a>
+        <a href="../datasets/" data-nav="datasets">Datasets</a>
+        <a href="../evaluation/" data-nav="evaluation">Evaluation</a>
+        <a href="../docs/" data-nav="docs">Docs</a>
+        <a href="../research/" data-nav="research">Research</a>
+        <a class="header-cta" href="https://github.com/ahmadrrrtx/xr-foundation-model" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+<header class="page-head">
+      <div class="container">
+        <div class="kicker">Track A · XRFM Native</div>
+        <h1>XRFM Native 85M</h1>
+        <p>An 86.4M-parameter scaling probe trained from random initialization on the same native shards. It processed fewer tokens than the 25M run and has higher final BPB.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container grid grid-2">
+        <article class="prose">
+          <h2>Model lineage</h2>
+          <p>Random initialization; no third-party pretrained weights. The documented revision is <code>dbe5f102</code>. Training used <code>config/native-85m.yaml</code> and the same dataset revision as Native 25M.</p>
+          <h2>Architecture</h2>
+          <ul>
+            <li><code>d_model=640</code>, 14 layers, 10 query heads, 2 KV heads</li>
+            <li><code>d_ff=1920</code>, context 2,048, RoPE, RMSNorm, SwiGLU</li>
+            <li>86,446,464 tied parameters</li>
+          </ul>
+          <h2>Training</h2>
+          <p>160 steps over 10,485,760 processed tokens on Tesla T4 hardware; 994.72 s wall time and 2,580.41 MB peak VRAM. The exact-resume probe reported a maximum weight difference of 0.0 and final training loss of 6.8362.</p>
+          <div class="callout warn"><p>This was a shorter scaling experiment. More parameters alone did not produce better held-out BPB than the 25M checkpoint, which saw more data. Do not describe 85M as a stronger assistant.</p></div>
+          <h2>Use and limitations</h2>
+          <p>Suitable for scaling comparisons and reproducibility studies. Not suitable for production chat, coding, security advice or high-stakes use. It is not instruction-tuned.</p>
+        </article>
+        <aside>
+          <div class="card">
+            <span class="tag">Checkpoint</span>
+            <h3>Direct access</h3>
+            <a class="btn btn-accent" href="https://huggingface.co/ahmadrrrtx/xrfm-native-85m">Open model repository</a>
+          </div>
+          <div class="card" style="margin-top:1rem">
+            <h3>Tokenizer</h3>
+            <p>T4 32K Script-Protected Byte-BPE; vocabulary 32,768. Same special-token contract as Native 25M.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+    <section class="section wash tight">
+      <div class="container">
+        <h2>Held-out BPB: random initialization → step 160</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Domain</th><th class="num">Step 0</th><th class="num">Final</th><th class="num">Delta</th></tr></thead>
+            <tbody>
+              <tr><td>en</td><td class="num">3.4799</td><td class="num">2.2930</td><td class="num">−1.1869</td></tr>
+              <tr><td>code</td><td class="num">4.0077</td><td class="num">2.1978</td><td class="num">−1.8099</td></tr>
+              <tr><td>ur</td><td class="num">2.6492</td><td class="num">1.8611</td><td class="num">−0.7881</td></tr>
+              <tr><td>ur-Latn</td><td class="num">3.7126</td><td class="num">2.3555</td><td class="num">−1.3571</td></tr>
+              <tr><td>ar</td><td class="num">2.6961</td><td class="num">1.9244</td><td class="num">−0.7717</td></tr>
+              <tr><td>hi</td><td class="num">1.8626</td><td class="num">1.2443</td><td class="num">−0.6183</td></tr>
+              <tr><td>es</td><td class="num">4.0712</td><td class="num">2.7739</td><td class="num">−1.2973</td></tr>
+              <tr><td>fr</td><td class="num">4.0820</td><td class="num">2.8644</td><td class="num">−1.2176</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3>XR Foundation Model</h3>
+          <p>Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.</p>
+          <p>Developed by M. Ahmad · RRRTX Labs</p>
+        </div>
+        <div>
+          <h3>Project</h3>
+          <a href="../models/">Models</a>
+          <a href="../datasets/">Datasets</a>
+          <a href="../evaluation/">Evaluation</a>
+          <a href="../research/">Research</a>
+          <a href="../releases/">Releases</a>
+        </div>
+        <div>
+          <h3>Resources</h3>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model">Source repository</a>
+          <a href="https://huggingface.co/ahmadrrrtx">Hugging Face</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/CONTRIBUTING.md">Contributing</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/SECURITY.md">Security policy</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/release/LICENSE_AND_ATTRIBUTION_MATRIX.md">Licensing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">Static research site · Built with HTML and CSS · <a href="../sitemap.xml">Sitemap</a></div>
+    </div>
+  </footer>
+</body>
+</html>
+

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XRFM CoderSec · XRFM</title>
+  <meta name="description" content="Track B lineage, QLoRA methodology and the current checkpoint publication status.">
+  <meta name="author" content="M. Ahmad, RRRTX Labs">
+  <link rel="canonical" href="https://ahmadrrrtx.github.io/xr-foundation-model/models/codersec.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="XR Foundation Model">
+  <meta property="og:title" content="XRFM CoderSec · XRFM">
+  <meta property="og:description" content="Track B lineage, QLoRA methodology and the current checkpoint publication status.">
+  <meta property="og:url" content="https://ahmadrrrtx.github.io/xr-foundation-model/models/codersec.html">
+  <meta property="og:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="XRFM CoderSec · XRFM">
+  <meta name="twitter:description" content="Track B lineage, QLoRA methodology and the current checkpoint publication status.">
+  <meta name="twitter:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <script src="../assets/js/site.js" defer></script>
+</head>
+<body data-site-root="../">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../">
+        <svg class="brand-mark" viewBox="0 0 40 40" role="img" aria-label="XRFM mark">
+          <rect x="1" y="1" width="38" height="38" rx="11" fill="#071426"/>
+          <path d="M10 12l6 8-6 8M20 28l11-16" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="30" cy="12" r="2.2" fill="#2dd4bf"/>
+        </svg>
+        XRFM
+      </a>
+      <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-label="Toggle navigation">
+      <label class="nav-toggle-label" for="nav-toggle" aria-hidden="true">☰</label>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="../" data-nav="home">Home</a>
+        <a href="../models/" data-nav="models" aria-current="page">Models</a>
+        <a href="../architecture/" data-nav="architecture">Architecture</a>
+        <a href="../datasets/" data-nav="datasets">Datasets</a>
+        <a href="../evaluation/" data-nav="evaluation">Evaluation</a>
+        <a href="../docs/" data-nav="docs">Docs</a>
+        <a href="../research/" data-nav="research">Research</a>
+        <a class="header-cta" href="https://github.com/ahmadrrrtx/xr-foundation-model" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+<header class="page-head">
+      <div class="container">
+        <div class="kicker">Track B · XRFM CoderSec</div>
+        <h1>XRFM CoderSec</h1>
+        <p>A defensive-coding research line based on an explicitly attributed pretrained model. Adapter and merged weights are not publicly available.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container grid grid-2">
+        <article class="prose">
+          <h2>Model lineage</h2>
+          <p>CoderSec is <strong>not</strong> an XRFM Native architecture and was <strong>not</strong> trained from random initialization. It uses <a href="https://huggingface.co/Qwen/Qwen3-1.7B">Qwen/Qwen3-1.7B</a>, revision <code>70d244cc86ccca08cf5af4e1e306ecf908b1ad5e</code>, under Apache-2.0, followed by NF4 + FP16 QLoRA fine-tuning in the project's training scripts.</p>
+          <h2>Dataset</h2>
+          <p>Training used <a href="https://huggingface.co/datasets/ahmadrrrtx/xrfm-codersec-sft-40k">xrfm-codersec-sft-40k</a> revision <code>808d7505</code>. The published dataset has 24,100 rows despite “40k” in its name. The audit found malformed ChatML in every row and placeholder code in all 2,100 code examples; see the datasets page.</p>
+          <h2>Training record</h2>
+          <p>Repository experiment records describe base-model bake-off, multiple ablations and a flagship QLoRA run on Tesla T4 hardware. The base bake-off preferred Qwen3-1.7B over Qwen2.5-Coder-1.5B-Instruct on a small internal benchmark. These are experiment records, not independent benchmarks.</p>
+          <h2>Evaluation</h2>
+          <p>Public documentation describes an 8-prompt weaponization screen, 7 false-refusal prompts and 4 Roman-Urdu perturbation pairs. These are preliminary, limited-sample internal checks. A zero observed failure rate on a small sample does not establish zero real-world risk.</p>
+        </article>
+        <aside>
+          <div class="card">
+            <span class="tag red">Checkpoint status</span>
+            <h3>Not published</h3>
+            <p>No adapter or merged CoderSec repository was found on the Hugging Face account. Candidate identifiers returned HTTP 404. Repository notes state that publication was deferred.</p>
+            <p><strong>Do not use a CoderSec model today.</strong> No checkpoint link is provided because no checkpoint is available.</p>
+          </div>
+          <div class="card" style="margin-top:1rem">
+            <h3>What exists publicly</h3>
+            <ul>
+              <li>QLoRA and merge source code</li>
+              <li>Training and evaluation scripts</li>
+              <li>SFT dataset and quality report</li>
+              <li>Experiment manifests and red-team notes</li>
+            </ul>
+          </div>
+          <div class="card" style="margin-top:1rem">
+            <h3>License basis</h3>
+            <p>Base: Apache-2.0. Dataset rows: Apache-2.0, CC0-1.0 and MIT. Any future adapter or merged weights need their own metadata decision.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3>XR Foundation Model</h3>
+          <p>Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.</p>
+          <p>Developed by M. Ahmad · RRRTX Labs</p>
+        </div>
+        <div>
+          <h3>Project</h3>
+          <a href="../models/">Models</a>
+          <a href="../datasets/">Datasets</a>
+          <a href="../evaluation/">Evaluation</a>
+          <a href="../research/">Research</a>
+          <a href="../releases/">Releases</a>
+        </div>
+        <div>
+          <h3>Resources</h3>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model">Source repository</a>
+          <a href="https://huggingface.co/ahmadrrrtx">Hugging Face</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/CONTRIBUTING.md">Contributing</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/SECURITY.md">Security policy</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/release/LICENSE_AND_ATTRIBUTION_MATRIX.md">Licensing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">Static research site · Built with HTML and CSS · <a href="../sitemap.xml">Sitemap</a></div>
+    </div>
+  </footer>
+</body>
+</html>
+

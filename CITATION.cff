@@ -1,0 +1,51 @@
+cff-version: 1.2.0
+message: "If you use XRFM, please cite this software repository and the exact model or dataset revisions you used."
+title: "XR Foundation Model (XRFM)"
+abstract: >-
+  XRFM is an open-source multilingual foundation-model research project with an
+  original decoder-only transformer track trained from random initialization and
+  a separately attributed QLoRA defensive-coding track.
+type: software
+authors:
+  - family-names: Ahmad
+    given-names: M.
+    affiliation: "RRRTX Labs"
+    orcid: "https://github.com/ahmadrrrtx"
+repository-code: "https://github.com/ahmadrrrtx/xr-foundation-model"
+url: "https://ahmadrrrtx.github.io/xr-foundation-model/"
+license: MIT
+keywords:
+  - foundation model
+  - language model
+  - transformer
+  - tokenizer
+  - multilingual
+  - cybersecurity
+preferred-citation:
+  type: software
+  authors:
+    - family-names: Ahmad
+      given-names: M.
+      affiliation: "RRRTX Labs"
+  title: "XR Foundation Model (XRFM)"
+  repository-code: "https://github.com/ahmadrrrtx/xr-foundation-model"
+  notes: >-
+    Cite the exact Hugging Face revision for any model or dataset used. No DOI,
+    peer-reviewed publication or scholarly affiliation is claimed.
+references:
+  - type: software
+    title: "xrfm-native-25m"
+    repository-code: "https://huggingface.co/ahmadrrrtx/xrfm-native-25m"
+    notes: "Native 25M checkpoint, revision 3487b9c80612e735d9766d557e7e4e34d672efa0."
+  - type: software
+    title: "xrfm-native-85m"
+    repository-code: "https://huggingface.co/ahmadrrrtx/xrfm-native-85m"
+    notes: "Native 85M checkpoint, revision dbe5f102e01c4e2ea4d07e92615ce4cb40b8644c."
+  - type: dataset
+    title: "xrfm-native-shards-v1"
+    repository-code: "https://huggingface.co/datasets/ahmadrrrtx/xrfm-native-shards-v1"
+    notes: "Revision 1652affcb1e95455a6af27b72ab424116bb9884f."
+  - type: dataset
+    title: "xrfm-codersec-sft-40k"
+    repository-code: "https://huggingface.co/datasets/ahmadrrrtx/xrfm-codersec-sft-40k"
+    notes: "Revision 808d7505152eea93e6cd4af5f2269f43712afc2d; known quality issues documented."
