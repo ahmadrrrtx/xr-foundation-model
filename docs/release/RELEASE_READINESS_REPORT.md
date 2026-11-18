@@ -4,8 +4,8 @@
 **Project:** XR Foundation Model (XRFM)
 **Starting commit:** `dcc426610ad6e337985a43b93f3d83bad40f669d`
 **Release branch:** `release/first-public-batch`
-**Verification commit:** `d86be03`
-**Pull request:** https://github.com/ahmadrrrtx/xr-foundation-model/pull/5
+**Verification commit:** `06fa1099eddb31b64fbd4a6f38f378c2e11e32e2`
+**Pull requests:** https://github.com/ahmadrrrtx/xr-foundation-model/pull/5, https://github.com/ahmadrrrtx/xr-foundation-model/pull/7
 **Preserved tag:** `v2.0.0` → `6c611662d70362aea3cc66c874da206cb93f9f91`, unchanged
 
 ## 1. Completed work
@@ -32,9 +32,11 @@
 - No files deleted or archived in this pass; prior root-shim removals remain recoverable and indexed.
 
 ### Website
-- Implemented a 12-page static research site under `website/`, with original SVG diagrams, accessible responsive CSS, SEO metadata, sitemap, robots and 404 page.
-- Build and link validation pass locally and in the Pages workflow build job.
-- Public deployment is blocked by a one-time Pages source setting; see `WEBSITE_DEPLOYMENT.md`.
+- Implemented a 12-page dependency-free static research site under `website/`, with original SVG diagrams, accessible responsive CSS, SEO metadata, sitemap, robots and 404 page.
+- Redesigned the site after user feedback with a dark, dimensional research-first system: strong hero architecture stack, dual-track cards, artifact gallery, dense lineage/status table and soft 3D hover/shadow effects.
+- Generated three original local artifacts (layered neural transformer, CoderSec shield, tokenizer lattice) with optimized WebP derivatives; no external hotlinks or copied visuals.
+- Hardened the build so project-relative links resolve without corrupting absolute social-preview URLs; the validator now checks local asset `src` references too.
+- Local build and validation pass; Pages deployment from `main` is live and the public URL returns HTTP 200. See `WEBSITE_DEPLOYMENT.md`.
 
 ### Documentation and repository presentation
 - Rewrote README with dual-track identity, real badges, model/dataset tables, licensing, limitations and reproduction steps.
@@ -50,8 +52,8 @@
 
 ## 2. Change inventory (baseline → verification commit)
 
-- **Files added:** 44 (site source and generated pages, release reports, HF card sources, CITATION.cff, filter script, quality report).
-- **Files modified:** 12 (4 workflows, README, release log, pyproject, two source formatting fixes, three tests).
+- **Files added:** 50 (site source and generated pages, three original artifacts with WebP derivatives, release reports, HF card sources, CITATION.cff, filter script, quality report).
+- **Files modified:** 22 (4 workflows, README, release log, pyproject, two source formatting fixes, three tests, site template/pages/CSS/build/validator).
 - **Files removed:** 0.
 - **Files archived in this pass:** 0.
 - **Hugging Face files updated:** 4 (three README.md cards and one QUALITY_REPORT.json).
@@ -64,7 +66,9 @@ Significant deletions in earlier history were six root-level shim directories (3
 |---|---|
 | CI failures and fixes | `docs/release/CI_CD_VERIFICATION.md` |
 | CI green | https://github.com/ahmadrrrtx/xr-foundation-model/actions/runs/44406117302 |
+| Latest CI green on `main` | https://github.com/ahmadrrrtx/xr-foundation-model/actions/runs/44412448500 |
 | CD green | https://github.com/ahmadrrrtx/xr-foundation-model/actions/runs/44405181518 |
+| Latest Pages deployment green | https://github.com/ahmadrrrtx/xr-foundation-model/actions/runs/44412448559 |
 | Dependency map | `docs/release/DEPENDENCY_MAP.md` |
 | Dead-code proof | `docs/release/DEAD_CODE_AUDIT.md` |
 | Artifact audit | `docs/release/MODEL_AND_DATASET_AUDIT.md` |
@@ -74,19 +78,17 @@ Significant deletions in earlier history were six root-level shim directories (3
 
 ## 4. Remaining concerns
 
-1. **GitHub Pages not enabled.** Requires manual repository setting before the site can be publicly verified.
-2. **Repository metadata not applied.** PAT lacks permission for repository settings; description, homepage and topics need manual configuration or an authorised token.
-3. **CoderSec checkpoints absent.** No adapter or merged weights exist publicly; the site says so.
-4. **CoderSec SFT defects.** Malformed ChatML, placeholder code and duplicates are measured but the published revision is preserved. A corrected v1.1 must be separately versioned.
-5. **License review items.** AYA upstream revision, OWASP/MITRE/NIST document-level terms and tokenizer artefact classification need maintainer/legal review.
-6. **No new release tag.** v2.0.1 should be created only after the above blockers and final approval.
+1. **Repository metadata not applied.** PAT lacks permission for repository settings; description, homepage and topics need manual configuration or an authorised token.
+2. **CoderSec checkpoints absent.** No adapter or merged weights exist publicly; the site says so.
+3. **CoderSec SFT defects.** Malformed ChatML, placeholder code and duplicates are measured but the published revision is preserved. A corrected v1.1 must be separately versioned.
+4. **License review items.** AYA upstream revision, OWASP/MITRE/NIST document-level terms and tokenizer artefact classification need maintainer/legal review.
+5. **No new release tag.** v2.0.1 should be created only after the above review items and final approval.
 
 ## 5. Recommendation
 
-Approve the engineering changes in PR #5. Do **not** merge or create a release tag until:
+PR #5, PR #6 and PR #7 are merged; the latest CI and Pages runs on `main` are green and the redesigned public site is live. Do **not** create a release tag until:
 
-- GitHub Pages is enabled and the public URL returns HTTP 200.
-- Repository description, homepage and topics are applied.
+- Repository description, homepage and topics are applied manually.
 - A final review accepts the disclosed CoderSec dataset quality issues and license review items.
 
 The recommended next release is a patch release **v2.0.1** (documentation, engineering and metadata only; no model-weight changes).
