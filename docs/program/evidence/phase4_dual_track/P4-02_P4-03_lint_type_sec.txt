@@ -1,0 +1,23 @@
+=== RUFF CHECK ===
+All checks passed!
+=== RUFF FORMAT CHECK ===
+2 files already formatted
+=== BLACK CHECK ===
+would reformat scripts/build_and_publish_codersec_sft.py
+
+Oh no! 💥 💔 💥
+1 file would be reformatted, 1 file would be left unchanged.
+=== MYPY ===
+Success: no issues found in 2 source files
+=== BANDIT ===
+[manager]	WARNING	Test in comment: var is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: tmp is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: is is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: the is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: designated is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: staging is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: area is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: not is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: tmp is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: tmpfs is not a test name or id, ignoring
+ALL_QUALITY_CHECKS_PASSED

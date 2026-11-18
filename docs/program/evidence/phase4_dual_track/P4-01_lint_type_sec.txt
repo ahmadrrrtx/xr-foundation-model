@@ -1,0 +1,26 @@
+=== RUFF CHECK ===
+All checks passed!
+=== RUFF FORMAT CHECK ===
+185 files already formatted
+=== BLACK CHECK ===
+All done! ✨ 🍰 ✨
+151 files would be left unchanged.
+=== MYPY CORE ===
+Success: no issues found in 116 source files
+=== BANDIT ===
+=== PTEST CORE ===
+........................................................................ [ 14%]
+........................................................................ [ 28%]
+........................................................................ [ 42%]
+........................................................................ [ 56%]
+........................................................................ [ 70%]
+........................................................................ [ 84%]
+........................................................................ [ 98%]
+..........                                                               [100%]
+=============================== warnings summary ===============================
+tests/test_optimization.py::TestFlashAttention::test_force_math_backend
+  /usr/local/lib/python3.13/contextlib.py:109: FutureWarning: `torch.backends.cuda.sdp_kernel()` is deprecated. In the future, this context manager will be removed. Please see `torch.nn.attention.sdpa_kernel()` for the new context manager, with updated signature.
+    self.gen = func(*args, **kwds)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+514 passed, 1 warning in 49.29s
