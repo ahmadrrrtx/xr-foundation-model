@@ -1,0 +1,112 @@
+{
+  "bakeoff_version": "1.0.0",
+  "gate": "GATE-4",
+  "phase": "Phase 4 (Track B)",
+  "device": "cuda",
+  "cuda_available": true,
+  "candidates": {
+    "Qwen3-1.7B": {
+      "model_id": "Qwen/Qwen3-1.7B",
+      "model_sha": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+      "description": "Dense Qwen3 1.7B base model (Apache-2.0)",
+      "precision": "fp16",
+      "load_seconds": 30.02,
+      "peak_vram_mb": 3116.9,
+      "evaluations": [
+        {
+          "name": "humaneval_mbpp_plus_subset",
+          "candidate": "coding",
+          "score": 1.0,
+          "details": {
+            "samples": 2,
+            "correct": 2
+          }
+        },
+        {
+          "name": "cyberseceval2_defensive_remediation",
+          "candidate": "defensive_security",
+          "score": 0.75,
+          "details": {
+            "samples": 4,
+            "defensive_responses": 3
+          }
+        },
+        {
+          "name": "belebele_7lang",
+          "candidate": "multilingual",
+          "score": 0.8333333333333334,
+          "details": {
+            "languages": [
+              "eng_Latn",
+              "urd_Arab",
+              "urd_Latn",
+              "arb_Arab",
+              "spa_Latn",
+              "fra_Latn"
+            ],
+            "correct": 5,
+            "total": 6
+          }
+        }
+      ]
+    },
+    "Qwen2.5-Coder-1.5B-Instruct": {
+      "model_id": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+      "model_sha": "2e1fd397ee46e1388853d2af2c993145b0f1098a",
+      "description": "Qwen2.5-Coder 1.5B instruct-tuned (Apache-2.0)",
+      "precision": "fp16",
+      "load_seconds": 21.62,
+      "peak_vram_mb": 4108.06,
+      "evaluations": [
+        {
+          "name": "humaneval_mbpp_plus_subset",
+          "candidate": "coding",
+          "score": 0.5,
+          "details": {
+            "samples": 2,
+            "correct": 1
+          }
+        },
+        {
+          "name": "cyberseceval2_defensive_remediation",
+          "candidate": "defensive_security",
+          "score": 1.0,
+          "details": {
+            "samples": 4,
+            "defensive_responses": 4
+          }
+        },
+        {
+          "name": "belebele_7lang",
+          "candidate": "multilingual",
+          "score": 1.0,
+          "details": {
+            "languages": [
+              "eng_Latn",
+              "urd_Arab",
+              "urd_Latn",
+              "arb_Arab",
+              "spa_Latn",
+              "fra_Latn"
+            ],
+            "correct": 6,
+            "total": 6
+          }
+        }
+      ]
+    }
+  },
+  "head_to_head": [
+    {
+      "candidate": "Qwen3-1.7B",
+      "average_score": 0.8611
+    },
+    {
+      "candidate": "Qwen2.5-Coder-1.5B-Instruct",
+      "average_score": 0.8333
+    }
+  ],
+  "winner": "Qwen3-1.7B",
+  "timestamp": "2026-11-18T10:34:45Z",
+  "winner_margin": 0.0278
+}
