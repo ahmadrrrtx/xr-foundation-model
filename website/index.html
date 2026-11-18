@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home · XRFM</title>
+  <meta name="description" content="Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.">
+  <meta name="author" content="M. Ahmad, RRRTX Labs">
+  <link rel="canonical" href="https://ahmadrrrtx.github.io/xr-foundation-model/index.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="XR Foundation Model">
+  <meta property="og:title" content="Home · XRFM">
+  <meta property="og:description" content="Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.">
+  <meta property="og:url" content="https://ahmadrrrtx.github.io/xr-foundation-model/index.html">
+  <meta property="og:image" content="https://ahmadrrrtx.github.io./assets/img/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Home · XRFM">
+  <meta name="twitter:description" content="Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.">
+  <meta name="twitter:image" content="https://ahmadrrrtx.github.io./assets/img/og.svg">
+  <link rel="icon" type="image/svg+xml" href="./assets/img/favicon.svg">
+  <link rel="stylesheet" href="./assets/css/site.css">
+  <script src="./assets/js/site.js" defer></script>
+</head>
+<body data-site-root="./">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="./">
+        <svg class="brand-mark" viewBox="0 0 40 40" role="img" aria-label="XRFM mark">
+          <rect x="1" y="1" width="38" height="38" rx="11" fill="#071426"/>
+          <path d="M10 12l6 8-6 8M20 28l11-16" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="30" cy="12" r="2.2" fill="#2dd4bf"/>
+        </svg>
+        XRFM
+      </a>
+      <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-label="Toggle navigation">
+      <label class="nav-toggle-label" for="nav-toggle" aria-hidden="true">☰</label>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="./" data-nav="home" aria-current="page">Home</a>
+        <a href="./models/" data-nav="models">Models</a>
+        <a href="./architecture/" data-nav="architecture">Architecture</a>
+        <a href="./datasets/" data-nav="datasets">Datasets</a>
+        <a href="./evaluation/" data-nav="evaluation">Evaluation</a>
+        <a href="./docs/" data-nav="docs">Docs</a>
+        <a href="./research/" data-nav="research">Research</a>
+        <a class="header-cta" href="https://github.com/ahmadrrrtx/xr-foundation-model" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+<section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">Open research · RRRTX Labs</div>
+          <h1>Multilingual foundation-model research, built to be inspected.</h1>
+          <p class="lede">XRFM is an open research project with two independent lineages: original decoder-only models trained from random initialization, and a separately attributed defensive-coding model fine-tuned with QLoRA.</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="/xr-foundation-model/models/">Explore the models</a>
+            <a class="btn btn-ghost" href="https://github.com/ahmadrrrtx/xrf-foundation-model" rel="noopener">Read the source</a>
+          </div>
+          <div class="metrics" aria-label="Project figures">
+            <div class="metric"><strong>25.2M</strong><span>Native 25M tied parameters</span></div>
+            <div class="metric"><strong>20.08M</strong><span>Prepared dataset tokens</span></div>
+            <div class="metric"><strong>32,768</strong><span>T4 BPE vocabulary</span></div>
+            <div class="metric"><strong>8</strong><span>Evaluation language domains</span></div>
+          </div>
+        </div>
+        <div class="hero-figure">
+          <svg class="diagram" viewBox="0 0 520 360" role="img" aria-labelledby="hero-diagram-title">
+            <title id="hero-diagram-title">Two independent XRFM model lineages</title>
+            <rect x="20" y="24" width="480" height="140" rx="18" fill="#f1f8fa" stroke="#cfe3ea"/>
+            <rect x="20" y="196" width="480" height="140" rx="18" fill="#fdf7ed" stroke="#ead7b8"/>
+            <text x="40" y="52" fill="#0a1626" font-size="15" font-weight="700">TRACK A · XRFM NATIVE</text>
+            <text x="40" y="76" fill="#5b6b80" font-size="12">Original architecture · random initialization</text>
+            <g fill="#ffffff" stroke="#9fcbd6">
+              <rect x="42" y="96" width="92" height="42" rx="9"/><rect x="158" y="96" width="92" height="42" rx="9"/><rect x="274" y="96" width="92" height="42" rx="9"/><rect x="390" y="96" width="88" height="42" rx="9"/>
+            </g>
+            <g fill="#0a1626" font-size="11" text-anchor="middle">
+              <text x="88" y="121">Shards</text><text x="204" y="121">T4 BPE</text><text x="320" y="121">XRFMModel</text><text x="434" y="121">25M / 85M</text>
+            </g>
+            <path d="M134 117h24M250 117h24M366 117h24" stroke="#0e9fbd" stroke-width="2"/>
+            <text x="40" y="224" fill="#0a1626" font-size="15" font-weight="700">TRACK B · XRFM CODERSEC</text>
+            <text x="40" y="248" fill="#5b6b80" font-size="12">Qwen3-1.7B base · QLoRA · attributed lineage</text>
+            <g fill="#ffffff" stroke="#ddc49a">
+              <rect x="42" y="268" width="108" height="42" rx="9"/><rect x="174" y="268" width="108" height="42" rx="9"/><rect x="306" y="268" width="108" height="42" rx="9"/>
+            </g>
+            <g fill="#0a1626" font-size="11" text-anchor="middle">
+              <text x="96" y="293">Base model</text><text x="228" y="293">SFT data</text><text x="360" y="293">Adapter</text>
+            </g>
+            <path d="M150 289h24M282 289h24" stroke="#d58a2b" stroke-width="2"/>
+            <text x="432" y="293" fill="#8a5814" font-size="10" text-anchor="middle">Not published</text>
+          </svg>
+          <p class="figcaption">The tracks share tooling and evaluation practices, not weights or training lineage.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wash" id="tracks">
+      <div class="container">
+        <div class="section-head">
+          <div class="kicker">Dual-track design</div>
+          <h2>Two research questions, clearly separated</h2>
+          <p>Combining an original small model with a fine-tuned pretrained model would obscure both results. XRFM keeps the lineages distinct in code, documentation and model metadata.</p>
+        </div>
+        <div class="grid grid-2">
+          <article class="card track-card">
+            <span class="tag">Track A · Native</span>
+            <h3>Original decoder-only transformer</h3>
+            <p>25M and 85M parameter checkpoints trained from random initialization on a 20.08M-token multilingual and code corpus. Grouped-query attention, RoPE, RMSNorm and SwiGLU are implemented directly in PyTorch.</p>
+            <ul>
+              <li>T4 32K Script-Protected Byte-BPE tokenizer</li>
+              <li>Exact checkpoint resume probe with zero weight difference</li>
+              <li>Per-language held-out BPB measurements</li>
+            </ul>
+            <a class="card-link" href="/xr-foundation-model/models/native-25m.html">View Native 25M →</a>
+          </article>
+          <article class="card track-card b">
+            <span class="tag amber">Track B · CoderSec</span>
+            <h3>Attributed QLoRA security track</h3>
+            <p>A specialized coding and defensive-security line based on Qwen3-1.7B, with NF4 QLoRA fine-tuning and a curated SFT corpus. The base model and its Apache-2.0 license are explicitly attributed.</p>
+            <ul>
+              <li>Base revision `70d244cc`</li>
+              <li>SFT dataset revision `808d7505`, 24,100 rows</li>
+              <li>Checkpoint publication: not yet available</li>
+            </ul>
+            <a class="card-link" href="/xr-foundation-model/models/codersec.html">View CoderSec status →</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="results">
+      <div class="container">
+        <div class="section-head">
+          <div class="kicker">Evidence, not marketing</div>
+          <h2>What the published checkpoints actually show</h2>
+          <p>BPB measures how many bits a model needs per byte of held-out text. It is a compression and likelihood metric. A lower BPB does not establish coding skill, factual accuracy or cybersecurity capability.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Model</th><th>Training evidence</th><th>Per-domain BPB</th><th>Interpretation</th></tr></thead>
+            <tbody>
+              <tr><td>Native 25M</td><td>900 steps · 58.98M processed tokens</td><td>All eight domains improved from random-init baseline</td><td>Architecture and tokenizer research result</td></tr>
+              <tr><td>Native 85M</td><td>160 steps · 10.49M processed tokens</td><td>All eight domains improved, but remain above 25M final BPB</td><td>Short scaling probe, not a stronger assistant</td></tr>
+              <tr><td>CoderSec</td><td>QLoRA experiments on Kaggle T4</td><td>Limited internal red-team suite only</td><td>No public checkpoint; no production claim</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:1.4rem"><a class="card-link" href="/xr-foundation-model/evaluation/">Read the full evaluation methodology →</a></p>
+      </div>
+    </section>
+
+    <section class="section wash">
+      <div class="container grid grid-3">
+        <article class="card"><span class="tag">Reproducibility</span><h3>Pinned artefacts</h3><p>Model, dataset and tokenizer revisions are recorded in model cards and release reports.</p><a class="card-link" href="/xr-foundation-model/research/">Research records →</a></article>
+        <article class="card"><span class="tag">Engineering</span><h3>Tested across Python versions</h3><p>CI validates 3.10, 3.11 and 3.12, packaging, type checks, formatting, security checks and a CPU training smoke test.</p><a class="card-link" href="https://github.com/ahmadrrrtx/xr-foundation-model/actions">Actions history →</a></article>
+        <article class="card"><span class="tag">Open contribution</span><h3>Clear boundaries</h3><p>Research implementations are preserved; licensing is artifact-specific; known data defects are documented rather than hidden.</p><a class="card-link" href="https://github.com/ahmadrrrtx/xr-foundation-model/blob/main/CONTRIBUTING.md">Contributing guide →</a></article>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3>XR Foundation Model</h3>
+          <p>Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.</p>
+          <p>Developed by M. Ahmad · RRRTX Labs</p>
+        </div>
+        <div>
+          <h3>Project</h3>
+          <a href="./models/">Models</a>
+          <a href="./datasets/">Datasets</a>
+          <a href="./evaluation/">Evaluation</a>
+          <a href="./research/">Research</a>
+          <a href="./releases/">Releases</a>
+        </div>
+        <div>
+          <h3>Resources</h3>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model">Source repository</a>
+          <a href="https://huggingface.co/ahmadrrrtx">Hugging Face</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/CONTRIBUTING.md">Contributing</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/SECURITY.md">Security policy</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/release/LICENSE_AND_ATTRIBUTION_MATRIX.md">Licensing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">Static research site · Built with HTML and CSS · <a href="./sitemap.xml">Sitemap</a></div>
+    </div>
+  </footer>
+</body>
+</html>
+

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evaluation · XRFM</title>
+  <meta name="description" content="Per-language BPB, scaling probes, CoderSec evaluation and explicit measurement limitations.">
+  <meta name="author" content="M. Ahmad, RRRTX Labs">
+  <link rel="canonical" href="https://ahmadrrrtx.github.io/xr-foundation-model/evaluation/index.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="XR Foundation Model">
+  <meta property="og:title" content="Evaluation · XRFM">
+  <meta property="og:description" content="Per-language BPB, scaling probes, CoderSec evaluation and explicit measurement limitations.">
+  <meta property="og:url" content="https://ahmadrrrtx.github.io/xr-foundation-model/evaluation/index.html">
+  <meta property="og:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Evaluation · XRFM">
+  <meta name="twitter:description" content="Per-language BPB, scaling probes, CoderSec evaluation and explicit measurement limitations.">
+  <meta name="twitter:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <script src="../assets/js/site.js" defer></script>
+</head>
+<body data-site-root="../">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../">
+        <svg class="brand-mark" viewBox="0 0 40 40" role="img" aria-label="XRFM mark">
+          <rect x="1" y="1" width="38" height="38" rx="11" fill="#071426"/>
+          <path d="M10 12l6 8-6 8M20 28l11-16" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="30" cy="12" r="2.2" fill="#2dd4bf"/>
+        </svg>
+        XRFM
+      </a>
+      <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-label="Toggle navigation">
+      <label class="nav-toggle-label" for="nav-toggle" aria-hidden="true">☰</label>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="../" data-nav="home">Home</a>
+        <a href="../models/" data-nav="models">Models</a>
+        <a href="../architecture/" data-nav="architecture">Architecture</a>
+        <a href="../datasets/" data-nav="datasets">Datasets</a>
+        <a href="../evaluation/" data-nav="evaluation" aria-current="page">Evaluation</a>
+        <a href="../docs/" data-nav="docs">Docs</a>
+        <a href="../research/" data-nav="research">Research</a>
+        <a class="header-cta" href="https://github.com/ahmadrrrtx/xr-foundation-model" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+<header class="page-head">
+      <div class="container">
+        <div class="kicker">Evaluation</div>
+        <h1>Measurement and its limits</h1>
+        <p>XRFM reports per-domain compression metrics for Native models, internal experiment records for CoderSec and bounded quality measurements for datasets. No metric here is a proxy for general assistant capability.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container prose">
+        <h2>What BPB measures</h2>
+        <p>Bits per byte (BPB) is the average number of bits required to encode each byte of a held-out domain under a model. Lower BPB means the model assigns higher likelihood to that data. It is a language-modelling and compression measure. It does not measure programming correctness, security judgement, instruction following, factuality or robustness.</p>
+        <p>All Native BPB results are per-domain. There is no aggregate score and therefore no weighting scheme to report. Step 0 is the randomly initialized baseline; final is after the listed training steps. The 20.08M tokens in the shard dataset are unique prepared tokens, while 58.98M/10.49M are tokens processed during training.</p>
+        <div class="table-wrap" style="margin-top:1.5rem">
+          <table>
+            <thead><tr><th>Domain</th><th class="num">25M step 0</th><th class="num">25M final</th><th class="num">85M step 0</th><th class="num">85M final</th></tr></thead>
+            <tbody>
+              <tr><td>en</td><td class="num">3.4651</td><td class="num">1.8152</td><td class="num">3.4799</td><td class="num">2.2930</td></tr>
+              <tr><td>code</td><td class="num">4.0011</td><td class="num">0.9966</td><td class="num">4.0077</td><td class="num">2.1978</td></tr>
+              <tr><td>ur</td><td class="num">2.6101</td><td class="num">1.3674</td><td class="num">2.6492</td><td class="num">1.8611</td></tr>
+              <tr><td>ur-Latn</td><td class="num">3.6980</td><td class="num">1.8102</td><td class="num">3.7126</td><td class="num">2.3555</td></tr>
+              <tr><td>ar</td><td class="num">2.7293</td><td class="num">1.5708</td><td class="num">2.6961</td><td class="num">1.9244</td></tr>
+              <tr><td>hi</td><td class="num">1.8358</td><td class="num">0.9211</td><td class="num">1.8626</td><td class="num">1.2443</td></tr>
+              <tr><td>es</td><td class="num">4.0700</td><td class="num">2.1618</td><td class="num">4.0712</td><td class="num">2.7739</td></tr>
+              <tr><td>fr</td><td class="num">4.0781</td><td class="num">2.1611</td><td class="num">4.0820</td><td class="num">2.8644</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn"><p>The 85M checkpoint saw 10.49M processed tokens versus 58.98M for 25M. Higher parameter count did not overcome the shorter training run. Treat this as a scaling probe, not a model ranking.</p></div>
+
+        <h2>Native comparisons and tokenizer evidence</h2>
+        <p>The tokenizer tournament compared four candidates (T1–T4) and a legacy 2K control on cross-script fertility, byte fallback and lossless round-trip. T4 (32,768 Script-Protected Byte-BPE) won, with reported fertility ratios of 0.702× for Urdu, 1.103× for Arabic and 1.047× for Hindi relative to the English reference, 0% byte fallback and 100% lossless round-trip. These are tokenizer efficiency measurements, not downstream capability scores.</p>
+
+        <h2>CoderSec evaluation</h2>
+        <p>The base-model bake-off compared Qwen3-1.7B and Qwen2.5-Coder-1.5B-Instruct on a small internal coding/defensive-security/multilingual set. Reported averages were 0.8611 and 0.8333 respectively. Security checks include an 8-prompt weaponization screen, 7 false-refusal prompts and 4 Roman-Urdu perturbation pairs. These are preliminary internal tests with very small samples.</p>
+        <div class="callout danger"><p>A zero observed failure rate on 8 prompts does not prove zero real-world risk. No comprehensive safety evaluation or independent benchmark has been published, and no CoderSec checkpoint is publicly available.</p></div>
+
+        <h2>Dataset validation</h2>
+        <p>Native shards: 8 train files, 9,577 sequences, 19.61M train tokens, SHA-256/MinHash deduplication and a documented contamination manifest. CoderSec SFT: 24,100 rows measured; 24,100 malformed ChatML rows; 2,100 placeholder code rows; 11,993 exact duplicates; 0 empty assistant responses; 0 syntax errors in the 2,100 parsed Python blocks.</p>
+
+        <h2>Limitations</h2>
+        <ul>
+          <li>No held-out human evaluation or instruction-following benchmark for Native models.</li>
+          <li>No automated code-execution correctness benchmark for CoderSec.</li>
+          <li>Security red-team samples are too small to support population-level claims.</li>
+          <li>Dataset quality measurement is reproducible but the corrected dataset has not been published.</li>
+          <li>Experiment records are internal artefacts, not peer-reviewed results.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3>XR Foundation Model</h3>
+          <p>Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.</p>
+          <p>Developed by M. Ahmad · RRRTX Labs</p>
+        </div>
+        <div>
+          <h3>Project</h3>
+          <a href="../models/">Models</a>
+          <a href="../datasets/">Datasets</a>
+          <a href="../evaluation/">Evaluation</a>
+          <a href="../research/">Research</a>
+          <a href="../releases/">Releases</a>
+        </div>
+        <div>
+          <h3>Resources</h3>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model">Source repository</a>
+          <a href="https://huggingface.co/ahmadrrrtx">Hugging Face</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/CONTRIBUTING.md">Contributing</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/SECURITY.md">Security policy</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/release/LICENSE_AND_ATTRIBUTION_MATRIX.md">Licensing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">Static research site · Built with HTML and CSS · <a href="../sitemap.xml">Sitemap</a></div>
+    </div>
+  </footer>
+</body>
+</html>
+

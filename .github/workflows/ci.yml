@@ -6,29 +6,38 @@ on:
   pull_request:
     branches: [main, develop, "release/*"]
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint & Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
+          cache: pip
       - name: Install dependencies
         run: |
           pip install -e ".[dev,hub]"
       - name: Run ruff (lint + format check)
         run: ruff check . && ruff format --check .
+      # Both formatters are intentional gates. pyproject.toml pins versions and
+      # the source is formatted so ruff format and black produce identical output.
+      - name: Run black (format check)
+        run: black --check .
 
   type-check:
     name: Type Check (mypy)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
+          cache: pip
       - name: Install dependencies
         run: |
           pip install -e ".[dev,hub]"
@@ -42,13 +51,15 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
       - name: Install dependencies
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
@@ -57,7 +68,7 @@ jobs:
         run: python -m pytest tests/ -v --tb=short
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.python-version }}
           path: |
@@ -68,10 +79,11 @@ jobs:
     name: Package & Clean Install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
+          cache: pip
       - name: Install build tooling + runtime deps
         run: |
           # torch does not depend on pyyaml/numpy/jsonschema; clean-install uses
@@ -106,10 +118,11 @@ jobs:
     name: Dependency & Agent Security
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
+          cache: pip
       - name: Install security checks
         run: pip install -e ".[security]"
       - name: Static security checks (medium/high severity)
@@ -124,10 +137,11 @@ jobs:
     # checkpoint must save/load, resume must restore state).
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
+          cache: pip
       - name: Install dependencies
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu

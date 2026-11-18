@@ -1,0 +1,32 @@
+    <header class="page-head">
+      <div class="container">
+        <div class="kicker">Releases</div>
+        <h1>Version history and artifact revisions</h1>
+        <p>The existing v2.0.0 release remains unchanged. This documentation and engineering pass is proposed as a patch-level release; no model weights are changed.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container prose">
+        <h2>Current release</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Release</th><th>Scope</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>v2.0.0</td><td>Original release with model cards, dataset cards and tagged source</td><td>Preserved, unchanged</td></tr>
+              <tr><td>v2.0.1</td><td>CI/CD repairs, site, documentation and metadata corrections</td><td>Prepared on release branch; awaiting approval</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h2>Pinned artifact revisions</h2>
+        <ul>
+          <li>Native 25M model: <code>3487b9c80612e735d9766d557e7e4e34d672efa0</code> (updated card commit recorded in release docs).</li>
+          <li>Native 85M model: <code>dbe5f102e01c4e2ea4d07e92615ce4cb40b8644c</code> (updated card commit recorded in release docs).</li>
+          <li>Native shards: <code>1652affcb1e95455a6af27b72ab424116bb9884f</code>.</li>
+          <li>CoderSec SFT: <code>808d7505152eea93e6cd4af5f2269f43712afc2d</code>.</li>
+          <li>CoderSec adapter and merged weights: not published.</li>
+        </ul>
+        <h2>Release policy</h2>
+        <p>No force-push, tag replacement or history rewrite. The release tag is unique. New weights are not published unless provenance, license and intended release are verified. Existing Hugging Face model revisions are preserved.</p>
+        <p><a class="card-link" href="https://github.com/ahmadrrrtx/xr-foundation-model/releases">GitHub releases →</a></p>
+      </div>
+    </section>

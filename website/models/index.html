@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Models · XRFM</title>
+  <meta name="description" content="Published XRFM Native 25M and 85M checkpoints, plus the publication status of the CoderSec track.">
+  <meta name="author" content="M. Ahmad, RRRTX Labs">
+  <link rel="canonical" href="https://ahmadrrrtx.github.io/xr-foundation-model/models/index.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="XR Foundation Model">
+  <meta property="og:title" content="Models · XRFM">
+  <meta property="og:description" content="Published XRFM Native 25M and 85M checkpoints, plus the publication status of the CoderSec track.">
+  <meta property="og:url" content="https://ahmadrrrtx.github.io/xr-foundation-model/models/index.html">
+  <meta property="og:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Models · XRFM">
+  <meta name="twitter:description" content="Published XRFM Native 25M and 85M checkpoints, plus the publication status of the CoderSec track.">
+  <meta name="twitter:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <script src="../assets/js/site.js" defer></script>
+</head>
+<body data-site-root="../">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../">
+        <svg class="brand-mark" viewBox="0 0 40 40" role="img" aria-label="XRFM mark">
+          <rect x="1" y="1" width="38" height="38" rx="11" fill="#071426"/>
+          <path d="M10 12l6 8-6 8M20 28l11-16" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="30" cy="12" r="2.2" fill="#2dd4bf"/>
+        </svg>
+        XRFM
+      </a>
+      <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-label="Toggle navigation">
+      <label class="nav-toggle-label" for="nav-toggle" aria-hidden="true">☰</label>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="../" data-nav="home">Home</a>
+        <a href="../models/" data-nav="models" aria-current="page">Models</a>
+        <a href="../architecture/" data-nav="architecture">Architecture</a>
+        <a href="../datasets/" data-nav="datasets">Datasets</a>
+        <a href="../evaluation/" data-nav="evaluation">Evaluation</a>
+        <a href="../docs/" data-nav="docs">Docs</a>
+        <a href="../research/" data-nav="research">Research</a>
+        <a class="header-cta" href="https://github.com/ahmadrrrtx/xr-foundation-model" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+<header class="page-head">
+      <div class="container">
+        <div class="kicker">Models</div>
+        <h1>Published checkpoints and lineage</h1>
+        <p>Each model page states its architecture, training data, evaluation scope and exact publication status. Native and CoderSec models are independent and must not be treated as one architecture family.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Model</th><th>Lineage</th><th>Parameters</th><th>Tokenizer</th><th>Status</th><th>Artifact</th></tr></thead>
+            <tbody>
+              <tr><td><a href="/xr-foundation-model/models/native-25m.html">XRFM Native 25M</a></td><td>Original, random initialization</td><td class="num">25,200,000</td><td>T4 32K BPE</td><td>Published</td><td><a href="https://huggingface.co/ahmadrrrtx/xrfm-native-25m">Hugging Face</a></td></tr>
+              <tr><td><a href="/xr-foundation-model/models/native-85m.html">XRFM Native 85M</a></td><td>Original, random initialization</td><td class="num">86,446,464</td><td>T4 32K BPE</td><td>Published</td><td><a href="https://huggingface.co/ahmadrrrtx/xrfm-native-85m">Hugging Face</a></td></tr>
+              <tr><td><a href="/xr-foundation-model/models/codersec.html">XRFM CoderSec</a></td><td>Qwen3-1.7B base + QLoRA</td><td class="num">~1.7B base</td><td>Qwen tokenizer</td><td><strong>Not published</strong></td><td>See status page</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid grid-3" style="margin-top:2rem">
+          <article class="card"><h3>Native weights</h3><p>Released under Apache-2.0 metadata. Source code remains MIT-licensed; the weight license is artifact-specific.</p></article>
+          <article class="card"><h3>CoderSec attribution</h3><p>Base model <code>Qwen/Qwen3-1.7B</code> revision <code>70d244cc</code>, Apache-2.0. No adapter or merged weights are public.</p></article>
+          <article class="card"><h3>No hidden lineage</h3><p>Native models loaded no third-party pretrained weights. CoderSec did, and says so on every public surface.</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3>XR Foundation Model</h3>
+          <p>Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.</p>
+          <p>Developed by M. Ahmad · RRRTX Labs</p>
+        </div>
+        <div>
+          <h3>Project</h3>
+          <a href="../models/">Models</a>
+          <a href="../datasets/">Datasets</a>
+          <a href="../evaluation/">Evaluation</a>
+          <a href="../research/">Research</a>
+          <a href="../releases/">Releases</a>
+        </div>
+        <div>
+          <h3>Resources</h3>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model">Source repository</a>
+          <a href="https://huggingface.co/ahmadrrrtx">Hugging Face</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/CONTRIBUTING.md">Contributing</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/SECURITY.md">Security policy</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/release/LICENSE_AND_ATTRIBUTION_MATRIX.md">Licensing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">Static research site · Built with HTML and CSS · <a href="../sitemap.xml">Sitemap</a></div>
+    </div>
+  </footer>
+</body>
+</html>
+

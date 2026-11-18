@@ -1,0 +1,42 @@
+    <header class="page-head">
+      <div class="container">
+        <div class="kicker">Track B · XRFM CoderSec</div>
+        <h1>XRFM CoderSec</h1>
+        <p>A defensive-coding research line based on an explicitly attributed pretrained model. Adapter and merged weights are not publicly available.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container grid grid-2">
+        <article class="prose">
+          <h2>Model lineage</h2>
+          <p>CoderSec is <strong>not</strong> an XRFM Native architecture and was <strong>not</strong> trained from random initialization. It uses <a href="https://huggingface.co/Qwen/Qwen3-1.7B">Qwen/Qwen3-1.7B</a>, revision <code>70d244cc86ccca08cf5af4e1e306ecf908b1ad5e</code>, under Apache-2.0, followed by NF4 + FP16 QLoRA fine-tuning in the project's training scripts.</p>
+          <h2>Dataset</h2>
+          <p>Training used <a href="https://huggingface.co/datasets/ahmadrrrtx/xrfm-codersec-sft-40k">xrfm-codersec-sft-40k</a> revision <code>808d7505</code>. The published dataset has 24,100 rows despite “40k” in its name. The audit found malformed ChatML in every row and placeholder code in all 2,100 code examples; see the datasets page.</p>
+          <h2>Training record</h2>
+          <p>Repository experiment records describe base-model bake-off, multiple ablations and a flagship QLoRA run on Tesla T4 hardware. The base bake-off preferred Qwen3-1.7B over Qwen2.5-Coder-1.5B-Instruct on a small internal benchmark. These are experiment records, not independent benchmarks.</p>
+          <h2>Evaluation</h2>
+          <p>Public documentation describes an 8-prompt weaponization screen, 7 false-refusal prompts and 4 Roman-Urdu perturbation pairs. These are preliminary, limited-sample internal checks. A zero observed failure rate on a small sample does not establish zero real-world risk.</p>
+        </article>
+        <aside>
+          <div class="card">
+            <span class="tag red">Checkpoint status</span>
+            <h3>Not published</h3>
+            <p>No adapter or merged CoderSec repository was found on the Hugging Face account. Candidate identifiers returned HTTP 404. Repository notes state that publication was deferred.</p>
+            <p><strong>Do not use a CoderSec model today.</strong> No checkpoint link is provided because no checkpoint is available.</p>
+          </div>
+          <div class="card" style="margin-top:1rem">
+            <h3>What exists publicly</h3>
+            <ul>
+              <li>QLoRA and merge source code</li>
+              <li>Training and evaluation scripts</li>
+              <li>SFT dataset and quality report</li>
+              <li>Experiment manifests and red-team notes</li>
+            </ul>
+          </div>
+          <div class="card" style="margin-top:1rem">
+            <h3>License basis</h3>
+            <p>Base: Apache-2.0. Dataset rows: Apache-2.0, CC0-1.0 and MIT. Any future adapter or merged weights need their own metadata decision.</p>
+          </div>
+        </aside>
+      </div>
+    </section>

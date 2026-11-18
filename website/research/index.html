@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Research · XRFM</title>
+  <meta name="description" content="Research reports, tokenizer tournament, experiment registry and technical decisions.">
+  <meta name="author" content="M. Ahmad, RRRTX Labs">
+  <link rel="canonical" href="https://ahmadrrrtx.github.io/xr-foundation-model/research/index.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="XR Foundation Model">
+  <meta property="og:title" content="Research · XRFM">
+  <meta property="og:description" content="Research reports, tokenizer tournament, experiment registry and technical decisions.">
+  <meta property="og:url" content="https://ahmadrrrtx.github.io/xr-foundation-model/research/index.html">
+  <meta property="og:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Research · XRFM">
+  <meta name="twitter:description" content="Research reports, tokenizer tournament, experiment registry and technical decisions.">
+  <meta name="twitter:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <script src="../assets/js/site.js" defer></script>
+</head>
+<body data-site-root="../">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../">
+        <svg class="brand-mark" viewBox="0 0 40 40" role="img" aria-label="XRFM mark">
+          <rect x="1" y="1" width="38" height="38" rx="11" fill="#071426"/>
+          <path d="M10 12l6 8-6 8M20 28l11-16" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="30" cy="12" r="2.2" fill="#2dd4bf"/>
+        </svg>
+        XRFM
+      </a>
+      <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-label="Toggle navigation">
+      <label class="nav-toggle-label" for="nav-toggle" aria-hidden="true">☰</label>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="../" data-nav="home">Home</a>
+        <a href="../models/" data-nav="models">Models</a>
+        <a href="../architecture/" data-nav="architecture">Architecture</a>
+        <a href="../datasets/" data-nav="datasets">Datasets</a>
+        <a href="../evaluation/" data-nav="evaluation">Evaluation</a>
+        <a href="../docs/" data-nav="docs">Docs</a>
+        <a href="../research/" data-nav="research" aria-current="page">Research</a>
+        <a class="header-cta" href="https://github.com/ahmadrrrtx/xr-foundation-model" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+<header class="page-head">
+      <div class="container">
+        <div class="kicker">Research</div>
+        <h1>Reports, decisions and experiment records</h1>
+        <p>The repository preserves the research trail: tokenizer tournament, native pretraining telemetry, CoderSec experiment manifests, red-team notes and architectural decision records.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container grid grid-3">
+        <article class="card"><span class="tag">Tokenizer</span><h3>Four-way tournament</h3><p>T1–T4 plus a legacy 2K control were compared for cross-script fertility, byte fallback and lossless round-trip. T4 won.</p><a class="card-link" href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/experiments/tokenizer_tournament_v1.json">Tournament JSON →</a></article>
+        <article class="card"><span class="tag">Native</span><h3>Pretraining telemetry</h3><p>Step counts, tokens processed, hardware, loss curves, per-domain BPB and exact-resume probes are pinned in the model repositories.</p><a class="card-link" href="/xr-foundation-model/evaluation/">Evaluation summary →</a></article>
+        <article class="card"><span class="tag amber">CoderSec</span><h3>QLoRA experiment registry</h3><p>Base bake-off, smoke B0, English-only B1, multilingual B2, rank check B3 and flagship runs are recorded with revisions and hardware notes.</p><a class="card-link" href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md">Execution ledger →</a></article>
+      </div>
+    </section>
+    <section class="section wash">
+      <div class="container prose">
+        <h2>Technical decisions</h2>
+        <p><a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/adr/0001-xrfm-core-architecture.md">ADR 0001</a> defines the core package boundary: <code>src/xrfm/</code> is canonical, root-level shims were deprecated until v2.0, and experimental subsystems remain consumers of the core. <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/DECISIONS.md">DECISIONS.md</a> records project-level trade-offs.</p>
+        <h2>Research reports</h2>
+        <ul>
+          <li><a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/XRFM_NEUROTOPO_RESEARCH_REPORT.md">NeuroTopo research report</a> — experimental architecture line, preserved but not part of the published Native checkpoints.</li>
+          <li><a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/experiments/FINAL_BENCHMARK_MATRIX.md">Final benchmark matrix</a> — CoderSec internal evaluation and sample counts.</li>
+          <li><a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/research/XRFM_DUAL_TRACK_EXECUTION_LEDGER.md">Dual-track execution ledger</a> — phase-level experiment records.</li>
+          <li><a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/release/MODEL_AND_DATASET_AUDIT.md">Model and dataset audit</a> — revisions, counts and known defects.</li>
+        </ul>
+        <h2>Citation</h2>
+        <p>Cite the source repository and the exact model/dataset revisions used. A machine-readable <code>CITATION.cff</code> is maintained in the repository. No DOI, journal publication or scholarly affiliation is claimed.</p>
+        <h2>Version history</h2>
+        <p>The existing v2.0.0 release and tag are preserved. See the <a href="/xr-foundation-model/releases/">releases page</a> for the current status and the repository <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/CHANGELOG.md">CHANGELOG</a> for detailed history.</p>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3>XR Foundation Model</h3>
+          <p>Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.</p>
+          <p>Developed by M. Ahmad · RRRTX Labs</p>
+        </div>
+        <div>
+          <h3>Project</h3>
+          <a href="../models/">Models</a>
+          <a href="../datasets/">Datasets</a>
+          <a href="../evaluation/">Evaluation</a>
+          <a href="../research/">Research</a>
+          <a href="../releases/">Releases</a>
+        </div>
+        <div>
+          <h3>Resources</h3>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model">Source repository</a>
+          <a href="https://huggingface.co/ahmadrrrtx">Hugging Face</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/CONTRIBUTING.md">Contributing</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/SECURITY.md">Security policy</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/release/LICENSE_AND_ATTRIBUTION_MATRIX.md">Licensing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">Static research site · Built with HTML and CSS · <a href="../sitemap.xml">Sitemap</a></div>
+    </div>
+  </footer>
+</body>
+</html>
+

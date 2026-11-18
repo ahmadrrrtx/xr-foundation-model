@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Architecture · XRFM</title>
+  <meta name="description" content="Decoder-only transformer, RoPE, RMSNorm, SwiGLU, tokenizer and dual-track design.">
+  <meta name="author" content="M. Ahmad, RRRTX Labs">
+  <link rel="canonical" href="https://ahmadrrrtx.github.io/xr-foundation-model/architecture/index.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="XR Foundation Model">
+  <meta property="og:title" content="Architecture · XRFM">
+  <meta property="og:description" content="Decoder-only transformer, RoPE, RMSNorm, SwiGLU, tokenizer and dual-track design.">
+  <meta property="og:url" content="https://ahmadrrrtx.github.io/xr-foundation-model/architecture/index.html">
+  <meta property="og:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Architecture · XRFM">
+  <meta name="twitter:description" content="Decoder-only transformer, RoPE, RMSNorm, SwiGLU, tokenizer and dual-track design.">
+  <meta name="twitter:image" content="https://ahmadrrrtx.github.io../assets/img/og.svg">
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <script src="../assets/js/site.js" defer></script>
+</head>
+<body data-site-root="../">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../">
+        <svg class="brand-mark" viewBox="0 0 40 40" role="img" aria-label="XRFM mark">
+          <rect x="1" y="1" width="38" height="38" rx="11" fill="#071426"/>
+          <path d="M10 12l6 8-6 8M20 28l11-16" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="30" cy="12" r="2.2" fill="#2dd4bf"/>
+        </svg>
+        XRFM
+      </a>
+      <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-label="Toggle navigation">
+      <label class="nav-toggle-label" for="nav-toggle" aria-hidden="true">☰</label>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="../" data-nav="home">Home</a>
+        <a href="../models/" data-nav="models">Models</a>
+        <a href="../architecture/" data-nav="architecture" aria-current="page">Architecture</a>
+        <a href="../datasets/" data-nav="datasets">Datasets</a>
+        <a href="../evaluation/" data-nav="evaluation">Evaluation</a>
+        <a href="../docs/" data-nav="docs">Docs</a>
+        <a href="../research/" data-nav="research">Research</a>
+        <a class="header-cta" href="https://github.com/ahmadrrrtx/xr-foundation-model" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+<header class="page-head">
+      <div class="container">
+        <div class="kicker">Technical architecture</div>
+        <h1>How XRFM is built</h1>
+        <p>The canonical implementation lives in <code>src/xrfm/</code>. Native models use the original <code>XRFMModel</code>; CoderSec uses an attributed pretrained base and project-owned fine-tuning tooling.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container">
+        <div class="card" style="padding:1.4rem">
+          <svg class="diagram" viewBox="0 0 1100 520" role="img" aria-labelledby="arch-title">
+            <title id="arch-title">XRFM native training and inference architecture</title>
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0e9fbd"/></marker>
+            </defs>
+            <g font-size="13" fill="#5b6b80">
+              <rect x="30" y="40" width="180" height="70" rx="12" fill="#f1f8fa" stroke="#bcd9e2"/>
+              <text x="120" y="70" text-anchor="middle" font-weight="700" fill="#0a1626">Text / code shards</text>
+              <text x="120" y="90" text-anchor="middle">uint16 · seq 2048 + label</text>
+              <rect x="270" y="40" width="180" height="70" rx="12" fill="#f1f8fa" stroke="#bcd9e2"/>
+              <text x="360" y="70" text-anchor="middle" font-weight="700" fill="#0a1626">T4 byte-level BPE</text>
+              <text x="360" y="90" text-anchor="middle">32,768 tokens</text>
+              <rect x="510" y="40" width="180" height="70" rx="12" fill="#f1f8fa" stroke="#bcd9e2"/>
+              <text x="600" y="70" text-anchor="middle" font-weight="700" fill="#0a1626">XRFMModel</text>
+              <text x="600" y="90" text-anchor="middle">random initialization</text>
+              <rect x="750" y="40" width="180" height="70" rx="12" fill="#f1f8fa" stroke="#bcd9e2"/>
+              <text x="840" y="70" text-anchor="middle" font-weight="700" fill="#0a1626">Trainer</text>
+              <text x="840" y="90" text-anchor="middle">loss · checkpoint · resume</text>
+              <rect x="930" y="40" width="140" height="70" rx="12" fill="#f1f8fa" stroke="#bcd9e2"/>
+              <text x="1000" y="70" text-anchor="middle" font-weight="700" fill="#0a1626">safetensors</text>
+              <text x="1000" y="90" text-anchor="middle">HF release</text>
+            </g>
+            <g stroke="#0e9fbd" stroke-width="2" marker-end="url(#arrow)"><path d="M210 75h60"/><path d="M450 75h60"/><path d="M690 75h60"/><path d="M930 75h0"/></g>
+            <g>
+              <rect x="80" y="180" width="940" height="130" rx="18" fill="#ffffff" stroke="#dce4ee"/>
+              <text x="110" y="210" font-size="14" font-weight="700" fill="#0a1626">Decoder block × N</text>
+              <rect x="110" y="230" width="170" height="52" rx="10" fill="#f7fafc" stroke="#cfdae6"/><text x="195" y="262" text-anchor="middle" font-size="13">RMSNorm</text>
+              <rect x="310" y="230" width="220" height="52" rx="10" fill="#f7fafc" stroke="#cfdae6"/><text x="420" y="254" text-anchor="middle" font-size="13" font-weight="700">GQA + RoPE</text><text x="420" y="272" text-anchor="middle" font-size="11">causal mask · KV cache</text>
+              <rect x="560" y="230" width="180" height="52" rx="10" fill="#f7fafc" stroke="#cfdae6"/><text x="650" y="262" text-anchor="middle" font-size="13">RMSNorm</text>
+              <rect x="770" y="230" width="220" height="52" rx="10" fill="#f7fafc" stroke="#cfdae6"/><text x="880" y="254" text-anchor="middle" font-size="13" font-weight="700">SwiGLU MLP</text><text x="880" y="272" text-anchor="middle" font-size="11">gated feed-forward</text>
+              <path d="M280 256h30M530 256h30M740 256h30" stroke="#0e9fbd" stroke-width="2"/>
+            </g>
+            <g font-size="13" fill="#5b6b80">
+              <rect x="130" y="370" width="360" height="90" rx="14" fill="#fdf7ed" stroke="#ead7b8"/>
+              <text x="310" y="400" text-anchor="middle" font-weight="700" fill="#0a1626">Inference path</text>
+              <text x="310" y="425" text-anchor="middle">GenerationEngine → sampling → decode</text>
+              <rect x="600" y="370" width="360" height="90" rx="14" fill="#f1f8fa" stroke="#bcd9e2"/>
+              <text x="780" y="400" text-anchor="middle" font-weight="700" fill="#0a1626">Evaluation path</text>
+              <text x="780" y="425" text-anchor="middle">per-domain BPB from held-out shards</text>
+            </g>
+          </svg>
+          <p class="figcaption">Native pipeline. CoderSec reuses the data/evaluation tooling but replaces the model block with Qwen3-1.7B + QLoRA; no weights are combined.</p>
+        </div>
+      </div>
+    </section>
+    <section class="section wash">
+      <div class="container grid grid-2">
+        <article class="prose">
+          <h2>Core components</h2>
+          <h3>Attention and normalization</h3>
+          <p>Native models use grouped-query attention so query heads outnumber key/value heads, reducing cache size. Rotary position embeddings are cached with FP32-safe computation; RMSNorm stabilizes residual streams; SwiGLU provides a gated feed-forward network.</p>
+          <h3>Tokenizer contract</h3>
+          <p>T4 is a byte-level BPE with atomic special tokens and script-protection behaviour. The same tokenizer file is packaged with the library and published with both native checkpoints. Historical `vocab.json` remains the legacy control for the tokenizer tournament.</p>
+          <h3>Checkpointing</h3>
+          <p>Training writes serialized checkpoints and telemetry. The documented CUDA exact-resume probe compared weights after uninterrupted and resumed runs, reporting zero maximum absolute difference.</p>
+        </article>
+        <article class="prose">
+          <h2>Dual-track boundary</h2>
+          <p>Track A owns the transformer implementation and T4 tokenizer. Track B owns QLoRA dataset handling, adapter training, merging and defensive-security tooling. Shared scripts handle evaluation and reproducibility, but no Native weights are loaded into CoderSec and no Qwen weights are loaded into Native models.</p>
+          <div class="callout"><p>The packaging boundary is enforced by <code>pyproject.toml</code>: only the <code>xrfm</code> package is shipped in the wheel; the API service and scripts remain repository tools.</p></div>
+          <h2>Research preservation</h2>
+          <p>Experimental NeuroTopo modules and tokenizer tournament code are preserved in the package and excluded from core lint gates where appropriate. They are not part of the published Native or CoderSec checkpoints.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3>XR Foundation Model</h3>
+          <p>Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.</p>
+          <p>Developed by M. Ahmad · RRRTX Labs</p>
+        </div>
+        <div>
+          <h3>Project</h3>
+          <a href="../models/">Models</a>
+          <a href="../datasets/">Datasets</a>
+          <a href="../evaluation/">Evaluation</a>
+          <a href="../research/">Research</a>
+          <a href="../releases/">Releases</a>
+        </div>
+        <div>
+          <h3>Resources</h3>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model">Source repository</a>
+          <a href="https://huggingface.co/ahmadrrrtx">Hugging Face</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/CONTRIBUTING.md">Contributing</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/SECURITY.md">Security policy</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/release/LICENSE_AND_ATTRIBUTION_MATRIX.md">Licensing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">Static research site · Built with HTML and CSS · <a href="../sitemap.xml">Sitemap</a></div>
+    </div>
+  </footer>
+</body>
+</html>
+

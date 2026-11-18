@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITLE}} · XRFM</title>
+  <meta name="description" content="{{DESCRIPTION}}">
+  <meta name="author" content="M. Ahmad, RRRTX Labs">
+  <link rel="canonical" href="{{CANONICAL}}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="XR Foundation Model">
+  <meta property="og:title" content="{{TITLE}} · XRFM">
+  <meta property="og:description" content="{{DESCRIPTION}}">
+  <meta property="og:url" content="{{CANONICAL}}">
+  <meta property="og:image" content="https://ahmadrrrtx.github.io/xr-foundation-model/assets/img/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{TITLE}} · XRFM">
+  <meta name="twitter:description" content="{{DESCRIPTION}}">
+  <meta name="twitter:image" content="https://ahmadrrrtx.github.io/xr-foundation-model/assets/img/og.svg">
+  <link rel="icon" type="image/svg+xml" href="{{ROOT}}assets/img/favicon.svg">
+  <link rel="stylesheet" href="{{ROOT}}assets/css/site.css">
+  <script src="{{ROOT}}assets/js/site.js" defer></script>
+</head>
+<body data-site-root="{{ROOT}}">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="{{ROOT}}">
+        <svg class="brand-mark" viewBox="0 0 40 40" role="img" aria-label="XRFM mark">
+          <rect x="1" y="1" width="38" height="38" rx="11" fill="#071426"/>
+          <path d="M10 12l6 8-6 8M20 28l11-16" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="30" cy="12" r="2.2" fill="#2dd4bf"/>
+        </svg>
+        XRFM
+      </a>
+      <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-label="Toggle navigation">
+      <label class="nav-toggle-label" for="nav-toggle" aria-hidden="true">☰</label>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="{{ROOT}}" data-nav="home">Home</a>
+        <a href="{{ROOT}}models/" data-nav="models">Models</a>
+        <a href="{{ROOT}}architecture/" data-nav="architecture">Architecture</a>
+        <a href="{{ROOT}}datasets/" data-nav="datasets">Datasets</a>
+        <a href="{{ROOT}}evaluation/" data-nav="evaluation">Evaluation</a>
+        <a href="{{ROOT}}docs/" data-nav="docs">Docs</a>
+        <a href="{{ROOT}}research/" data-nav="research">Research</a>
+        <a class="header-cta" href="https://github.com/ahmadrrrtx/xr-foundation-model" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+{{BODY}}
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3>XR Foundation Model</h3>
+          <p>Open multilingual foundation-model research with an original decoder-only architecture and a separately attributed defensive-security track.</p>
+          <p>Developed by M. Ahmad · RRRTX Labs</p>
+        </div>
+        <div>
+          <h3>Project</h3>
+          <a href="{{ROOT}}models/">Models</a>
+          <a href="{{ROOT}}datasets/">Datasets</a>
+          <a href="{{ROOT}}evaluation/">Evaluation</a>
+          <a href="{{ROOT}}research/">Research</a>
+          <a href="{{ROOT}}releases/">Releases</a>
+        </div>
+        <div>
+          <h3>Resources</h3>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model">Source repository</a>
+          <a href="https://huggingface.co/ahmadrrrtx">Hugging Face</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/CONTRIBUTING.md">Contributing</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/SECURITY.md">Security policy</a>
+          <a href="https://github.com/ahmadrrrtx/xrf-foundation-model/blob/main/docs/release/LICENSE_AND_ATTRIBUTION_MATRIX.md">Licensing</a>
+        </div>
+      </div>
+      <div class="footer-bottom">Static research site · Built with HTML and CSS · <a href="{{ROOT}}sitemap.xml">Sitemap</a></div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,143 @@
+{
+  "chatml": {
+    "canonical_markers": 0,
+    "corrupt_marker_rows": 24100,
+    "corrupt_markers": 24100,
+    "empty_assistant_response": 0,
+    "expected_3_role_structure": 24100
+  },
+  "code": {
+    "blocks": 2100,
+    "blocks_with_generic_func_id": 2100,
+    "blocks_with_placeholder_comment": 2100,
+    "blocks_with_x_plus_y": 2100,
+    "code_block_languages": {
+      "python": 2100
+    },
+    "python_blocks_checked": 2100,
+    "python_syntax_errors": 0,
+    "rows_with_code_blocks": 2100
+  },
+  "domains": {
+    "code": 2100,
+    "defensive_security": 12000,
+    "multilingual_qa": 6000,
+    "rag_citation": 4000
+  },
+  "duplicates": {
+    "duplicates_by_source": {
+      "aya": 0,
+      "cybernative": 11993,
+      "opencoder_stage2": 0,
+      "xrfm_security_kb": 0
+    },
+    "exact_chatml": 11993,
+    "exact_duplicate_rows": 11993,
+    "most_repeated_prompt": "",
+    "most_repeated_prompt_count": 24100,
+    "top_assistant_responses": [
+      {
+        "count": 3000,
+        "response": "Apply the following hardening steps: disable root login, use key-based auth, install fail2ban. Keep software updated and monitor logs. [NIST SP 800-53]"
+      },
+      {
+        "count": 1500,
+        "response": "CWE-89 is Improper Neutralization of Special Elements used in an SQL Command. To remediate: use parameterized queries with placeholders. [CWE-89, OWASP ASVS 5.1"
+      },
+      {
+        "count": 1500,
+        "response": "Command Injection refers to Improper Neutralization of Special Elements used in an OS Command. Prevention strategies include: avoid OS command execution; use al"
+      },
+      {
+        "count": 1500,
+        "response": "Use parameterized queries to ensure data protection. Always validate input and sanitize output. [CWE-79]"
+      },
+      {
+        "count": 1500,
+        "response": "CWE-22 is Improper Limitation of a Pathname to a Restricted Directory. To remediate: validate file paths and use canonical paths. [CWE-22, OWASP ASVS 5.1]"
+      }
+    ],
+    "top_user_prompts": [
+      {
+        "count": 3000,
+        "prompt": "Write secure Python code for user authentication."
+      },
+      {
+        "count": 3000,
+        "prompt": "How do I harden Linux server for production?"
+      },
+      {
+        "count": 2000,
+        "prompt": "मशीन लर्निंग क्या है? सरल शब्दों में समझाएं।"
+      },
+      {
+        "count": 2000,
+        "prompt": "ما هو التعلم الآلي؟ اشرح ببساطة."
+      },
+      {
+        "count": 2000,
+        "prompt": "¿Qué es el aprendizaje automático? Explícalo simplemente."
+      },
+      {
+        "count": 1500,
+        "prompt": "How do I remediate CWE-89 in Python?"
+      },
+      {
+        "count": 1500,
+        "prompt": "Explain Command Injection and how to prevent it."
+      },
+      {
+        "count": 1500,
+        "prompt": "How do I remediate CWE-22 in Python?"
+      }
+    ],
+    "unique_assistant_responses": 12107,
+    "unique_chatml": 12107,
+    "unique_user_prompts": 4012
+  },
+  "languages": {
+    "arb": 2000,
+    "en": 18100,
+    "spa": 2000,
+    "urd": 2000
+  },
+  "license_by_source": {
+    "aya": {
+      "Apache-2.0": 6000
+    },
+    "cybernative": {
+      "Apache-2.0": 12000
+    },
+    "opencoder_stage2": {
+      "MIT": 2100
+    },
+    "xrfm_security_kb": {
+      "CC0-1.0": 4000
+    }
+  },
+  "license_tiers": {
+    "tier_a": 22000,
+    "tier_b": 2100
+  },
+  "licenses": {
+    "Apache-2.0": 18000,
+    "CC0-1.0": 4000,
+    "MIT": 2100
+  },
+  "pii_secrets": {
+    "aws_access_key": 0,
+    "bearer_token": 0,
+    "email": 0,
+    "hf_token_like": 0,
+    "private_key": 0
+  },
+  "provenance_missing": 0,
+  "rows": 24100,
+  "sources": {
+    "aya": 6000,
+    "cybernative": 12000,
+    "opencoder_stage2": 2100,
+    "xrfm_security_kb": 4000
+  },
+  "sources_with_multiple_licenses": []
+}

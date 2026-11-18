@@ -1,0 +1,76 @@
+    <header class="page-head">
+      <div class="container">
+        <div class="kicker">Datasets</div>
+        <h1>Traceable data, honestly described</h1>
+        <p>Both datasets are published on Hugging Face. Counts below come from manifest files, repository inventories and bounded data inspection—not from repository names or assumptions.</p>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container">
+        <div class="grid grid-2">
+          <article class="card">
+            <span class="tag">Track A · Pretraining</span>
+            <h3><a href="https://huggingface.co/datasets/ahmadrrrtx/xrfm-native-shards-v1">xrfm-native-shards-v1</a></h3>
+            <p>Revision <code>1652affc</code>. Eight train shards are present and accessible; the dataset viewer shows only the 623-row validation split because <code>.npy</code> token shards are not rendered as tables.</p>
+            <div class="table-wrap">
+              <table>
+                <tbody>
+                  <tr><th>Train sequences</th><td class="num">9,577 × 2,049 uint16</td></tr>
+                  <tr><th>Train tokens</th><td class="num">19,613,696</td></tr>
+                  <tr><th>Validation tokens</th><td class="num">467,279</td></tr>
+                  <tr><th>Total prepared tokens</th><td class="num">20,080,975</td></tr>
+                  <tr><th>Source documents</th><td class="num">29,491</td></tr>
+                  <tr><th>Validation docs</th><td class="num">623</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <h4>Sources and licenses</h4>
+            <p>FineWeb-Edu and FineWeb-2 (ODC-By-1.0), OpenCoder Stage-2 (MIT), AI4Bharat Sangraha (CC-BY-4.0). Aggregate metadata: ODC-By. Source revisions are pinned in <code>manifest.json</code>.</p>
+            <h4>Processing</h4>
+            <p>SHA-256 and MinHash-LSH 8×4 deduplication; contamination check against <code>configs/eval/frozen_benchmarks_v1.json</code>; SHA-256 split with seed 42. Eight language/code validation sets: en, ur, ur-Latn, ar, hi, es, fr, code.</p>
+          </article>
+          <article class="card">
+            <span class="tag amber">Track B · SFT</span>
+            <h3><a href="https://huggingface.co/datasets/ahmadrrrtx/xrfm-codersec-sft-40k">xrfm-codersec-sft-40k</a></h3>
+            <p>Revision <code>808d7505</code>. The actual file contains <strong>24,100</strong> rows, not 40,000. It is preserved unchanged because documented QLoRA experiments used this revision.</p>
+            <div class="table-wrap">
+              <table>
+                <tbody>
+                  <tr><th>defensive_security</th><td class="num">12,000</td></tr>
+                  <tr><th>multilingual_qa</th><td class="num">6,000</td></tr>
+                  <tr><th>rag_citation</th><td class="num">4,000</td></tr>
+                  <tr><th>code</th><td class="num">2,100</td></tr>
+                  <tr><th>Unique ChatML records</th><td class="num">12,107</td></tr>
+                  <tr><th>Exact duplicate rows</th><td class="num">11,993</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <h4>Schema</h4>
+            <p><code>record_id</code>, <code>source</code>, <code>language</code>, <code>chatml</code>, <code>domain</code>, <code>license</code>, <code>license_tier</code>, <code>code_blocks</code>, <code>provenance</code>.</p>
+            <h4>Row licenses</h4>
+            <p>Apache-2.0 (18,000), CC0-1.0 (4,000), MIT (2,100). Dataset-level metadata is <code>other</code>; no single license covers all rows.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+    <section class="section wash">
+      <div class="container prose">
+        <div class="kicker">Measured quality issues</div>
+        <h2>CoderSec SFT: known defects</h2>
+        <div class="callout danger">
+          <p>All 24,100 rows use corrupted ChatML markers: <code>licsystem</code>, <code>licuser</code>, <code>licassistant</code> and <code>irit</code> instead of <code>&lt;|im_start|&gt;</code> and <code>&lt;|im_end|&gt;</code>. The three-role structure is present, but the serialization is not canonical ChatML.</p>
+        </div>
+        <p>All 2,100 code blocks are generic stubs of the form <code>def func_&lt;id&gt;(x, y)</code> returning <code>result = x + y  # placeholder</code>, regardless of the requested task. They parse as Python but do not solve the prompts. CyberNative rows are heavily duplicated: 12,000 rows collapse to 7 unique responses.</p>
+        <p>A bounded pattern scan found no obvious emails, AWS keys, private-key headers or token-like strings. This is not a formal privacy audit. The full measurement is published as <a href="https://huggingface.co/datasets/ahmadrrrtx/xrfm-codersec-sft-40k/blob/main/QUALITY_REPORT.json">QUALITY_REPORT.json</a>.</p>
+        <h2>Reproducible correction</h2>
+        <p><code>scripts/filter_codersec_sft.py</code> canonicalizes ChatML, drops placeholder-only code rows and deduplicates. Applied to the published revision it produces 10,007 records. The corrected output has not been published under the original revision; any release will be separately versioned so training data provenance remains intact.</p>
+        <h2>Usage example</h2>
+        <pre><code>from datasets import load_dataset
+
+ds = load_dataset(
+    "json",
+    data_files="https://huggingface.co/datasets/ahmadrrrtx/xrfm-codersec-sft-40k/resolve/main/data/data.jsonl",
+)
+print(ds["train"][0])</code></pre>
+      </div>
+    </section>
