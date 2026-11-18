@@ -143,3 +143,14 @@ Conclusions from evidence:
   now uses an explicit gate to test event ordering deterministically.
 - GitHub Pages deployment cannot pass until Pages is enabled in repository settings;
   a fine-grained PAT receives HTTP 403 from the Pages settings API.
+
+## Website visual redesign and redeployment (PR #7)
+
+- Researched Mistral, Hugging Face and Qwen official sites; adopted a restrained dark, research-first visual pattern with confident hero, dense cards and original artifacts.
+- Generated three original local artifacts (layered neural transformer, CoderSec shield, tokenizer lattice) and optimized WebP derivatives; no external hotlinks or copied visuals.
+- Rewrote the site CSS and key page fragments; added artifact galleries, dual-track framing and a measured BPB table while preserving all factual disclosures.
+- Fixed the static build so page-fragment root links resolve without corrupting absolute social-preview URLs; the validator now checks local asset references as well as links.
+- Local build/validation, Ruff, Black and all checks passed. PR #7 CI `44411289580` and Pages build `44411289660` were green before merge.
+- User approved merging PR #7. Merged into `main` at `06fa1099eddb31b64fbd4a6f38f378c2e11e32e2`; post-merge CI `44412448500` and Pages deployment `44412448559` succeeded.
+- Verified HTTP 200 for 16 public paths including the homepage, all key pages, sitemap, robots, CSS and WebP artifacts; live HTML contains the new hero and asset references.
+- No model weights, datasets, tokenizer, release tag or GitHub release were changed. No `v2.0.1` was created.
